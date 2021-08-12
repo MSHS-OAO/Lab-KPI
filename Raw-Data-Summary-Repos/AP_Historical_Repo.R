@@ -195,7 +195,8 @@ if (initial_run == TRUE) {
       path =
         paste0(
           user_directory, "\\EPIC Cytology"),
-      pattern = "^MSHS Pathology Orders EPIC")
+      pattern = "^(MSHS Pathology Orders Epic){1}.*",
+      ignore.case = TRUE)
 
   epic_cyto_list <-
     lapply(file_list_epic, function(x) read_excel(path =
@@ -321,8 +322,9 @@ if (initial_run == TRUE) {
       path =
         paste0(
           user_directory, "\\EPIC Cytology"),
-      pattern = paste0("^MSHS Pathology Orders EPIC.+",
-                       date_range, collapse = "|"))
+      pattern = paste0("^(MSHS Pathology Orders Epic){1}.*",
+                       date_range, collapse = "|"),
+      ignore.case = TRUE)
 
   epic_cyto_list <-
     lapply(file_list_epic,
