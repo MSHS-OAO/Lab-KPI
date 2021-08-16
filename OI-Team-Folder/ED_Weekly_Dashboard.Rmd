@@ -1,5 +1,5 @@
 ---
-title: "MSHS System Lab Dashboard"
+title: "System Lab ED PI Committee - Weekly Dashboard"
 date: "`r format(Sys.Date(), '%m/%d/%y')`"
 output: html_document
 ---
