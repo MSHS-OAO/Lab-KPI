@@ -1,0 +1,446 @@
+---
+  title: "System Lab ED PI Committee - Monthly Dashboard"
+date: "`r format(Sys.Date(), '%m/%d/%y')`"
+output: html_document
+---
+  
+<!-- <h3><span style="color: red;">Draft - Not for Distribution</span></h3> -->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r Install and load packages, echo = FALSE, warning = FALSE, message = FALSE}
+# install.packages("gridExtra")
+# install.packages("scales")
+
+library(timeDate)
+library(readxl)
+library(bizdays)
+library(dplyr)
+library(lubridate)
+library(reshape2)
+library(knitr)
+library(kableExtra)
+library(formattable)
+library(rmarkdown)
+library(stringr)
+library(writexl)
+library(ggplot2)
+library(gridExtra)
+library(scales)
+library(ggQC)
+library(ggplot2)
+library(janitor)
+library(tidyr)
+library(purrr)
+```
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      fig.align = "center")
+```
+
+```{r Clear history and import relevant data}
+
+#Clear existing history
+rm(list = ls())
+
+# Select file/folder path for easier file selection and navigation
+if ("Presidents" %in% list.files("J://")) {
+  user_directory <- paste0("J:/Presidents/HSPI-PM/",
+                           "Operations Analytics and Optimization/Projects/",
+                           "Service Lines/Lab Kpi/Data")
+} else {
+  user_directory <- paste0("J:/deans/Presidents/HSPI-PM/",
+                           "Operations Analytics and Optimization/Projects/",
+                           "Service Lines/Lab Kpi/Data")
+}
+
+cp_user_path <- paste0(user_directory, "/CP Repositories/MonthlyRepo/*.*")
+
+# Import Clinical Pathology historical repository (Sunquest and SCC)
+cp_hist <-
+  readRDS(
+    file =
+      choose.files(default = cp_user_path,
+                   caption = "Select Clinical Pathology Monthly Repository"))
+
+cp_hist <- cp_hist %>%
+  ungroup()
+
+# Determine start week based on look back period
+todays_date <- Sys.Date()
+this_month <- month(todays_date)
+
+dashboard_start <- as.Date("1/1/21", format = "%m/%d/%y")
+
+# Specify tests and patient settings in scope for the dashboard
+settings_in_scope <- c("ED")
+tests_in_scope <- c("Troponin")
+
+# Sinai color scheme
+mshs_colors <- c("#221f72", "#00AEFF", "#D80B8C", "#7f7f7f")
+
+# Patient settings
+pt_setting <- c("Amb", "ED", "ICU", "IP Non-ICU", "Other", "Total")
+
+```
+
+```{r Subset historical repository}
+# Subset historical repository based on date range, settings and tests in scope
+repo_median_tat <- cp_hist %>%
+  filter(MonthRollUp >= dashboard_start &
+           MasterSetting %in% settings_in_scope &
+           Test %in% tests_in_scope) %>%
+  select(Site,
+         MonthRollUp,
+         Test,
+         Division,
+         MasterSetting,
+         DashboardPriority,
+         CollectReceive_Median,
+         ReceiveResult_Median,
+         CollectResult_Median) %>%
+  pivot_longer(cols = c("CollectReceive_Median",
+                        "ReceiveResult_Median",
+                        "CollectResult_Median"),
+               names_to = "ProcessStep",
+               values_to = "MedianTAT") %>%
+  mutate(ProcessStep = factor(ProcessStep,
+                              levels = c("CollectReceive_Median",
+                                         "ReceiveResult_Median",
+                                         "CollectResult_Median"),
+                              ordered = TRUE)) %>%
+  ungroup()
+
+```
+
+```{r Custom functions for graphs and tables}
+
+# Custom function for creating stacked bar graph with median TAT for
+# collect-to-receive and receive-to-result
+process_steps_stacked_bar <- function(site, test, setting) {
+  
+  # Subset the data for the appropriate site, test, setting, and turnaround time
+  process_steps_median_tat <- repo_median_tat %>%
+    filter(Site == site &
+             Test == test &
+             MasterSetting == setting &
+             ProcessStep != "CollectResult_Median")
+  
+  process_steps_median_tat <- droplevels(process_steps_median_tat)
+  
+  # Create and format the graph
+  ggplot(process_steps_median_tat,
+         aes(fill = ProcessStep,
+             y = MedianTAT,
+             x = MonthRollUp)) +
+    geom_col(position = position_stack(reverse = TRUE)) +
+    labs(title = paste(site,
+                       setting,
+                       test,
+                       "Median Turnaround Time by Month"),
+         x = "Month",
+         y = "Time (min)") +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position = "bottom",
+          axis.text.x = element_text(angle = 30, hjust = 1)) +
+    guides(fill = guide_legend(reverse = FALSE, title = "Process")) +
+    geom_text(aes(x = MonthRollUp, y = MedianTAT, label = MedianTAT),
+              color = "white",
+              position = position_stack(reverse = TRUE,
+                                        vjust = 0.5),
+              size = 3) +
+    scale_fill_manual(values = mshs_colors,
+                      labels = c("Collect to Receive",
+                                 "Receive to Result")) +
+    scale_y_continuous(expand = c(0, 0, 0.1, 0)) +
+    scale_x_date(date_labels = "%m-%y",
+                 breaks = sort(unique(process_steps_median_tat$MonthRollUp)),
+                 expand = c(0, 1))
+}
+
+# Custom function for creating a bar graph with median TAT from collect-to-result
+collect_result_stacked_bar <- function(site, test, setting) {
+  
+  # Subset the data for the appropriate site, test, setting, and turnaround time
+  collect_result_median_tat <- repo_median_tat %>%
+    filter(Site == site &
+             Test == test &
+             MasterSetting == setting &
+             ProcessStep == "CollectResult_Median")
+  
+  # Remove unused levels
+  collect_result_median_tat <- droplevels(collect_result_median_tat)
+  
+  # Create and format the graph
+  ggplot(collect_result_median_tat,
+         aes(fill = ProcessStep,
+             y = MedianTAT,
+             x = MonthRollUp)) +
+    geom_col(position = position_stack(reverse = TRUE)) +
+    labs(title = paste(site,
+                       setting,
+                       test,
+                       "Median Turnaround Time by Month"),
+         x = "Month",
+         y = "Time (min)") +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position = "bottom",
+          axis.text.x = element_text(angle = 30, hjust = 1)) +
+    guides(fill = guide_legend(reverse = FALSE, title = "Process")) +
+    geom_text(aes(x = MonthRollUp, y = MedianTAT, label = MedianTAT),
+              color = "white",
+              position = position_stack(reverse = TRUE,
+                                        vjust = 0.5),
+              size = 3) +
+    scale_fill_manual(values = mshs_colors,
+                      labels = c("Collect to Result")) +
+    scale_y_continuous(expand = c(0, 0, 0.1, 0)) +
+    scale_x_date(date_labels = "%m-%y",
+                 breaks = sort(unique(collect_result_median_tat$MonthRollUp)),
+                 expand = c(0, 1))
+}
+
+# Custom function for creating a table with missing collections for the desired setting
+missing_collection_kable <- function(site, test, setting) {
+  
+  missing_collect_summary <- cp_hist %>%
+    filter(Site == site &
+             Test == test &
+             MasterSetting == setting &
+             MonthRollUp >= dashboard_start) %>%
+    group_by(MonthRollUp) %>%
+    summarize(TotalMissingCollections = sum(TotalMissingCollections,
+                                            na.rm = TRUE),
+              TotalResultedVolume = sum(TotalResulted, na.rm = TRUE),
+              .groups = "keep") %>%
+    arrange(MonthRollUp) %>%
+    mutate(# Convert week start to text for better table formatting
+      MonthRollUp = format(MonthRollUp, "%b-%y"),
+      # Calculate percent of missing labs
+      PercentMissing = percent(TotalMissingCollections /
+                                 TotalResultedVolume,
+                               accuracy = 1),
+      # Convert total missing collections to character for binding/pivot
+      # longer with percent missing
+      TotalMissingCollections = as.character(TotalMissingCollections),
+      TotalResultedVolume = as.character(TotalResultedVolume)) %>%
+    select(MonthRollUp,
+           TotalMissingCollections,
+           PercentMissing,
+           TotalResultedVolume) %>%
+    # Pivot longer to get volume and percentage of missing labs in 1 column
+    pivot_longer(cols = c(TotalMissingCollections,
+                          PercentMissing,
+                          TotalResultedVolume),
+                 names_to = "Metric") %>%
+    # Add a column for metric roll up for use later in kable
+    mutate(Category = ifelse(Metric %in% c("TotalMissingCollections",
+                                           "PercentMissing"),
+                             "Missing Collections", "Total Resulted Labs"),
+           Metric = ifelse(Metric %in% c("TotalMissingCollections",
+                                         "TotalResultedVolume"),
+                           "Vol of Labs", "% of Labs")) %>%
+    select(Category, Metric, MonthRollUp, value) %>%
+    # Pivot wider to get a column for each week
+    pivot_wider(names_from = MonthRollUp,
+                names_sort = FALSE) %>%
+    ungroup()
+  
+  kable(missing_collect_summary,
+        format = "html",
+        escape = FALSE,
+        align = "c",
+        col.names =
+          c("",
+            colnames(missing_collect_summary[2:ncol(missing_collect_summary)])),
+        caption = paste("Table 1:",
+                        site,
+                        setting,
+                        test,
+                        "Missing Collections Summary")) %>%
+    kable_styling(bootstrap_options = "hover",
+                  position = "center",
+                  font_size = 11) %>%
+    column_spec(column = c(1),
+                border_right = "thin solid lightgray") %>%
+    add_header_above(c(" " = 2,
+                       "Month" = ncol(missing_collect_summary) - 2),
+                     background = c("white", "#221f72"),
+                     color = "white", line = FALSE, font_size = 13) %>%
+    row_spec(row = 0, font_size = 13) %>%
+    collapse_rows()
+  
+}
+
+# Custom function for creating a table with all resulted volume ------------
+resulted_volume_kable <- function(site, test) {
+  
+  # Subset the data for the appropriate site and test
+  resulted_lab_volume <- cp_hist %>%
+    filter(Site == site &
+             Test == test &
+             MonthRollUp >= dashboard_start) %>%
+    group_by(MonthRollUp, MasterSetting) %>%
+    rename(Setting = MasterSetting) %>%
+    summarize(ResultedVolume = sum(TotalResulted, na.rm = TRUE),
+              .groups = "keep") %>%
+    arrange(MonthRollUp) %>%
+    mutate(MonthRollUp = format(MonthRollUp, "%b-%y")) %>%
+    pivot_wider(names_from = MonthRollUp,
+                values_from = ResultedVolume,
+                names_sort = FALSE) %>%
+    adorn_totals() %>%
+    mutate(Setting = factor(Setting, levels = pt_setting, ordered = TRUE)) %>%
+    arrange(Setting) %>%
+    ungroup()
+  
+  # Create and format the table
+  kable(resulted_lab_volume, format = "html", escape = FALSE, align = "c",
+        caption = paste("Table 2:",
+                        site,
+                        test,
+                        "Resulted Volume by Month")) %>%
+    kable_styling(bootstrap_options = "hover", position = "center",
+                  font_size = 11) %>%
+    column_spec(column = c(1),
+                border_right = "thin solid lightgray") %>%
+    add_header_above(c(" " = 1,
+                       "Month" = ncol(resulted_lab_volume) - 1),
+                     background = c("white", "#221f72"),
+                     color = "white", line = FALSE, font_size = 13) %>%
+    row_spec(row = 0, font_size = 13) %>%
+    row_spec(row = nrow(resulted_lab_volume), bold = TRUE, hline_after = TRUE)
+  
+}
+
+```
+
+## {.tabset}
+
+### MSB
+```{r MSB graphs and tables}
+
+process_steps_stacked_bar(site = "MSB", test = "Troponin", setting = "ED")
+
+collect_result_stacked_bar(site = "MSB", test = "Troponin", setting = "ED")
+
+missing_collection_kable(site = "MSB", test = "Troponin", setting = "ED")
+
+resulted_volume_kable(site = "MSB", test = "Troponin")
+
+```
+
+### MSBI
+```{r MSBI graphs and tables}
+
+process_steps_stacked_bar(site = "MSBI", test = "Troponin", setting = "ED")
+
+collect_result_stacked_bar(site = "MSBI", test = "Troponin", setting = "ED")
+
+missing_collection_kable(site = "MSBI", test = "Troponin", setting = "ED")
+
+resulted_volume_kable(site = "MSBI", test = "Troponin")
+
+```
+
+### MSH
+```{r MSH graphs and tables}
+
+process_steps_stacked_bar(site = "MSH", test = "Troponin", setting = "ED")
+
+collect_result_stacked_bar(site = "MSH", test = "Troponin", setting = "ED")
+
+missing_collection_kable(site = "MSH", test = "Troponin", setting = "ED")
+
+resulted_volume_kable(site = "MSH", test = "Troponin")
+
+
+```
+
+### MSM
+```{r MSM graphs and tables}
+
+process_steps_stacked_bar(site = "MSM", test = "Troponin", setting = "ED")
+
+collect_result_stacked_bar(site = "MSM", test = "Troponin", setting = "ED")
+
+missing_collection_kable(site = "MSM", test = "Troponin", setting = "ED")
+
+resulted_volume_kable(site = "MSM", test = "Troponin")
+
+
+```
+
+### MSQ
+```{r MSQ graphs and tables}
+
+process_steps_stacked_bar(site = "MSQ", test = "Troponin", setting = "ED")
+
+collect_result_stacked_bar(site = "MSQ", test = "Troponin", setting = "ED")
+
+missing_collection_kable(site = "MSQ", test = "Troponin", setting = "ED")
+
+resulted_volume_kable(site = "MSQ", test = "Troponin")
+
+
+```
+
+
+### MSSN
+```{r MSSN graphs and tables}
+
+process_steps_stacked_bar(site = "MSSN", test = "Troponin", setting = "ED")
+
+collect_result_stacked_bar(site = "MSSN", test = "Troponin", setting = "ED")
+
+missing_collection_kable(site = "MSSN", test = "Troponin", setting = "ED")
+
+resulted_volume_kable(site = "MSSN", test = "Troponin")
+
+
+```
+
+### MSW
+```{r MSW graphs and tables}
+
+process_steps_stacked_bar(site = "MSW", test = "Troponin", setting = "ED")
+
+collect_result_stacked_bar(site = "MSW", test = "Troponin", setting = "ED")
+
+missing_collection_kable(site = "MSW", test = "Troponin", setting = "ED")
+
+resulted_volume_kable(site = "MSW", test = "Troponin")
+
+
+```
+
+### Data Sources & Methodology
+<h4><b>Data Sources</b></h4>
+  MSH and MSQ: Based on daily SCC report. Troponin labs identified by those with Test ID of TROI. Patient setting based on "Clinic Type" field and ICU identified using "Ward Name" field. </br>
+  MSBI, MSB, MSW, MSM, MSSN: Based on daily Sunquest report. Troponin labs identified as those with Test Code of TROP. Patient setting based on "Loc Type" field and ICUs identified using "Loc Name" field.</br>
+  
+  <h4><b>Analysis Methodology</b></h4>
+  
+  <h5><i>Missing Collections</i></h5>
+  Labs are classified as missing collections based on the following criteria:
+  
+  * SCC: Collection time equal to receive time
+* Sunquest: Collection time equal to order time
+
+<h5><i>Add On Orders</i></h5>
+  Add on orders are defined as labs with an order time more than 5 minutes after receive time. These labs are excluded from turnaround time analysis but the volume of these labs is monitored.
+
+<h5><i>Turnaround Time Exclusions</i></h5>
+  
+  Turnaround time analysis excludes labs with out of order steps (ie, collect after receive), missing timestamps, add-on orders, and labs not originating in IP, ED, or ambulatory settings (ie, Outreach). Labs with missing collections are excluded from Collect-to-Receive and Collect-to-Result turnaround time analysis. Resulted volume includes all resulted specimens, including add-on orders, labs with missing timestamps, etc.
+
+<br>
+  
+  ## {-}
