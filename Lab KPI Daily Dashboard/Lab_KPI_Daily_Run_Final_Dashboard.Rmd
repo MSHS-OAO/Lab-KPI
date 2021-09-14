@@ -41,7 +41,7 @@ source(here::here("Lab KPI Daily Dashboard/Daily_Run_Raw_Data_Import.R"))
 # Code with custom functions for preprocessing, analyzing, and displaying
 # Clinical Pathology KPI -----
 # CP includes Chemistry, Hematology, and Microbiology RRL divisions
-source(here::here("Lab KPI Daily Dashboard/CP_Custom_Functions.R"))
+source(here::here("Lab KPI Daily Dashboard/Daily_Run_CP_Custom_Functions.R"))
 ```
 
 ```{r Preprocess CP data, warning = FALSE, message = FALSE, echo = FALSE}
