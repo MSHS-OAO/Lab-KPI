@@ -14,6 +14,9 @@ if ("Presidents" %in% list.files("J://")) {
                            "Service Lines/Lab Kpi/Data")
 }
 
+# Update CP repositories
+source(here::here("Raw-Data-Summary-Repos/CP_Raw_Data_and_Summary_Repo.R"))
+
 # Render markdown file with dashboard code and save with today's date
 rmarkdown::render(paste0("OI-Team-Folder/",
                          "ED_Weekly_Dashboard.Rmd"), 
