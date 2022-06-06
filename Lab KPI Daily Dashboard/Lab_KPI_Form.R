@@ -257,7 +257,7 @@ if (is.null(formatted_lis_new) || nrow(formatted_lis_new) == 0) {
             LIS_Preplanned_Downtime ~ variable)
 
   columns_order_form_lis <-
-    c("Fcaility",
+    c("Facility",
       "LIS_Staffing",
       "LIS_Unplanned_Service",
       "LIS_Preplanned_Downtime")
