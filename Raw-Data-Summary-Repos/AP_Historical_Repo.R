@@ -380,7 +380,7 @@ if (initial_run == TRUE) {
 # Import analysis reference data
 reference_file <- paste0(user_directory,
                          "/Code Reference/",
-                         "Analysis Reference 2021-06-01.xlsx")
+                         "Analysis Reference 2022-06-21.xlsx")
 
 
 #-----------Patient Setting Excel File-----------#

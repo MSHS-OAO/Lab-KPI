@@ -80,7 +80,7 @@ if ("Presidents" %in% list.files("J://")) {
 # Import analysis reference data
 reference_file <- paste0(user_directory,
                          "/Code Reference/",
-                         "Analysis Reference 2021-06-01.xlsx")
+                         "Analysis Reference 2022-06-21.xlsx")
 
 # CP and Micro --------------------------------
 scc_test_code <- read_excel(reference_file, sheet = "SCC_TestCodes")
