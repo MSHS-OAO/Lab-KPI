@@ -185,7 +185,7 @@ if (initial_run == TRUE) {
 # Import Clinical Pathology analysis reference data ---------------
 reference_file <- paste0(user_directory,
                          "/Code Reference/",
-                         "Analysis Reference 2021-03-22.xlsx")
+                         "Analysis Reference 2022-06-21.xlsx")
 
 scc_test_code <- read_excel(reference_file, sheet = "SCC_TestCodes")
 sun_test_code <- read_excel(reference_file, sheet = "SUN_TestCodes")
