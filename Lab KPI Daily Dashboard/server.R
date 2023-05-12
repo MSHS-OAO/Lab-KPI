@@ -1,80 +1,111 @@
-# Increase allowable file size (Sunquest monthly files are too large for default)
 if(Sys.getenv('SHINY_PORT') == "") options(shiny.maxRequestSize=100*1024^2)
 
 
 server <- function(input, output, session) {
-
-  # 1. Summary Tab Output ---------------------------------------------------------------------------------
-  output$kpitable <- renderText({
+  
+  output$chemistry_kpi <- function() {
     
-    "Test"
-  })
+    input$submit_eff_data
     
-
-  # 4. Data Tab Output ---------------------------------------------------------------------------------
-  observeEvent(input$submit_scc,{
-    button_name <- "submit_scc"
+    chem_sub_output <- summarize_cp_tat(x = cp_summary,
+                                        lab_division = "Chemistry")
+    chem_subset <- chem_sub_output[[1]]
+    chem_summary <- chem_sub_output[[2]]
+    chem_dashboard_melt <- chem_sub_output[[3]]
+    chem_dashboard_cast <- chem_sub_output[[4]]
+    
+    kable_cp_tat(x = chem_dashboard_cast)
+    
+  }
+  
+  # Observe event for SCC data
+  observeEvent(input$submit_eff_data, {
+    button_name <- "submit_eff_data"
     shinyjs::disable(button_name)
-  #   inFile_budget <- input$finance_budget
-  #   flag <- 0
-  #   
-  #   if(input$name_finance == ""){
-  #     showModal(modalDialog(
-  #       title = "Error",
-  #       paste0("Please fill in the required fields"),
-  #       easyClose = TRUE,
-  #       footer = NULL
-  #     ))
-  #   }else{
-  #     updated_user <- input$name_finance
-  #     file_path <- inFile_budget$datapath
-  #     tryCatch({data <- read_excel(file_path, sheet = "5-BSC Cost Center Detail", skip = 3,
-  #                                  col_types = c("guess", "text", "text", "guess", "guess", "guess", "guess", "guess", "guess", "guess", "guess", "guess", "guess"))
-  #     flag <- 1
-  #     },
-  #     error = function(err){  showModal(modalDialog(
-  #       title = "Error",
-  #       paste0("There seems to be an issue with the budget file."),
-  #       easyClose = TRUE,
-  #       footer = NULL
-  #     ))
-  #       shinyjs::enable(button_name)
-  #     })
-  #   }
-  #   
-  #   if(flag == 1){
-  #     # Process the data into standar Summary Repo format
-  #     tryCatch({budget_process <- budget_raw_file_process(data, updated_user)
-  #     flag <- 2
-  #     
-  #     },
-  #     error = function(err){  showModal(modalDialog(
-  #       title = "Error",
-  #       paste0("There seems to be an issue with the budget file."),
-  #       easyClose = TRUE,
-  #       footer = NULL
-  #     ))
-  #       shinyjs::enable(button_name)
-  #     })
-  #   }
-  #   
-  #   
-  #   if(flag == 2){
-  #     ##Compare submitted results to what is in the Summary Repo in db and return only updated rows
-  #     budget_data <- file_return_updated_rows(budget_process)
-  #     
-  #     #wirte the updated data to the Summary Repo in the server
-  #     write_temporary_table_to_database_and_merge(budget_data,
-  #                                                 "TEMP_BUDGET", button_name)
-  #     
-  #     update_picker_choices_sql(session, input$selectedService, input$selectedService2, 
-  #                               input$selectedService3)
-  #   }
-  #   shinyjs::enable(button_name)
-  #   
+    
+    flag <- 0
+    
+    scc_file <<- input$scc
+    
+    sun_file <<- input$sunquest
+    
+    epic_cyto_file <<- input$epic_cyto
+    
+    ap_cyto_signed_file <<- input$ap_cyto_signed
+    
+    cyto_backlog_file <<- input$cyto_backlog
+    
+    if(is.null(scc_file) |
+       is.null(sun_file)) #|
+       # is.null(epic_cyto_file) |
+       # is.null(ap_cyto_signed_file) |
+       # is.null(cyto_backlog_file)) 
+       {
+      showModal(modalDialog(
+        title = "Error",
+        "Please submit all files.",
+        easyClose = TRUE,
+        footer = NULL
+      ))
+    } else {
+      showModal(modalDialog(
+        title = "Success",
+        "All files submitted.",
+        easyClose = TRUE,
+        footer = NULL
+      ))
+    }
+    
+    scc_filename <<- scc_file$datapath
+    
+    sun_filename <<- sun_file$datapath
+    
+    scc_data_raw <<- read_excel(scc_filename)
+    
+    sun_data_raw <<- read_excel(sun_filename)
+    
+    scc_processed <- preprocess_scc(scc_data_raw)
+    
+    sun_processed <- preprocess_sun(sun_data_raw)
+    
+    # Bind preprocessed SCC and Sunquest data
+    scc_sun_processed <- rbind(scc_processed, sun_processed)
+    
+    # Summarize  data by site, date, test, setting, priority, etc.-------
+    if (is.null(scc_sun_processed)) {
+      cp_summary <<- NULL
+    } else {
+      cp_summary <<- scc_sun_processed %>%
+        group_by(Site,
+                 ResultDate,
+                 Test,
+                 Division,
+                 Setting,
+                 SettingRollUp,
+                 SettingFinal,
+                 DashboardSetting,
+                 OrderPriority,
+                 AdjPriority,
+                 DashboardPriority,
+                 ReceiveResultTarget,
+                 CollectResultTarget) %>%
+        summarize(TotalResulted = n(),
+                  ReceiveTime_VolIncl = sum(ReceiveTime_TATInclude),
+                  CollectTime_VolIncl = sum(CollectTime_TATInclude),
+                  TotalReceiveResultInTarget =
+                    sum(ReceiveResultInTarget[ReceiveTime_TATInclude]),
+                  TotalCollectResultInTarget =
+                    sum(CollectResultInTarget[CollectTime_TATInclude]),
+                  TotalAddOnOrder = sum(AddOnFinal == "AddOn"),
+                  TotalMissingCollections = sum(MissingCollect),
+                  .groups = "keep") %>%
+        arrange(Site, ResultDate) %>%
+        ungroup()
+    }
+    
   })
-
-} # Close Server
-
+  
+}
+  
 
 
