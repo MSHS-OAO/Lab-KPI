@@ -773,7 +773,7 @@ summarize_cp_vol <- function(x, lab_division) {
       group_by(Site,
                Test,
                DashboardPriority,
-               MasterSetting) %>%
+               SettingFinal) %>%
       summarize(ResultedLabs = sum(TotalResulted),
                 .groups = "keep")
     #
@@ -787,7 +787,7 @@ summarize_cp_vol <- function(x, lab_division) {
                                 by = c("Test" = "Test",
                                        "Site" = "Site",
                                        "DashboardPriority" = "DashboardPriority",
-                                       "PtSetting" = "MasterSetting"))
+                                       "PtSetting" = "SettingFinal"))
     #
     lab_div_vol_df <- lab_div_vol_df %>%
       mutate(

@@ -45,24 +45,88 @@ ui <-
                           tabPanel("Chemistry",
                                    h4("Chemistry KPI"),
                                    fluidRow(
-                                     column(12, tableOutput("chemistry_kpi"))
-                                   )
+                                     tableOutput("chemistry_kpi")
+                                     )
                                    ),
                           tabPanel("Hematology",
                                    h4("Hematology KPI"),
                                    fluidRow(
-                                     column(12, tableOutput("hematology_kpi"))
-                                   )
+                                     tableOutput("hematology_kpi")
+                                     )
                                    ),
-                          tabPanel("Microbiology RRL"),
-                          tabPanel("Infusion"),
-                          tabPanel("Missing Collections & Add Ons"),
-                          tabPanel("Surgical Pathology"),
-                          tabPanel("Cytology")
+                          tabPanel("Microbiology RRL",
+                                   h4("Microbiology RRL KPI"),
+                                   fluidRow(
+                                     tableOutput("micro_kpi")
+                                     )
+                                   ),
+                          tabPanel("Infusion",
+                                   h4("Infusion KPI"),
+                                   fluidRow(
+                                     tableOutput("infusion_kpi")
+                                     )
+                                   ),
+                          tabPanel("Missing Collections & Add Ons",
+                                   h4("Missing Collection Times and Ad On Order Volume"),
+                                   fluidRow(
+                                     tableOutput("missing_collections"),
+                                     tableOutput("add_on_volume")
+                                     )
+                                   ),
+                          tabPanel("Surgical Pathology",
+                                   h4("Surgical Pathology KPI"),
+                                   fluidRow(
+                                     tableOutput("surg_path_kpi")
+                                     )
+                                   ),
+                          tabPanel("Cytology",
+                                   h4("Cytology KPI"),
+                                   fluidRow(
+                                     tableOutput("cyto_kpi")
+                                     )
+                                   )
                         )
-                        ),
+               ),
                tabPanel("Ops & Quality Indicators"),
-               tabPanel("24 Hour Volume Lookback"),
+               tabPanel("24 Hour Volume Lookback",
+                        h4("Select appropriate tab."),
+                        tabsetPanel(
+                          tabPanel("Chemistry",
+                                   h4("Chemistry Resulted Lab Volume"),
+                                   fluidRow(
+                                     tableOutput("chem_volume")
+                                   )
+                          ),
+                          tabPanel("Hematology",
+                                   h4("Hematology Resulted Lab Volume"),
+                                   fluidRow(
+                                     tableOutput("hem_volume")
+                                   )
+                          ),
+                          tabPanel("Infusion",
+                                   h4("Infusion Resulted Lab Volume"),
+                                   fluidRow(
+                                     tableOutput("inf_volume")
+                                   )
+                          ),
+                          tabPanel("Surgical Pathology",
+                                   h4("Surgical Pathology Signed Out Case Volume"),
+                                   fluidRow(
+                                     tableOutput("surg_path_volume")
+                                   )
+                          ),
+                          tabPanel("Cytology",
+                                   h4("Cytology Accessioned Cases and Backlog Volume"),
+                                   fluidRow(
+                                     tableOutput("cyto_acc_backlog_volume")
+                                   ),
+                                   h4("Cytology Signed Out Cases Volume"),
+                                   fluidRow(
+                                     tableOutput("cyto_signed_out_volume")
+                                   )
+                          )
+                        )
+               ),
                tabPanel("Data Submission",
                         tabsetPanel(
                           tabPanel("Efficiency Indicators",
