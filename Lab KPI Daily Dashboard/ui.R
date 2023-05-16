@@ -43,44 +43,181 @@ ui <-
                         h4("Select Appropriate Tab"),
                         tabsetPanel(
                           tabPanel("Chemistry",
-                                   h4("Chemistry KPI"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Chemistry KPI (Labs Resulted on ",
+                                            format(yesterday, "%a %m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
+                                   HTML(
+                                     paste0("<h5>Status Definitions: ",
+                                            "<span style = 'color:red'>",
+                                            "Red: </span>",
+                                            "<80%, ",
+                                            "<span style = 'color:orange'>",
+                                            "Yellow: </span>",
+                                            ">=80% & <95%, ",
+                                            "<span style = 'color:green'>",
+                                            "Green: </span>",
+                                            ">=95%",
+                                            "</h5>")
+                                   ),
                                    fluidRow(
                                      tableOutput("chemistry_kpi")
                                      )
                                    ),
                           tabPanel("Hematology",
-                                   h4("Hematology KPI"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Hematology KPI (Labs Resulted on ",
+                                            format(yesterday, "%a %m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
+                                   HTML(
+                                     paste0("<h5>Status Definitions: ",
+                                            "<span style = 'color:red'>",
+                                            "Red: </span>",
+                                            "<80%, ",
+                                            "<span style = 'color:orange'>",
+                                            "Yellow: </span>",
+                                            ">=80% & <95%, ",
+                                            "<span style = 'color:green'>",
+                                            "Green: </span>",
+                                            ">=95%",
+                                            "</h5>")
+                                   ),
                                    fluidRow(
                                      tableOutput("hematology_kpi")
                                      )
                                    ),
                           tabPanel("Microbiology RRL",
-                                   h4("Microbiology RRL KPI"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Microbiology RRL KPI (Labs Resulted on ",
+                                            format(yesterday, "%a %m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
+                                   HTML(
+                                     paste0("<h5>Status Definitions: ",
+                                            "<span style = 'color:red'>",
+                                            "Red: </span>",
+                                            "<90%, ",
+                                            "<span style = 'color:orange'>",
+                                            "Yellow: </span>",
+                                            ">=90% & <100%, ",
+                                            "<span style = 'color:green'>",
+                                            "Green: </span>",
+                                            "=100%",
+                                            "</h5>")
+                                   ),
                                    fluidRow(
                                      tableOutput("micro_kpi")
                                      )
                                    ),
                           tabPanel("Infusion",
-                                   h4("Infusion KPI"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Infusion KPI (Labs Resulted on ",
+                                            format(yesterday, "%a %m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
+                                   HTML(
+                                     paste0("<h5>Status Definitions: ",
+                                            "<span style = 'color:red'>",
+                                            "Red: </span>",
+                                            "<80%, ",
+                                            "<span style = 'color:orange'>",
+                                            "Yellow: </span>",
+                                            ">=80% & <90%, ",
+                                            "<span style = 'color:green'>",
+                                            "Green: </span>",
+                                            ">=90%",
+                                            "</h5>")
+                                   ),
                                    fluidRow(
                                      tableOutput("infusion_kpi")
                                      )
                                    ),
                           tabPanel("Missing Collections & Add Ons",
-                                   h4("Missing Collection Times and Ad On Order Volume"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Missing Collection Times and ",
+                                            "Add On Order Volume ",
+                                            "(Labs Resulted on ",
+                                            format(yesterday, "%a %m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
+                                   HTML(
+                                     paste0("<h5>Status Definitions: ",
+                                            "<span style = 'color:red'>",
+                                            "Red: </span>",
+                                            ">15%, ",
+                                            "<span style = 'color:orange'>",
+                                            "Yellow: </span>",
+                                            "<=15% & >5%, ",
+                                            "<span style = 'color:green'>",
+                                            "Green: </span>",
+                                            "<=5%",
+                                            "</h5>")
+                                   ),
                                    fluidRow(
                                      tableOutput("missing_collections"),
                                      tableOutput("add_on_volume")
                                      )
                                    ),
                           tabPanel("Surgical Pathology",
-                                   h4("Surgical Pathology KPI"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Surgical Pathology KPI ",
+                                            "(Specimens Signed Out on ",
+                                            format(yesterday, "%m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
+                                   HTML(
+                                     paste0("<h5>Status Definitions: ",
+                                            "<span style = 'color:red'>",
+                                            "Red: </span>",
+                                            "<80%, ",
+                                            "<span style = 'color:orange'>",
+                                            "Yellow: </span>",
+                                            ">=80% & <90%, ",
+                                            "<span style = 'color:green'>",
+                                            "Green: </span>",
+                                            ">=90%",
+                                            "</h5>")
+                                   ),
                                    fluidRow(
                                      tableOutput("surg_path_kpi")
                                      )
                                    ),
                           tabPanel("Cytology",
-                                   h4("Cytology KPI"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Cytology KPI ",
+                                            "(Specimens Signed Out on ",
+                                            format(yesterday, "%m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
+                                   HTML(
+                                     paste0("<h5>Status Definitions: ",
+                                            "<span style = 'color:red'>",
+                                            "Red: </span>",
+                                            "<80%, ",
+                                            "<span style = 'color:orange'>",
+                                            "Yellow: </span>",
+                                            ">=80% & <90%, ",
+                                            "<span style = 'color:green'>",
+                                            "Green: </span>",
+                                            ">=90%",
+                                            "</h5>")
+                                   ),
                                    fluidRow(
                                      tableOutput("cyto_kpi")
                                      )
@@ -92,35 +229,80 @@ ui <-
                         h4("Select appropriate tab."),
                         tabsetPanel(
                           tabPanel("Chemistry",
-                                   h4("Chemistry Resulted Lab Volume"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Chemistry Resulted Lab Volume ",
+                                            "(Labs Resulted on ",
+                                            format(yesterday, "%m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
                                    fluidRow(
                                      tableOutput("chem_volume")
                                    )
                           ),
                           tabPanel("Hematology",
-                                   h4("Hematology Resulted Lab Volume"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Hematology Resulted Lab Volume ",
+                                            "(Labs Resulted on ",
+                                            format(yesterday, "%m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
                                    fluidRow(
                                      tableOutput("hem_volume")
                                    )
                           ),
                           tabPanel("Infusion",
-                                   h4("Infusion Resulted Lab Volume"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Infusion Resulted Lab Volume ",
+                                            "(Labs Resulted on ",
+                                            format(yesterday, "%m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
                                    fluidRow(
                                      tableOutput("inf_volume")
                                    )
                           ),
                           tabPanel("Surgical Pathology",
-                                   h4("Surgical Pathology Signed Out Case Volume"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Surgical Pathology Signed Out ",
+                                            "Case Volume ",
+                                            "(Signed Out on ",
+                                            format(yesterday, "%m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
                                    fluidRow(
                                      tableOutput("surg_path_volume")
                                    )
                           ),
                           tabPanel("Cytology",
-                                   h4("Cytology Accessioned Cases and Backlog Volume"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Cytology Accessioned Cases and ",
+                                            "Backlog Volume ",
+                                            "(As Of ",
+                                            format(yesterday, "%m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
                                    fluidRow(
                                      tableOutput("cyto_acc_backlog_volume")
                                    ),
-                                   h4("Cytology Signed Out Cases Volume"),
+                                   HTML(
+                                     paste0("<h4><em>",
+                                            "Cytology Signed Out ",
+                                            "Case Volume ",
+                                            "(As Of ",
+                                            format(yesterday, "%m/%d/%y"),
+                                            ")",
+                                            "</h4></em>")
+                                   ),
                                    fluidRow(
                                      tableOutput("cyto_signed_out_volume")
                                    )
