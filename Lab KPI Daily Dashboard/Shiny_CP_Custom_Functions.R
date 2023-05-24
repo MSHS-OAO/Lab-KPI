@@ -70,16 +70,16 @@ preprocess_scc <- function(raw_scc) {
         # Create a column for resulted date
         ResultedDate = date(VERIFIED_DATE),
         # Create master setting column to identify ICU and IP Non-ICU units
-        SettingFinal = ifelse(SettingRollUp == "IP" & ICU, "ICU",
+        DetailedSetting = ifelse(SettingRollUp == "IP" & ICU, "ICU",
                               ifelse(SettingRollUp == "IP" & !ICU,
                                      "IP Non-ICU", SettingRollUp)),
         # Create dashboard setting column to roll up master settings based on
         # desired dashboard grouping (ie, group ED and ICU together)
-        DashboardSetting = ifelse(SettingFinal %in% c("ED", "ICU"),
-                                  "ED & ICU", SettingFinal),
+        DashboardSetting = ifelse(DetailedSetting %in% c("ED", "ICU"),
+                                  "ED & ICU", DetailedSetting),
         # Create column with adjusted priority based on assumption that all ED and
         # ICU labs are treated as stat per operational leadership
-        AdjPriority = ifelse(SettingFinal %in% c("ED", "ICU") |
+        AdjPriority = ifelse(DetailedSetting %in% c("ED", "ICU") |
                                PRIORITY %in% "S", "Stat", "Routine"),
         # Calculate turnaround times
         CollectToReceive =
@@ -112,7 +112,7 @@ preprocess_scc <- function(raw_scc) {
         Concate2 = paste(Test, Division, DashboardPriority),
         # Create column concatenating test, division, priority, and setting to
         # determine TAT targets
-        Concate3 = paste(Test, Division, DashboardPriority, SettingFinal),
+        Concate3 = paste(Test, Division, DashboardPriority, DetailedSetting),
         #
         # Determine Receive to Result TAT target using this logic:
         # 1. Try to match test, division, priority, and setting (applicable for
@@ -168,7 +168,7 @@ preprocess_scc <- function(raw_scc) {
         # 5. Orders with missing collection times are excluded from
         # collect-to-result and collect-to-receive turnaround time analyis
         ReceiveTime_TATInclude = ifelse(AddOnFinal == "AddOn" |
-                                          SettingFinal == "Other" |
+                                          DetailedSetting == "Other" |
                                           CollectToReceive < 0 |
                                           CollectToResult < 0 |
                                           ReceiveToResult < 0 |
@@ -176,7 +176,7 @@ preprocess_scc <- function(raw_scc) {
                                           is.na(ReceiveToResult), FALSE, TRUE),
         CollectTime_TATInclude = ifelse(MissingCollect |
                                           AddOnFinal == "AddOn" |
-                                          SettingFinal == "Other" |
+                                          DetailedSetting == "Other" |
                                           CollectToReceive < 0 |
                                           CollectToResult < 0 |
                                           ReceiveToResult < 0 |
@@ -206,7 +206,7 @@ preprocess_scc <- function(raw_scc) {
                                  "TEST_NAME", "Test", "Division", "PRIORITY",
                                  "Site", "ICU", "CLINIC_TYPE",
                                  "Setting", "SettingRollUp",
-                                 "SettingFinal", "DashboardSetting",
+                                 "DetailedSetting", "DashboardSetting",
                                  "AdjPriority", "DashboardPriority",
                                  "ORDERING_DATE", "COLLECTION_DATE",
                                  "RECEIVE_DATE", "VERIFIED_DATE",
@@ -225,7 +225,7 @@ preprocess_scc <- function(raw_scc) {
                                  "TestName", "Test", "Division", "OrderPriority",
                                  "Site", "ICU", "LocType",
                                  "Setting", "SettingRollUp",
-                                 "SettingFinal", "DashboardSetting",
+                                 "DetailedSetting", "DashboardSetting",
                                  "AdjPriority", "DashboardPriority",
                                  "OrderTime", "CollectTime",
                                  "ReceiveTime", "ResultTime",
@@ -298,17 +298,17 @@ preprocess_sun <- function(raw_sun)  {
         # Create a column for resulted date
         ResultedDate = as.Date(ResultDateTime, format = "%m/%d/%Y"),
         # Create master setting column to identify ICU and IP Non-ICU units
-        SettingFinal = ifelse(SettingRollUp == "IP" & ICU, "ICU",
+        DetailedSetting = ifelse(SettingRollUp == "IP" & ICU, "ICU",
                               ifelse(SettingRollUp == "IP" & !ICU,
                                      "IP Non-ICU", SettingRollUp)),
         # Create dashboard setting column to roll up master settings based on
         # desired dashboard grouping(ie, group ED and ICU together)
-        DashboardSetting = ifelse(SettingFinal %in% c("ED", "ICU"), "ED & ICU",
-                                  SettingFinal),
+        DashboardSetting = ifelse(DetailedSetting %in% c("ED", "ICU"), "ED & ICU",
+                                  DetailedSetting),
         #
         # Create column with adjusted priority based on operational assumption
         # that all ED and ICU labs are treated as stat
-        AdjPriority = ifelse(SettingFinal %in% c("ED", "ICU") |
+        AdjPriority = ifelse(DetailedSetting %in% c("ED", "ICU") |
                                SpecimenPriority %in% "S", "Stat", "Routine"),
         #
         # Calculate turnaround times
@@ -342,7 +342,7 @@ preprocess_sun <- function(raw_sun)  {
         Concate2 = paste(Test, Division, DashboardPriority),
         # Create column concatenating test, division, priority, and setting to
         # determine TAT targets
-        Concate3 = paste(Test, Division, DashboardPriority, SettingFinal),
+        Concate3 = paste(Test, Division, DashboardPriority, DetailedSetting),
         #
         # Determine Receive to Result TAT target using this logic:
         # 1. Try to match test, priority, and setting (applicable for labs with
@@ -399,7 +399,7 @@ preprocess_sun <- function(raw_sun)  {
         # 5. Orders with missing collection times are excluded from
         # collect-to-result and collect-to-receive turnaround time analyis
         ReceiveTime_TATInclude = ifelse(AddOnFinal == "AddOn" |
-                                          SettingFinal == "Other" |
+                                          DetailedSetting == "Other" |
                                           CollectToReceive < 0 |
                                           CollectToResult < 0 |
                                           ReceiveToResult < 0 |
@@ -407,7 +407,7 @@ preprocess_sun <- function(raw_sun)  {
                                           is.na(ReceiveToResult), FALSE, TRUE),
         CollectTime_TATInclude = ifelse(MissingCollect |
                                           AddOnFinal == "AddOn" |
-                                          SettingFinal == "Other" |
+                                          DetailedSetting == "Other" |
                                           CollectToReceive < 0 |
                                           CollectToResult < 0 |
                                           ReceiveToResult < 0 |
@@ -437,7 +437,7 @@ preprocess_sun <- function(raw_sun)  {
                                  "TSTName", "Test", "Division", "SpecimenPriority",
                                  "Site", "ICU", "LocType",
                                  "Setting", "SettingRollUp",
-                                 "SettingFinal", "DashboardSetting",
+                                 "DetailedSetting", "DashboardSetting",
                                  "AdjPriority", "DashboardPriority",
                                  "OrderDateTime", "CollectDateTime",
                                  "ReceiveDateTime", "ResultDateTime",
@@ -455,7 +455,7 @@ preprocess_sun <- function(raw_sun)  {
                                  "TestName", "Test", "Division", "OrderPriority",
                                  "Site", "ICU", "LocType",
                                  "Setting", "SettingRollUp",
-                                 "SettingFinal", "DashboardSetting",
+                                 "DetailedSetting", "DashboardSetting",
                                  "AdjPriority", "DashboardPriority",
                                  "OrderTime", "CollectTime",
                                  "ReceiveTime", "ResultTime",
@@ -773,7 +773,7 @@ summarize_cp_vol <- function(x, lab_division) {
       group_by(Site,
                Test,
                DashboardPriority,
-               SettingFinal) %>%
+               DetailedSetting) %>%
       summarize(ResultedLabs = sum(TotalResulted),
                 .groups = "keep")
     #
@@ -787,7 +787,7 @@ summarize_cp_vol <- function(x, lab_division) {
                                 by = c("Test" = "Test",
                                        "Site" = "Site",
                                        "DashboardPriority" = "DashboardPriority",
-                                       "PtSetting" = "SettingFinal"))
+                                       "PtSetting" = "DetailedSetting"))
     #
     lab_div_vol_df <- lab_div_vol_df %>%
       mutate(

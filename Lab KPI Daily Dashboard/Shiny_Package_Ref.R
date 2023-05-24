@@ -30,7 +30,8 @@ library(lubridate)
 library(reshape2)
 library(knitr)
 # library(gdtools)
-library(kableExtra)
+# library(kableExtra)
+library(kableExtra,  "~/R/x86_64-pc-linux-gnu-library/4.2")
 library(formattable)
 library(rmarkdown)
 library(stringr)
@@ -96,6 +97,15 @@ user_directory <- paste0(define_root_path(),
                          "HSPI-PM/",
                          "Operations Analytics and Optimization/Projects/",
                          "Service Lines/Lab Kpi/Data")
+
+daily_repo <- readRDS(
+  paste0(define_root_path(),
+         "HSPI-PM/",
+         "Operations Analytics and Optimization/Projects/",
+         "Service Lines/Lab Kpi/Data/",
+         "CP Repositories/DailyRepo/",
+         "Daily Repo 12-01-20 to 05-21-23 as of 05-22-23.RDS")
+)
 
 # Import analysis reference data
 reference_file <- paste0(user_directory,

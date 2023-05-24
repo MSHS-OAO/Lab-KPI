@@ -284,7 +284,7 @@ server <- function(input, output, session) {
                  Division,
                  Setting,
                  SettingRollUp,
-                 SettingFinal,
+                 DetailedSetting,
                  DashboardSetting,
                  OrderPriority,
                  AdjPriority,
