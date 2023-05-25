@@ -51,7 +51,7 @@ user_directory <- paste0(
 )
 
 raw_data <- readRDS(paste0(user_directory,
-                           "/RawData/RawData90Days.rds"))
+                           "/RawData/RawData60Days.rds"))
 
 daily_repo <- readRDS(paste0(user_directory,
                            "/DailyRepo/DailySummary.rds"))
@@ -61,3 +61,40 @@ weekly_repo <- readRDS(paste0(user_directory,
 
 monthly_repo <- readRDS(paste0(user_directory,
                            "/MonthlyRepo/MonthlySummary.rds"))
+
+raw_data <- raw_data %>%
+  rename("DetailedSetting" = "MasterSetting",
+         "AddOnFinal" = "AddOnMaster")
+
+daily_repo <- daily_repo %>%
+  mutate(WeekStart = NULL,
+         WeekEnd = NULL,
+         WeekOf = NULL,
+         MonthNo = NULL,
+         MonthName = NULL,
+         Year = NULL,
+         SettingRollUp = NULL,
+         AdjPriority = NULL) %>%
+  rename("DetailedSetting" = "MasterSetting")
+
+weekly_repo <- weekly_repo %>%
+  rename("DetailedSetting" = "MasterSetting")
+
+monthly_repo <- monthly_repo %>%
+  rename("DetailedSetting" = "MasterSetting")
+
+saveRDS(raw_data,
+        paste0(user_directory,
+               "/RawData/RawData90Days.rds"))
+
+saveRDS(daily_repo,
+        paste0(user_directory,
+               "/DailyRepo/DailySummary.rds"))
+
+saveRDS(weekly_repo,
+        paste0(user_directory,
+               "/WeeklyRepo/WeeklySummary.rds"))
+
+saveRDS(monthly_repo,
+        paste0(user_directory,
+               "/MonthlyRepo/MonthlySummary.rds"))
