@@ -85,7 +85,7 @@ monthly_repo <- monthly_repo %>%
 
 saveRDS(raw_data,
         paste0(user_directory,
-               "/RawData/RawData90Days.rds"))
+               "/RawData/RawData60Days.rds"))
 
 saveRDS(daily_repo,
         paste0(user_directory,

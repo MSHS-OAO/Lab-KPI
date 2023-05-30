@@ -46,7 +46,7 @@ ui <-
                                    HTML(
                                      paste0("<h4><em>",
                                             "Chemistry KPI (Labs Resulted on ",
-                                            format(yesterday, "%a %m/%d/%y"),
+                                            format(cp_latest_day, "%a %m/%d/%y"),
                                             ")",
                                             "</h4></em>")
                                    ),
@@ -71,7 +71,7 @@ ui <-
                                    HTML(
                                      paste0("<h4><em>",
                                             "Hematology KPI (Labs Resulted on ",
-                                            format(yesterday, "%a %m/%d/%y"),
+                                            format(cp_latest_day, "%a %m/%d/%y"),
                                             ")",
                                             "</h4></em>")
                                    ),
@@ -96,7 +96,7 @@ ui <-
                                    HTML(
                                      paste0("<h4><em>",
                                             "Microbiology RRL KPI (Labs Resulted on ",
-                                            format(yesterday, "%a %m/%d/%y"),
+                                            format(cp_latest_day, "%a %m/%d/%y"),
                                             ")",
                                             "</h4></em>")
                                    ),
@@ -121,7 +121,7 @@ ui <-
                                    HTML(
                                      paste0("<h4><em>",
                                             "Infusion KPI (Labs Resulted on ",
-                                            format(yesterday, "%a %m/%d/%y"),
+                                            format(cp_latest_day, "%a %m/%d/%y"),
                                             ")",
                                             "</h4></em>")
                                    ),
@@ -148,7 +148,7 @@ ui <-
                                             "Missing Collection Times and ",
                                             "Add On Order Volume ",
                                             "(Labs Resulted on ",
-                                            format(yesterday, "%a %m/%d/%y"),
+                                            format(cp_latest_day, "%a %m/%d/%y"),
                                             ")",
                                             "</h4></em>")
                                    ),
@@ -233,7 +233,7 @@ ui <-
                                      paste0("<h4><em>",
                                             "Chemistry Resulted Lab Volume ",
                                             "(Labs Resulted on ",
-                                            format(yesterday, "%m/%d/%y"),
+                                            format(cp_latest_day, "%m/%d/%y"),
                                             ")",
                                             "</h4></em>")
                                    ),
@@ -246,7 +246,7 @@ ui <-
                                      paste0("<h4><em>",
                                             "Hematology Resulted Lab Volume ",
                                             "(Labs Resulted on ",
-                                            format(yesterday, "%m/%d/%y"),
+                                            format(cp_latest_day, "%m/%d/%y"),
                                             ")",
                                             "</h4></em>")
                                    ),
@@ -259,7 +259,7 @@ ui <-
                                      paste0("<h4><em>",
                                             "Infusion Resulted Lab Volume ",
                                             "(Labs Resulted on ",
-                                            format(yesterday, "%m/%d/%y"),
+                                            format(cp_latest_day, "%m/%d/%y"),
                                             ")",
                                             "</h4></em>")
                                    ),
