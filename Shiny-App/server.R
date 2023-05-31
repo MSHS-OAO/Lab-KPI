@@ -3,10 +3,24 @@ if(Sys.getenv('SHINY_PORT') == "") options(shiny.maxRequestSize=100*1024^2)
 
 server <- function(input, output, session) {
   
-  # Chemistry Efficiency Indicators ---------
+  # Chemistry Efficiency Indicators -------
+  # Header based on date
+  output$chemistry_tat_header <- renderUI({
+    
+    input$submit_cp_eff_data
+    
+    h4(paste0("Chemistry KPI (Labs Resulted on ",
+              format(cp_latest_day, "%a %m/%d/%y"),
+              ")"
+    )
+    )
+  }
+  )
+  
+  # KPI TAT Table
   output$chemistry_kpi <- function() {
     
-    input$submit_eff_data
+    input$submit_cp_eff_data
     
     chem_sub_output <- summarize_cp_tat(x = cp_summary,
                                         lab_division = "Chemistry")
@@ -20,9 +34,23 @@ server <- function(input, output, session) {
   }
   
   # Hematology Efficiency Indicators ---------
+  # Header based on date
+  output$hematology_tat_header <- renderUI({
+    
+    input$submit_cp_eff_data
+    
+    h4(paste0("Hematology KPI (Labs Resulted on ",
+              format(cp_latest_day, "%a %m/%d/%y"),
+              ")"
+    )
+    )
+  }
+  )
+  
+  # KPI TAT Table
   output$hematology_kpi <- function() {
     
-    input$submit_eff_data
+    input$submit_cp_eff_data
     
     hem_sub_output <- summarize_cp_tat(x = cp_summary,
                                        lab_division = "Hematology")
@@ -36,9 +64,23 @@ server <- function(input, output, session) {
   }
   
   # Microbiology RRL Efficiency Indicators ---------
+  # Header based on date
+  output$micro_tat_header <- renderUI({
+    
+    input$submit_cp_eff_data
+    
+    h4(paste0("Microbiology RRL KPI (Labs Resulted on ",
+              format(cp_latest_day, "%a %m/%d/%y"),
+              ")"
+    )
+    )
+  }
+  )
+  
+  # KPI TAT Tables
   output$micro_kpi <- function() {
     
-    input$submit_eff_data
+    input$submit_cp_eff_data
     
     micro_sub_output <- summarize_cp_tat(x = cp_summary,
                                          lab_division = "Microbiology RRL")
@@ -155,26 +197,24 @@ server <- function(input, output, session) {
     kable_cp_tat(x = micro_tat_vol_cast)
   }
   
-  output$missing_collections <- function() {
-    
-    input$submit_eff_data
-    
-    kable_missing_collections(x = cp_summary)
-      
-  }
-  
-  output$add_on_volume <- function() {
-    
-    input$submit_eff_data
-    
-    kable_add_on_volume(x = cp_summary)
-    
-  }
-  
   # Infusion Efficiency Indicators ---------
+  # Header based on date
+  output$infusion_tat_header <- renderUI({
+    
+    input$submit_cp_eff_data
+    
+    h4(paste0("Infusion KPI (Labs Resulted on ",
+              format(cp_latest_day, "%a %m/%d/%y"),
+              ")"
+    )
+    )
+  }
+  )
+  
+  # KPI TAT Table
   output$infusion_kpi <- function() {
     
-    input$submit_eff_data
+    input$submit_cp_eff_data
     
     inf_sub_output <- summarize_cp_tat(x = cp_summary,
                                        lab_division = "Infusion")
@@ -187,10 +227,57 @@ server <- function(input, output, session) {
     
   }
   
+  # Missing Collections and Add On Orders ---------
+  # Header based on date
+  output$missing_collect_tat_header <- renderUI({
+    
+    input$submit_cp_eff_data
+    
+    h4(paste0("Missing Collection Times and Add On Order Volume ",
+              "(Labs Resulted on ",
+              format(cp_latest_day, "%a %m/%d/%y"),
+              ")"
+              )
+       )
+  }
+  )
+  
+  # KPI Tables
+  output$missing_collections <- function() {
+    
+    input$submit_cp_eff_data
+    
+    kable_missing_collections(x = cp_summary)
+      
+  }
+  
+  output$add_on_volume <- function() {
+    
+    input$submit_cp_eff_data
+    
+    kable_add_on_volume(x = cp_summary)
+    
+  }
+  
   # Chemistry Volume ---------
+  # Header based on date
+  output$chemistry_vol_header <- renderUI({
+    
+    input$submit_cp_eff_data
+    
+    h4(paste0("Chemistry Resulted Lab Volume ",
+              "(Labs Resulted on ",
+              format(cp_latest_day, "%a %m/%d/%y"),
+              ")"
+    )
+    )
+  }
+  )
+  
+  # KPI Volume Table
   output$chem_volume <- function() {
     
-    input$submit_eff_data
+    input$submit_cp_eff_data
     
     chem_vol_table <- summarize_cp_vol(x = cp_summary,
                                        lab_division = "Chemistry")
@@ -200,9 +287,24 @@ server <- function(input, output, session) {
   }
   
   # Hematology Volume ---------
+  # Header based on date
+  output$hematology_vol_header <- renderUI({
+    
+    input$submit_cp_eff_data
+    
+    h4(paste0("Hematology Resulted Lab Volume ",
+              "(Labs Resulted on ",
+              format(cp_latest_day, "%a %m/%d/%y"),
+              ")"
+    )
+    )
+  }
+  )
+  
+  # KPI Volume Table
   output$hem_volume <- function() {
     
-    input$submit_eff_data
+    input$submit_cp_eff_data
     
     hem_vol_table <- summarize_cp_vol(x = cp_summary,
                                       lab_division = "Hematology")
@@ -212,9 +314,24 @@ server <- function(input, output, session) {
   }
   
   # Infusion Volume ---------
+  # Header based on date
+  output$infusion_vol_header <- renderUI({
+    
+    input$submit_cp_eff_data
+    
+    h4(paste0("Infusion Resulted Lab Volume ",
+              "(Labs Resulted on ",
+              format(cp_latest_day, "%a %m/%d/%y"),
+              ")"
+    )
+    )
+  }
+  )
+  
+  # KPI Volume Table
   output$inf_volume <- function() {
     
-    input$submit_eff_data
+    input$submit_cp_eff_data
     
     inf_vol_table <- summarize_cp_vol(x = cp_summary,
                                       lab_division = "Infusion")
@@ -224,8 +341,8 @@ server <- function(input, output, session) {
   }
   
   # Observe event for SCC data
-  observeEvent(input$submit_eff_data, {
-    button_name <- "submit_eff_data"
+  observeEvent(input$submit_cp_eff_data, {
+    button_name <- "submit_cp_eff_data"
     shinyjs::disable(button_name)
     
     flag <- 0
@@ -234,81 +351,163 @@ server <- function(input, output, session) {
     
     sun_file <<- input$sunquest
     
-    epic_cyto_file <<- input$epic_cyto
-    
-    ap_cyto_signed_file <<- input$ap_cyto_signed
-    
-    cyto_backlog_file <<- input$cyto_backlog
-    
     if(is.null(scc_file) |
-       is.null(sun_file)) #|
-       # is.null(epic_cyto_file) |
-       # is.null(ap_cyto_signed_file) |
-       # is.null(cyto_backlog_file))
+       is.null(sun_file))
        {
       showModal(modalDialog(
         title = "Error",
-        "Please submit all files.",
+        "Please submit both SCC and Sunquest files.",
         easyClose = TRUE,
         footer = NULL
       ))
     } else {
-      showModal(modalDialog(
-        title = "Success",
-        "All files submitted.",
-        easyClose = TRUE,
-        footer = NULL
-      ))
-    }
-    
-    scc_filename <<- scc_file$datapath
-    scc_data_raw <<- read_excel(scc_filename)
-    scc_processed <- preprocess_scc(scc_data_raw)
-    
-    sun_filename <<- sun_file$datapath
-    sun_data_raw <<- read_excel(sun_filename)
-    sun_processed <- preprocess_sun(sun_data_raw)
+      
+      tryCatch({
+        
+        # Read in SCC file
+        scc_filename <<- scc_file$datapath
+        scc_data_raw <<- read_excel(scc_filename)
+        
+        flag <- 1
 
-    
-    # Bind preprocessed SCC and Sunquest data
-    scc_sun_processed <- rbind(scc_processed, sun_processed)
-    
-    # Summarize  data by site, date, test, setting, priority, etc.-------
-    if (is.null(scc_sun_processed)) {
-      cp_summary <<- NULL
-    } else {
-      cp_summary <<- scc_sun_processed %>%
-        group_by(Site,
-                 ResultDate,
-                 Test,
-                 Division,
-                 Setting,
-                 SettingRollUp,
-                 DetailedSetting,
-                 DashboardSetting,
-                 OrderPriority,
-                 AdjPriority,
-                 DashboardPriority,
-                 ReceiveResultTarget,
-                 CollectResultTarget) %>%
-        summarize(TotalResulted = n(),
-                  ReceiveTime_VolIncl = sum(ReceiveTime_TATInclude),
-                  CollectTime_VolIncl = sum(CollectTime_TATInclude),
-                  TotalReceiveResultInTarget =
-                    sum(ReceiveResultInTarget[ReceiveTime_TATInclude]),
-                  TotalCollectResultInTarget =
-                    sum(CollectResultInTarget[CollectTime_TATInclude]),
-                  TotalAddOnOrder = sum(AddOnFinal == "AddOn"),
-                  TotalMissingCollections = sum(MissingCollect),
-                  .groups = "keep") %>%
-        arrange(Site, ResultDate) %>%
-        ungroup()
+      },
+      
+      error = function(err){
+        showModal(modalDialog(
+          title = "Read Error",
+          paste0("There seems to be an issue reading this SCC file."),
+          easyClose = TRUE,
+          footer = modalButton("Dismiss")
+        ))
+        shinyjs::enable(button_name)
+      }
+      )
+      
     }
     
+    if(flag == 1) {
+      
+      tryCatch({
+        # Read in Sunquest file
+        sun_filename <<- sun_file$datapath
+        sun_data_raw <<- read_excel(sun_filename)
+        
+        flag <- 2
+        
+        },
+        
+        error = function(err){
+          showModal(modalDialog(
+            title = "Read Error",
+            paste0("There seems to be an issue reading this Sunquest file."),
+            easyClose = TRUE,
+            footer = modalButton("Dismiss")
+            ))
+          shinyjs::enable(button_name)
+          }
+      )
+      
+    }
+    
+    if(flag == 2) {
+      
+      tryCatch({
+        # Process SCC data
+        scc_processed <- preprocess_scc(scc_data_raw)[[1]]
+        scc_date <- preprocess_scc(scc_data_raw)[[2]]
+        
+        flag <- 3
+      },
+      error = function(err){
+        showModal(modalDialog(
+          title = "Processing Error",
+          paste0("There seems to be an issue processing this SCC file.",
+                 " Please check that the correct file was selected."),
+          easyClose = TRUE,
+          footer = modalButton("Dismiss")
+        ))
+        shinyjs::enable(button_name)
+      }
+      )
+    }
+    
+    if(flag == 3){
+      
+      tryCatch({
+        # Process Sunquest data
+        sun_processed <- preprocess_sun(sun_data_raw)[[1]]
+        sun_date <- preprocess_sun(sun_data_raw)[[2]]
+        
+        flag <- 4
+      },
+      error = function(err){
+        showModal(modalDialog(
+          title = "Processing Error",
+          paste0("There seems to be an issue processing this Sunquest file.",
+                 " Please check that the correct file was selected."),
+          easyClose = TRUE,
+          footer = modalButton("Dismiss")
+        ))
+        shinyjs::enable(button_name)
+      }
+      )
+    }
+    
+    if(flag == 4){
+      if(scc_date != sun_date) {
+        showModal(modalDialog(
+          title = "Date Error",
+          "Please check that Sunquest and SCC data are for the same dates.",
+          easyClose = TRUE,
+          footer = modalButton("Dismiss")
+        ))
+      } else{
+        
+        cp_latest_day <<- scc_date
+        
+        # Bind preprocessed SCC and Sunquest data
+        scc_sun_processed <- rbind(scc_processed, sun_processed)
+        
+        # Summarize data for kables
+        cp_summary <<- scc_sun_processed %>%
+          group_by(Site,
+                   ResultDate,
+                   Test,
+                   Division,
+                   Setting,
+                   SettingRollUp,
+                   DetailedSetting,
+                   DashboardSetting,
+                   OrderPriority,
+                   AdjPriority,
+                   DashboardPriority,
+                   ReceiveResultTarget,
+                   CollectResultTarget) %>%
+          summarize(TotalResulted = n(),
+                    ReceiveTime_VolIncl = sum(ReceiveTime_TATInclude),
+                    CollectTime_VolIncl = sum(CollectTime_TATInclude),
+                    TotalReceiveResultInTarget =
+                      sum(ReceiveResultInTarget[ReceiveTime_TATInclude]),
+                    TotalCollectResultInTarget =
+                      sum(CollectResultInTarget[CollectTime_TATInclude]),
+                    TotalAddOnOrder = sum(AddOnFinal == "AddOn"),
+                    TotalMissingCollections = sum(MissingCollect),
+                    .groups = "keep") %>%
+          arrange(Site, ResultDate) %>%
+          ungroup()
+        
+        showModal(modalDialog(
+          title = "Success",
+          "SCC and Sunquest files successfully submitted and processed.",
+          easyClose = TRUE,
+          footer = modalButton("Dismiss"))
+        )
+        
+      }
+    }
   }
   )
 }
-
-  
+ 
 
 

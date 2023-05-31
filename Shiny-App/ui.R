@@ -40,16 +40,11 @@ ui <-
   #   ),
     navbarPage("MSHS Lab KPI Dashboard",
                tabPanel("Efficiency Indicators",
-                        h4("Select Appropriate Tab"),
                         tabsetPanel(
                           tabPanel("Chemistry",
-                                   HTML(
-                                     paste0("<h4><em>",
-                                            "Chemistry KPI (Labs Resulted on ",
-                                            format(cp_latest_day, "%a %m/%d/%y"),
-                                            ")",
-                                            "</h4></em>")
-                                   ),
+                                   uiOutput("chemistry_tat_header"),
+                                   tags$style("#chemistry_tat_header
+                                              {font-style: italic}"),
                                    HTML(
                                      paste0("<h5>Status Definitions: ",
                                             "<span style = 'color:red'>",
@@ -68,13 +63,9 @@ ui <-
                                      )
                                    ),
                           tabPanel("Hematology",
-                                   HTML(
-                                     paste0("<h4><em>",
-                                            "Hematology KPI (Labs Resulted on ",
-                                            format(cp_latest_day, "%a %m/%d/%y"),
-                                            ")",
-                                            "</h4></em>")
-                                   ),
+                                   uiOutput("hematology_tat_header"),
+                                   tags$style("#hematology_tat_header
+                                              {font-style: italic}"),
                                    HTML(
                                      paste0("<h5>Status Definitions: ",
                                             "<span style = 'color:red'>",
@@ -93,13 +84,9 @@ ui <-
                                      )
                                    ),
                           tabPanel("Microbiology RRL",
-                                   HTML(
-                                     paste0("<h4><em>",
-                                            "Microbiology RRL KPI (Labs Resulted on ",
-                                            format(cp_latest_day, "%a %m/%d/%y"),
-                                            ")",
-                                            "</h4></em>")
-                                   ),
+                                   uiOutput("micro_tat_header"),
+                                   tags$style("#micro_tat_header
+                                              {font-style: italic}"),
                                    HTML(
                                      paste0("<h5>Status Definitions: ",
                                             "<span style = 'color:red'>",
@@ -118,13 +105,9 @@ ui <-
                                      )
                                    ),
                           tabPanel("Infusion",
-                                   HTML(
-                                     paste0("<h4><em>",
-                                            "Infusion KPI (Labs Resulted on ",
-                                            format(cp_latest_day, "%a %m/%d/%y"),
-                                            ")",
-                                            "</h4></em>")
-                                   ),
+                                   uiOutput("infusion_tat_header"),
+                                   tags$style("#infusion_tat_header
+                                              {font-style: italic}"),
                                    HTML(
                                      paste0("<h5>Status Definitions: ",
                                             "<span style = 'color:red'>",
@@ -143,15 +126,9 @@ ui <-
                                      )
                                    ),
                           tabPanel("Missing Collections & Add Ons",
-                                   HTML(
-                                     paste0("<h4><em>",
-                                            "Missing Collection Times and ",
-                                            "Add On Order Volume ",
-                                            "(Labs Resulted on ",
-                                            format(cp_latest_day, "%a %m/%d/%y"),
-                                            ")",
-                                            "</h4></em>")
-                                   ),
+                                   uiOutput("missing_collect_tat_header"),
+                                   tags$style("#missing_collect_tat_header
+                                              {font-style: italic}"),
                                    HTML(
                                      paste0("<h5>Status Definitions: ",
                                             "<span style = 'color:red'>",
@@ -226,43 +203,27 @@ ui <-
                ),
                tabPanel("Ops & Quality Indicators"),
                tabPanel("24 Hour Volume Lookback",
-                        h4("Select appropriate tab."),
                         tabsetPanel(
                           tabPanel("Chemistry",
-                                   HTML(
-                                     paste0("<h4><em>",
-                                            "Chemistry Resulted Lab Volume ",
-                                            "(Labs Resulted on ",
-                                            format(cp_latest_day, "%m/%d/%y"),
-                                            ")",
-                                            "</h4></em>")
-                                   ),
+                                   uiOutput("chemistry_vol_header"),
+                                   tags$style("#chemistry_vol_header
+                                              {font-style: italic}"),
                                    fluidRow(
                                      tableOutput("chem_volume")
                                    )
                           ),
                           tabPanel("Hematology",
-                                   HTML(
-                                     paste0("<h4><em>",
-                                            "Hematology Resulted Lab Volume ",
-                                            "(Labs Resulted on ",
-                                            format(cp_latest_day, "%m/%d/%y"),
-                                            ")",
-                                            "</h4></em>")
-                                   ),
+                                   uiOutput("hematology_vol_header"),
+                                   tags$style("#hematology_vol_header
+                                              {font-style: italic}"),
                                    fluidRow(
                                      tableOutput("hem_volume")
                                    )
                           ),
                           tabPanel("Infusion",
-                                   HTML(
-                                     paste0("<h4><em>",
-                                            "Infusion Resulted Lab Volume ",
-                                            "(Labs Resulted on ",
-                                            format(cp_latest_day, "%m/%d/%y"),
-                                            ")",
-                                            "</h4></em>")
-                                   ),
+                                   uiOutput("infusion_vol_header"),
+                                   tags$style("#infusion_vol_header
+                                              {font-style: italic}"),
                                    fluidRow(
                                      tableOutput("inf_volume")
                                    )
@@ -311,7 +272,7 @@ ui <-
                ),
                tabPanel("Data Submission",
                         tabsetPanel(
-                          tabPanel("Efficiency Indicators",
+                          tabPanel("Clinical Pathology Efficiency Indicators",
                                    fluidPage(
                                      fluidRow(h4("SCC"),
                                               fileInput("scc",
@@ -323,6 +284,16 @@ ui <-
                                                         label = "Submit Sunquest file"
                                                         )
                                               ),
+                                     fluidRow(actionButton(
+                                       inputId = "submit_cp_eff_data",
+                                       label = "Submit",
+                                       class = "btn-primary"
+                                     )
+                                     )
+                                   )
+                          ),
+                          tabPanel("Anatomic Pathology Efficiency Indicators",
+                                   fluidPage(
                                      fluidRow(h4("Epic Cytology"),
                                               fileInput("epic_cyto",
                                                         label = "Submit Epic Cytology file"
@@ -339,10 +310,10 @@ ui <-
                                                         )
                                               ),
                                      fluidRow(actionButton(
-                                       inputId = "submit_eff_data",
+                                       inputId = "submit_ap_eff_data",
                                        label = "Submit",
                                        class = "btn-primary"
-                                       )
+                                     )
                                      )
                                    )
                           ),
@@ -356,8 +327,9 @@ ui <-
                                               ),
                                      fluidRow(
                                        actionButton(
-                                         inputId = "submit_ops_qlty",
-                                         label = "Submit"
+                                         inputId = "submit_ops_qlty_data",
+                                         label = "Submit",
+                                         class = "btn-primary"
                                        )
                                      )
                                    )

@@ -238,7 +238,9 @@ preprocess_scc <- function(raw_scc) {
                                  "ReceiveTime_TATInclude", "CollectTime_TATInclude")
   }
   
-  return(scc_processed)
+  scc_return_list <- list(scc_processed, scc_correct_date)
+  
+  return(scc_return_list)
 }
 
 preprocess_sun <- function(raw_sun)  {
@@ -469,7 +471,9 @@ preprocess_sun <- function(raw_sun)  {
     
   }
   
-  return(sun_processed)
+  sun_return_list <- list(sun_processed, sun_correct_date)
+  
+  return(sun_return_list)
 }
 
 
