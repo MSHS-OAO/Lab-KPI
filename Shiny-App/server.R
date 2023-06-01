@@ -10,7 +10,7 @@ server <- function(input, output, session) {
     input$submit_cp_eff_data
     
     h4(paste0("Chemistry KPI (Labs Resulted on ",
-              format(cp_latest_day, "%a %m/%d/%y"),
+              format(cp_submitted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -22,7 +22,7 @@ server <- function(input, output, session) {
     
     input$submit_cp_eff_data
     
-    chem_sub_output <- summarize_cp_tat(x = cp_summary,
+    chem_sub_output <- summarize_cp_tat(x = cp_submitted_daily_summary,
                                         lab_division = "Chemistry")
     chem_subset <- chem_sub_output[[1]]
     chem_summary <- chem_sub_output[[2]]
@@ -40,7 +40,7 @@ server <- function(input, output, session) {
     input$submit_cp_eff_data
     
     h4(paste0("Hematology KPI (Labs Resulted on ",
-              format(cp_latest_day, "%a %m/%d/%y"),
+              format(cp_submitted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -52,7 +52,7 @@ server <- function(input, output, session) {
     
     input$submit_cp_eff_data
     
-    hem_sub_output <- summarize_cp_tat(x = cp_summary,
+    hem_sub_output <- summarize_cp_tat(x = cp_submitted_daily_summary,
                                        lab_division = "Hematology")
     hem_subset <- hem_sub_output[[1]]
     hem_summary <- hem_sub_output[[2]]
@@ -70,7 +70,7 @@ server <- function(input, output, session) {
     input$submit_cp_eff_data
     
     h4(paste0("Microbiology RRL KPI (Labs Resulted on ",
-              format(cp_latest_day, "%a %m/%d/%y"),
+              format(cp_submitted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -82,7 +82,7 @@ server <- function(input, output, session) {
     
     input$submit_cp_eff_data
     
-    micro_sub_output <- summarize_cp_tat(x = cp_summary,
+    micro_sub_output <- summarize_cp_tat(x = cp_submitted_daily_summary,
                                          lab_division = "Microbiology RRL")
     
     micro_subset <- micro_sub_output[[1]]
@@ -204,7 +204,7 @@ server <- function(input, output, session) {
     input$submit_cp_eff_data
     
     h4(paste0("Infusion KPI (Labs Resulted on ",
-              format(cp_latest_day, "%a %m/%d/%y"),
+              format(cp_submitted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -216,7 +216,7 @@ server <- function(input, output, session) {
     
     input$submit_cp_eff_data
     
-    inf_sub_output <- summarize_cp_tat(x = cp_summary,
+    inf_sub_output <- summarize_cp_tat(x = cp_submitted_daily_summary,
                                        lab_division = "Infusion")
     inf_subset <- inf_sub_output[[1]]
     inf_summary <- inf_sub_output[[2]]
@@ -235,7 +235,7 @@ server <- function(input, output, session) {
     
     h4(paste0("Missing Collection Times and Add On Order Volume ",
               "(Labs Resulted on ",
-              format(cp_latest_day, "%a %m/%d/%y"),
+              format(cp_submitted_date, "%a %m/%d/%y"),
               ")"
               )
        )
@@ -247,7 +247,7 @@ server <- function(input, output, session) {
     
     input$submit_cp_eff_data
     
-    kable_missing_collections(x = cp_summary)
+    kable_missing_collections(x = cp_submitted_daily_summary)
       
   }
   
@@ -255,7 +255,7 @@ server <- function(input, output, session) {
     
     input$submit_cp_eff_data
     
-    kable_add_on_volume(x = cp_summary)
+    kable_add_on_volume(x = cp_submitted_daily_summary)
     
   }
   
@@ -267,7 +267,7 @@ server <- function(input, output, session) {
     
     h4(paste0("Chemistry Resulted Lab Volume ",
               "(Labs Resulted on ",
-              format(cp_latest_day, "%a %m/%d/%y"),
+              format(cp_submitted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -279,7 +279,7 @@ server <- function(input, output, session) {
     
     input$submit_cp_eff_data
     
-    chem_vol_table <- summarize_cp_vol(x = cp_summary,
+    chem_vol_table <- summarize_cp_vol(x = cp_submitted_daily_summary,
                                        lab_division = "Chemistry")
     
     kable_cp_vol(chem_vol_table)
@@ -294,7 +294,7 @@ server <- function(input, output, session) {
     
     h4(paste0("Hematology Resulted Lab Volume ",
               "(Labs Resulted on ",
-              format(cp_latest_day, "%a %m/%d/%y"),
+              format(cp_submitted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -306,7 +306,7 @@ server <- function(input, output, session) {
     
     input$submit_cp_eff_data
     
-    hem_vol_table <- summarize_cp_vol(x = cp_summary,
+    hem_vol_table <- summarize_cp_vol(x = cp_submitted_daily_summary,
                                       lab_division = "Hematology")
     
     kable_cp_vol(hem_vol_table)
@@ -321,7 +321,7 @@ server <- function(input, output, session) {
     
     h4(paste0("Infusion Resulted Lab Volume ",
               "(Labs Resulted on ",
-              format(cp_latest_day, "%a %m/%d/%y"),
+              format(cp_submitted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -333,7 +333,7 @@ server <- function(input, output, session) {
     
     input$submit_cp_eff_data
     
-    inf_vol_table <- summarize_cp_vol(x = cp_summary,
+    inf_vol_table <- summarize_cp_vol(x = cp_submitted_daily_summary,
                                       lab_division = "Infusion")
     
     kable_cp_vol(inf_vol_table)
@@ -414,7 +414,7 @@ server <- function(input, output, session) {
       tryCatch({
         # Process SCC data
         scc_processed <- preprocess_scc(scc_data_raw)[[1]]
-        scc_date <- preprocess_scc(scc_data_raw)[[2]]
+        scc_date <<- preprocess_scc(scc_data_raw)[[2]]
         
         flag <- 3
       },
@@ -436,7 +436,7 @@ server <- function(input, output, session) {
       tryCatch({
         # Process Sunquest data
         sun_processed <- preprocess_sun(sun_data_raw)[[1]]
-        sun_date <- preprocess_sun(sun_data_raw)[[2]]
+        sun_date <<- preprocess_sun(sun_data_raw)[[2]]
         
         flag <- 4
       },
@@ -463,47 +463,34 @@ server <- function(input, output, session) {
         ))
       } else{
         
-        cp_latest_day <<- scc_date
+        cp_submitted_date <<- scc_date
         
         # Bind preprocessed SCC and Sunquest data
-        scc_sun_processed <- rbind(scc_processed, sun_processed)
+        scc_sun_processed <<- rbind(scc_processed, sun_processed)
         
-        # Add columns for year, month, week, etc.
-        scc_sun_processed <<- scc_sun_processed %>%
-          mutate(
-            # Find month name from result date
-            Year = year(ResultDate),
-            MonthNo = month(ResultDate),
-            MonthName = month(ResultDate, label = TRUE, abbr = TRUE),
-            MonthRollUp = as.Date(paste0(MonthNo, "/",
-                                         1, "/",
-                                         Year),
-                                  format = "%m/%d/%Y"),
-            WeekStart = ResultDate - (wday(ResultDate) - 1),
-            WeekEnd = ResultDate + (7 - wday(ResultDate)),
-            WeekOf = paste0(format(WeekStart, "%m/%d/%y"),
-                            "-",
-                            format(WeekEnd, "%m/%d/%y")))
+        remove_dupl_dates_test_level <<- anti_join(cp_test_repo,
+                                        scc_sun_processed,
+                                        by = "ResultDate")
         
-        remove_dupl_dates <<- anti_join(cp_test_repo,
-                                       scc_sun_processed,
-                                       by = "ResultDate")
+        cp_test_repo <<- rbind(remove_dupl_dates_test_level, scc_sun_processed)
         
-        week_dates <<- scc_sun_processed %>%
-          distinct(WeekStart, WeekEnd)
-          
+        cp_test_repo <<- cp_test_repo %>%
+          arrange(Site, ResultDate)
         
+        saveRDS(cp_test_repo,
+                paste0(user_directory,
+                       "/Shiny App Repo/CPTestLevelData",
+                       "/CPTestData60Days.rds"))
+
         # Summarize data for kables
-        cp_summary <<- scc_sun_processed %>%
+        cp_daily_summary <<- scc_sun_processed %>%
           group_by(Site,
                    ResultDate,
                    Test,
                    Division,
-                   Setting,
                    SettingRollUp,
                    DetailedSetting,
                    DashboardSetting,
-                   OrderPriority,
                    AdjPriority,
                    DashboardPriority,
                    ReceiveResultTarget,
@@ -517,9 +504,46 @@ server <- function(input, output, session) {
                       sum(CollectResultInTarget[CollectTime_TATInclude]),
                     TotalAddOnOrder = sum(AddOnFinal == "AddOn"),
                     TotalMissingCollections = sum(MissingCollect),
+                    # Calculate key statistics for collect-to-receive TAT
+                    CollectReceive_Avg = mean(CollectToReceiveTAT[CollectTime_TATInclude], na.rm = TRUE),
+                    CollectReceive_Median = median(CollectToReceiveTAT[CollectTime_TATInclude], na.rm = TRUE),
+                    CollectReceive_95 = quantile(CollectToReceiveTAT[CollectTime_TATInclude], probs = c(0.95),
+                                                 na.rm = TRUE),
+                    # Calculate key statistics for receive-to-result TAT
+                    ReceiveResult_Avg = mean(ReceiveToResultTAT[ReceiveTime_TATInclude],
+                                             na.rm = TRUE),
+                    ReceiveResult_Median = median(ReceiveToResultTAT[ReceiveTime_TATInclude],
+                                                  na.rm = TRUE),
+                    ReceiveResult_95 = quantile(ReceiveToResultTAT[ReceiveTime_TATInclude],
+                                                probs = c(0.95), na.rm = TRUE),
+                    # Calculate key statistics for collect-to-result TAT
+                    CollectResult_Avg = mean(CollectToResultTAT[CollectTime_TATInclude],
+                                             na.rm = TRUE),
+                    CollectResult_Median = median(CollectToResultTAT[CollectTime_TATInclude],
+                                                  na.rm = TRUE),
+                    CollectResult_95 = quantile(CollectToResultTAT[CollectTime_TATInclude],
+                                                probs = c(0.95), na.rm = TRUE),
                     .groups = "keep") %>%
           arrange(Site, ResultDate) %>%
           ungroup()
+        
+        remove_dupl_dates_daily_summary <<- anti_join(cp_daily_repo,
+                                                     cp_daily_summary,
+                                                     by = "ResultDate")
+        
+        cp_daily_repo <<- rbind(remove_dupl_dates_daily_summary,
+                               cp_daily_summary)
+        
+        cp_daily_repo <<- cp_daily_repo %>%
+          arrange(Site, ResultDate)
+        
+        cp_submitted_daily_summary <<- cp_daily_repo %>%
+          filter(ResultDate == cp_submitted_date)
+        
+        saveRDS(cp_daily_repo,
+                paste0(user_directory,
+                       "/Shiny App Repo/CPDailySummary",
+                       "/CPDailySummary.rds"))
         
         showModal(modalDialog(
           title = "Success",
