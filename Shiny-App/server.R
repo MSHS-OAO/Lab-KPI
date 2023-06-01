@@ -468,6 +468,31 @@ server <- function(input, output, session) {
         # Bind preprocessed SCC and Sunquest data
         scc_sun_processed <- rbind(scc_processed, sun_processed)
         
+        # Add columns for year, month, week, etc.
+        scc_sun_processed <<- scc_sun_processed %>%
+          mutate(
+            # Find month name from result date
+            Year = year(ResultDate),
+            MonthNo = month(ResultDate),
+            MonthName = month(ResultDate, label = TRUE, abbr = TRUE),
+            MonthRollUp = as.Date(paste0(MonthNo, "/",
+                                         1, "/",
+                                         Year),
+                                  format = "%m/%d/%Y"),
+            WeekStart = ResultDate - (wday(ResultDate) - 1),
+            WeekEnd = ResultDate + (7 - wday(ResultDate)),
+            WeekOf = paste0(format(WeekStart, "%m/%d/%y"),
+                            "-",
+                            format(WeekEnd, "%m/%d/%y")))
+        
+        remove_dupl_dates <<- anti_join(cp_test_repo,
+                                       scc_sun_processed,
+                                       by = "ResultDate")
+        
+        week_dates <<- scc_sun_processed %>%
+          distinct(WeekStart, WeekEnd)
+          
+        
         # Summarize data for kables
         cp_summary <<- scc_sun_processed %>%
           group_by(Site,

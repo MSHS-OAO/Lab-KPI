@@ -51,7 +51,8 @@ user_directory <- paste0(
 )
 
 raw_data <- readRDS(paste0(user_directory,
-                           "/RawData/RawData60Days.rds"))
+                           "/Shiny App Repo/",
+                           "/CPTestLevelData/CPTestData60Days.rds"))
 
 daily_repo <- readRDS(paste0(user_directory,
                            "/DailyRepo/DailySummary.rds"))
@@ -62,9 +63,20 @@ weekly_repo <- readRDS(paste0(user_directory,
 monthly_repo <- readRDS(paste0(user_directory,
                            "/MonthlyRepo/MonthlySummary.rds"))
 
+# raw_data <- raw_data %>%
+#   rename("DetailedSetting" = "MasterSetting",
+#          "AddOnFinal" = "AddOnMaster")
+
 raw_data <- raw_data %>%
-  rename("DetailedSetting" = "MasterSetting",
-         "AddOnFinal" = "AddOnMaster")
+  select(-Year,
+         -MonthNo,
+         -MonthName,
+         -MonthRollUp,
+         -WeekStart,
+         -WeekEnd,
+         -WeekOf,
+         -CompleteWeek,
+         -CompleteMonth)
 
 daily_repo <- daily_repo %>%
   mutate(WeekStart = NULL,
@@ -85,7 +97,8 @@ monthly_repo <- monthly_repo %>%
 
 saveRDS(raw_data,
         paste0(user_directory,
-               "/RawData/RawData60Days.rds"))
+               "/Shiny App Repo/",
+               "/CPTestLevelData/CPTestData60Days.rds"))
 
 saveRDS(daily_repo,
         paste0(user_directory,
