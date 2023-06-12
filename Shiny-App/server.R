@@ -340,16 +340,16 @@ server <- function(input, output, session) {
     
   }
   
-  # Observe event for SCC data
+  # Observe event for Clinical Pathology data -------
   observeEvent(input$submit_cp_eff_data, {
     button_name <- "submit_cp_eff_data"
     shinyjs::disable(button_name)
     
     flag <- 0
     
-    scc_file <<- input$scc
+    scc_file <- input$scc
     
-    sun_file <<- input$sunquest
+    sun_file <- input$sunquest
     
     if(is.null(scc_file) |
        is.null(sun_file))
@@ -365,8 +365,8 @@ server <- function(input, output, session) {
       tryCatch({
         
         # Read in SCC file
-        scc_filename <<- scc_file$datapath
-        scc_data_raw <<- read_excel(scc_filename)
+        scc_filename <- scc_file$datapath
+        scc_data_raw <- read_excel(scc_filename)
         
         flag <- 1
 
@@ -389,8 +389,8 @@ server <- function(input, output, session) {
       
       tryCatch({
         # Read in Sunquest file
-        sun_filename <<- sun_file$datapath
-        sun_data_raw <<- read_excel(sun_filename)
+        sun_filename <- sun_file$datapath
+        sun_data_raw <- read_excel(sun_filename)
         
         flag <- 2
         
@@ -414,7 +414,7 @@ server <- function(input, output, session) {
       tryCatch({
         # Process SCC data
         scc_processed <- preprocess_scc(scc_data_raw)[[1]]
-        scc_date <<- preprocess_scc(scc_data_raw)[[2]]
+        scc_date <- preprocess_scc(scc_data_raw)[[2]]
         
         flag <- 3
       },
@@ -436,7 +436,7 @@ server <- function(input, output, session) {
       tryCatch({
         # Process Sunquest data
         sun_processed <- preprocess_sun(sun_data_raw)[[1]]
-        sun_date <<- preprocess_sun(sun_data_raw)[[2]]
+        sun_date <- preprocess_sun(sun_data_raw)[[2]]
         
         flag <- 4
       },
@@ -466,24 +466,24 @@ server <- function(input, output, session) {
         cp_submitted_date <<- scc_date
         
         # Bind preprocessed SCC and Sunquest data
-        scc_sun_processed <<- rbind(scc_processed, sun_processed)
+        scc_sun_processed <- rbind(scc_processed, sun_processed)
         
-        remove_dupl_dates_test_level <<- anti_join(cp_test_repo,
+        remove_dupl_dates_test_level <- anti_join(cp_test_repo,
                                         scc_sun_processed,
                                         by = "ResultDate")
         
-        cp_test_repo <<- rbind(remove_dupl_dates_test_level, scc_sun_processed)
+        cp_test_repo <- rbind(remove_dupl_dates_test_level, scc_sun_processed)
         
-        cp_test_repo <<- cp_test_repo %>%
+        cp_test_repo <- cp_test_repo %>%
           arrange(Site, ResultDate)
         
-        saveRDS(cp_test_repo,
-                paste0(user_directory,
-                       "/Shiny App Repo/CPTestLevelData",
-                       "/CPTestData60Days.rds"))
+        # saveRDS(cp_test_repo,
+        #         paste0(user_directory,
+        #                "/Shiny App Repo/CPTestLevelData",
+        #                "/CPTestData60Days DummyTest.rds"))
 
         # Summarize data for kables
-        cp_daily_summary <<- scc_sun_processed %>%
+        cp_daily_summary <- scc_sun_processed %>%
           group_by(Site,
                    ResultDate,
                    Test,
@@ -527,23 +527,23 @@ server <- function(input, output, session) {
           arrange(Site, ResultDate) %>%
           ungroup()
         
-        remove_dupl_dates_daily_summary <<- anti_join(cp_daily_repo,
+        remove_dupl_dates_daily_summary <- anti_join(cp_daily_repo,
                                                      cp_daily_summary,
                                                      by = "ResultDate")
         
-        cp_daily_repo <<- rbind(remove_dupl_dates_daily_summary,
+        cp_daily_repo <- rbind(remove_dupl_dates_daily_summary,
                                cp_daily_summary)
         
-        cp_daily_repo <<- cp_daily_repo %>%
+        cp_daily_repo <- cp_daily_repo %>%
           arrange(Site, ResultDate)
         
         cp_submitted_daily_summary <<- cp_daily_repo %>%
           filter(ResultDate == cp_submitted_date)
         
-        saveRDS(cp_daily_repo,
-                paste0(user_directory,
-                       "/Shiny App Repo/CPDailySummary",
-                       "/CPDailySummary.rds"))
+        # saveRDS(cp_daily_repo,
+        #         paste0(user_directory,
+        #                "/Shiny App Repo/CPDailySummary",
+        #                "/CPDailySummary DummyTest.rds"))
         
         showModal(modalDialog(
           title = "Success",

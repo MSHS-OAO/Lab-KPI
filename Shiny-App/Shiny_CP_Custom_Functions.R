@@ -746,7 +746,8 @@ kable_cp_tat <- function(x) {
     kable(data, format = "html", escape = FALSE, align = "c",
           col.names = kable_col_names) %>%
       kable_styling(bootstrap_options = "hover", position = "center",
-                    font_size = 11) %>%
+                    font_size = 11,
+                    full_width = FALSE) %>%
       column_spec(column = c(1, (num_col - 1) / 2 + 1, num_col),
                   border_right = "thin solid lightgray") %>%
       add_header_above(c(" " = 1,

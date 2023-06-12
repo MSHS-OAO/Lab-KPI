@@ -60,8 +60,8 @@ ui <-
                                    ),
                                    fluidRow(
                                      tableOutput("chemistry_kpi")
-                                     )
-                                   ),
+                                   )
+                          ),
                           tabPanel("Hematology",
                                    uiOutput("hematology_tat_header"),
                                    tags$style("#hematology_tat_header
@@ -81,8 +81,8 @@ ui <-
                                    ),
                                    fluidRow(
                                      tableOutput("hematology_kpi")
-                                     )
-                                   ),
+                                   )
+                          ),
                           tabPanel("Microbiology RRL",
                                    uiOutput("micro_tat_header"),
                                    tags$style("#micro_tat_header
