@@ -201,7 +201,26 @@ ui <-
                                    )
                         )
                ),
-               tabPanel("Ops & Quality Indicators"),
+               tabPanel("Ops & Quality Indicators",
+                        tabsetPanel(
+                          tabPanel("Operational Indicators",
+                                   uiOutput("ops_indicators_header"),
+                                   tags$style("#ops_indicators_header
+                                              {font-style: italic}"),
+                                   tableOutput("ops_indicators_status"),
+                                   hr(),
+                                   tableOutput("ops_indicators_comments")
+                          ),
+                          tabPanel("Quality Indicators",
+                                   uiOutput("qlty_indicators_header"),
+                                   tags$style("#qlty_indicators_header
+                                              {font-style: italic"),
+                                   tableOutput("qlty_indicators_status"),
+                                   hr(),
+                                   tableOutput("qlty_indicators_comments")
+                          ),
+                        ),
+               ),
                tabPanel("24 Hour Volume Lookback",
                         tabsetPanel(
                           tabPanel("Chemistry",
@@ -321,8 +340,7 @@ ui <-
                                    fluidPage(
                                      fluidRow(h4("Ops & Quality Indicators"),
                                               fileInput("ops_qlty",
-                                                        label = "Submit form responses for Ops & Quality Indicators",
-                                                        width = "50%"
+                                                        label = "Submit form responses for Ops & Quality Indicators"
                                                         )
                                               ),
                                      fluidRow(

@@ -10,7 +10,7 @@ server <- function(input, output, session) {
     input$submit_cp_eff_data
     
     h4(paste0("Chemistry KPI (Labs Resulted on ",
-              format(cp_submitted_date, "%a %m/%d/%y"),
+              format(cp_resulted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -40,7 +40,7 @@ server <- function(input, output, session) {
     input$submit_cp_eff_data
     
     h4(paste0("Hematology KPI (Labs Resulted on ",
-              format(cp_submitted_date, "%a %m/%d/%y"),
+              format(cp_resulted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -70,7 +70,7 @@ server <- function(input, output, session) {
     input$submit_cp_eff_data
     
     h4(paste0("Microbiology RRL KPI (Labs Resulted on ",
-              format(cp_submitted_date, "%a %m/%d/%y"),
+              format(cp_resulted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -204,7 +204,7 @@ server <- function(input, output, session) {
     input$submit_cp_eff_data
     
     h4(paste0("Infusion KPI (Labs Resulted on ",
-              format(cp_submitted_date, "%a %m/%d/%y"),
+              format(cp_resulted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -235,7 +235,7 @@ server <- function(input, output, session) {
     
     h4(paste0("Missing Collection Times and Add On Order Volume ",
               "(Labs Resulted on ",
-              format(cp_submitted_date, "%a %m/%d/%y"),
+              format(cp_resulted_date, "%a %m/%d/%y"),
               ")"
               )
        )
@@ -267,7 +267,7 @@ server <- function(input, output, session) {
     
     h4(paste0("Chemistry Resulted Lab Volume ",
               "(Labs Resulted on ",
-              format(cp_submitted_date, "%a %m/%d/%y"),
+              format(cp_resulted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -294,7 +294,7 @@ server <- function(input, output, session) {
     
     h4(paste0("Hematology Resulted Lab Volume ",
               "(Labs Resulted on ",
-              format(cp_submitted_date, "%a %m/%d/%y"),
+              format(cp_resulted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -321,7 +321,7 @@ server <- function(input, output, session) {
     
     h4(paste0("Infusion Resulted Lab Volume ",
               "(Labs Resulted on ",
-              format(cp_submitted_date, "%a %m/%d/%y"),
+              format(cp_resulted_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -339,6 +339,15 @@ server <- function(input, output, session) {
     kable_cp_vol(inf_vol_table)
     
   }
+  
+  # Operations Indicators -------
+  # output$ops_indicators_header <- renderUI(
+  #   
+  #   input$submit
+  #   
+  # )
+  
+  
   
   # Observe event for Clinical Pathology data -------
   observeEvent(input$submit_cp_eff_data, {
@@ -463,7 +472,7 @@ server <- function(input, output, session) {
         ))
       } else{
         
-        cp_submitted_date <<- scc_date
+        cp_resulted_date <<- scc_date
         
         # Bind preprocessed SCC and Sunquest data
         scc_sun_processed <- rbind(scc_processed, sun_processed)
@@ -538,7 +547,7 @@ server <- function(input, output, session) {
           arrange(Site, ResultDate)
         
         cp_submitted_daily_summary <<- cp_daily_repo %>%
-          filter(ResultDate == cp_submitted_date)
+          filter(ResultDate == cp_resulted_date)
         
         # saveRDS(cp_daily_repo,
         #         paste0(user_directory,
@@ -556,7 +565,86 @@ server <- function(input, output, session) {
     }
   }
   )
+  
+  # Observe event for Ops & Quality Indicators -------
+  observeEvent(input$submit_cp_eff_data, {
+    button_name <- "submit_ops_qlty_data"
+    shinyjs::disable(button_name)
+    
+    flag <- 0
+    
+    ops_qlty_file <- input$ops_qlty
+    
+    
+    if(is.null(ops_qlty_file))
+    {
+      showModal(modalDialog(
+        title = "Error",
+        "Please submit the latest Operations and Quality Indicators filw.",
+        easyClose = TRUE,
+        footer = NULL
+      ))
+    } else {
+      
+      tryCatch({
+        
+        # Read in SCC file
+        ops_qlty_filename <- ops_qlty_file$datapath
+        ops_qlty_data_raw <- read_excel(ops_qlty_filename)
+        
+        flag <- 1
+        
+      },
+      
+      error = function(err){
+        showModal(modalDialog(
+          title = "Read Error",
+          paste0("There seems to be an issue reading this file."),
+          easyClose = TRUE,
+          footer = modalButton("Dismiss")
+        ))
+        shinyjs::enable(button_name)
+      }
+      )
+      
+    }
+    
+    if (flag == 1) {
+      
+      # Try processing the data
+      
+      
+      tryCatch({
+        # Process Sunquest data
+        sun_processed <- preprocess_sun(sun_data_raw)[[1]]
+        sun_date <- preprocess_sun(sun_data_raw)[[2]]
+        
+        flag <- 4
+      },
+      error = function(err){
+        showModal(modalDialog(
+          title = "Processing Error",
+          paste0("There seems to be an issue processing this Sunquest file.",
+                 " Please check that the correct file was selected."),
+          easyClose = TRUE,
+          footer = modalButton("Dismiss")
+        ))
+        shinyjs::enable(button_name)
+      }
+      )
+      
+    }
+    
+
+    
+    
+    
+  }
+  
+  )
+  
 }
+
  
 
 
