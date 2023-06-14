@@ -170,6 +170,33 @@ dashboard_priority_order <- c("All", "Stat", "Routine")
 
 cp_division_order <- c("Chemistry", "Hematology", "Microbiology RRL", "Infusion")
 
+ops_indicators_facility_df <- data.frame(
+  "Facility" = 
+    c("MSH (Clinical Pathology, Blood Bank, Anatomic Pathology Front End, etc.)",
+      "MSQ (Clinical Pathology, Blood Bank, Anatomic Pathology Front End, etc.)",
+      "MSBI (Clinical Pathology, Blood Bank, Anatomic Pathology Front End, etc.)",
+      "MSB (Clinical Pathology, Blood Bank, Anatomic Pathology Front End, etc.)",
+      "MSW (Clinical Pathology, Blood Bank, Anatomic Pathology Front End, etc.)",
+      "MSSL (Clinical Pathology, Blood Bank, Anatomic Pathology Front End, etc.)",
+      "NYEE (Clinical Pathology, Blood Bank, Anatomic Pathology Front End, etc.)",
+      "MSSN (Clinical Pathology, Blood Bank, Anatomic Pathology Front End, etc.)",
+      "MSH - Anatomic Pathology (Centralized)",
+      "MSH - Central Processing & Accessioning",
+      "4LABS - Client Services"),
+  
+  "FacilitySimple" = c("MSH",
+                       "MSQ",
+                       "MSBI",
+                       "MSB",
+                       "MSW",
+                       "MSSL",
+                       "NYEE",
+                       "MSSN",
+                       "Anatomic Pathology (Centralized)",
+                       "Central Processing & Accessioning (CPA)",
+                       "Client Services - 4LABS")
+)
+
 # Create template dataframes for combinations of tests, priority, and settings
 # that will be used in TAT and volume look back tables. These templates ensure
 # all relevant combinations are included in the tables regardless of resulted
