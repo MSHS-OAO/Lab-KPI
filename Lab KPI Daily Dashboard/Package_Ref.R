@@ -67,13 +67,19 @@ create.calendar("MSHS_working_days", mshs_holiday,
 bizdays.options$set(default.calendar = "MSHS_working_days")
 
 
+if(dir.exists("/SharedDrive")){
+  start <- "/SharedDrive"
+}else{
+  start <-"J:"
+}
+
 # Select file/folder path for easier file selection and navigation
-if ("Presidents" %in% list.files("J://")) {
-  user_directory <- paste0("J:/Presidents/HSPI-PM/",
+if ("Presidents" %in% list.files(start)) {
+  user_directory <- paste0(start,"/Presidents/HSPI-PM/",
                            "Operations Analytics and Optimization/Projects/",
                            "Service Lines/Lab Kpi/Data")
 } else {
-  user_directory <- paste0("J:/deans/Presidents/HSPI-PM/",
+  user_directory <- paste0(start,"/deans/Presidents/HSPI-PM/",
                            "Operations Analytics and Optimization/Projects/",
                            "Service Lines/Lab Kpi/Data")
 }
@@ -81,7 +87,7 @@ if ("Presidents" %in% list.files("J://")) {
 # Import analysis reference data
 reference_file <- paste0(user_directory,
                          "/Code Reference/",
-                         "Analysis Reference 2022-06-21.xlsx")
+                         "Analysis Reference 2023-02-13.xlsx")
 
 # CP and Micro --------------------------------
 scc_test_code <- read_excel(reference_file, sheet = "SCC_TestCodes")
@@ -294,63 +300,79 @@ gi_codes <- data.frame(read_excel(reference_file, sheet = "GI_Codes"),
 #Cyto
 #this template for cyto is with an assumption that received to result is not
 #centralized
-table_temp_cyto <- data.frame(matrix(ncol = 19, nrow = 4))
+Spec_group <- c("CYTO GYN","CYTO NONGYN")
+Patient_setting <- c("IP", "Amb")
 
-colnames(table_temp_cyto) <- c("Spec_group", "Patient_setting",
-                               "no_cases_signed",
-                               "MSH.x", "BIMC.x", "MSQ.x", "NYEE.x",
-                               "PACC.x", "R.x", "SL.x", "KH.x", "BIMC.y",
-                               "MSH.y", "MSQ.y", "NYEE.y", "PACC.y", "R.y",
-                               "SL.y", "KH.y")
+table_temp_cyto <- expand.grid(Spec_group, Patient_setting)
 
-table_temp_cyto[1] <- c("CYTO GYN", "CYTO GYN", "CYTO NONGYN", "CYTO NONGYN")
-table_temp_cyto[2] <- c("IP", "Amb")
+colnames(table_temp_cyto) <- c("Spec_group", "Patient_setting")
+
+other_cols_table_temp_cyto <- c("no_cases_signed",
+                                "MSH.x", "BIMC.x", "MSQ.x", "NYEE.x",
+                                "PACC.x", "R.x", "SL.x", "KH.x", "BIMC.y",
+                                "MSH.y", "MSQ.y", "NYEE.y", "PACC.y", "R.y",
+                                "SL.y", "KH.y")
+table_temp_cyto <- table_temp_cyto %>% 
+  mutate(!!!setNames(rep(NA, length(other_cols_table_temp_cyto)), other_cols_table_temp_cyto))
+
 
 #this template for cyto is with an assumption that received to result is
 #centralized
-table_temp_cyto_v2 <- data.frame(matrix(ncol = 12, nrow = 4))
+table_temp_cyto_v2 <- expand.grid(Spec_group, Patient_setting)
 
-colnames(table_temp_cyto_v2) <- c("Spec_group", "Patient_setting",
-                                  "no_cases_signed",
+colnames(table_temp_cyto_v2) <- c("Spec_group", "Patient_setting")
+
+
+other_cols_table_temp_cyto_v2 <- c("no_cases_signed",
                                   "received_to_signed_out_within_target",
                                   "BIMC", "MSH", "MSQ", "NYEE", "PACC",
                                   "R", "SL", "KH")
 
-table_temp_cyto_v2[1] <- c("CYTO GYN", "CYTO GYN", "CYTO NONGYN", "CYTO NONGYN")
-table_temp_cyto_v2[2] <- c("IP", "Amb")
+table_temp_cyto_v2 <- table_temp_cyto_v2 %>% 
+  mutate(!!!setNames(rep(NA, length(other_cols_table_temp_cyto_v2)), other_cols_table_temp_cyto_v2))
 
 #this table template is for cytology volume
-table_temp_cyto_vol <- data.frame(matrix(ncol = 10, nrow = 4))
+table_temp_cyto_vol <- expand.grid(Spec_group, Patient_setting)
 
-colnames(table_temp_cyto_vol) <- c("Spec_group", "Patient_setting",
-                                   "BIMC", "MSH", "MSQ", "NYEE", "PACC",
-                                   "R", "SL", "KH")
+colnames(table_temp_cyto_vol) <- c("Spec_group", "Patient_setting")
 
-table_temp_cyto_vol[1] <- c("CYTO GYN", "CYTO GYN",
-                            "CYTO NONGYN", "CYTO NONGYN")
-table_temp_cyto_vol[2] <- c("IP", "Amb")
+
+other_cols_table_temp_cyto_vol <- c("BIMC", "MSH", "MSQ", "NYEE", "PACC",
+                                    "R", "SL", "KH")
+
+table_temp_cyto_vol <- table_temp_cyto_vol %>% 
+  mutate(!!!setNames(rep(NA, length(other_cols_table_temp_cyto_vol)), other_cols_table_temp_cyto_vol))
 
 #Patho
 #this template for patho (sp) is with an assumption that received to result is
 #not centralized
-table_temp_patho <- data.frame(matrix(ncol = 17, nrow = 4))
-colnames(table_temp_patho) <- c("Spec_group", "Patient_setting",
-                                "no_cases_signed",
-                                "MSH.x", "BIMC.x", "MSQ.x", "PACC.x",
-                                "R.x", "SL.x", "KH.x", "BIMC.y", "MSH.y",
-                                "MSQ.y", "PACC.y", "R.y", "SL.y", "KH.y")
+Spec_group <- c("Breast", "GI")
+Patient_setting <- c("IP", "Amb")
 
-table_temp_patho[1] <- c("Breast", "Breast", "GI", "GI")
-table_temp_patho[2] <- c("IP", "Amb")
+table_temp_patho <- expand.grid(Spec_group, Patient_setting)
+
+colnames(table_temp_patho) <- c("Spec_group", "Patient_setting")
+
+
+other_cols_table_temp_patho <- c("no_cases_signed",
+                                 "MSH.x", "BIMC.x", "MSQ.x", "PACC.x",
+                                 "R.x", "SL.x", "KH.x", "BIMC.y", "MSH.y",
+                                 "MSQ.y", "PACC.y", "R.y", "SL.y", "KH.y")
+
+table_temp_patho <- table_temp_patho %>% 
+  mutate(!!!setNames(rep(NA, length(other_cols_table_temp_patho)), other_cols_table_temp_patho))
 
 #this table template is for surgical pathology volume
-table_temp_patho_vol <- data.frame(matrix(ncol = 9, nrow = 4))
-colnames(table_temp_patho_vol) <- c("Spec_group", "Patient_setting",
-                                    "BIMC", "MSH", "MSQ", "PACC",
-                                    "R", "SL", "KH")
+table_temp_patho_vol <- expand.grid(Spec_group, Patient_setting)
 
-table_temp_patho_vol[1] <- c("Breast", "Breast", "GI", "GI")
-table_temp_patho_vol[2] <- c("IP", "Amb")
+colnames(table_temp_patho_vol) <- c("Spec_group", "Patient_setting")
+
+
+other_cols_table_temp_patho_vol <- c("BIMC", "MSH", "MSQ", "PACC",
+                                 "R", "SL", "KH")
+
+table_temp_patho_vol <- table_temp_patho_vol %>% 
+  mutate(!!!setNames(rep(NA, length(other_cols_table_temp_patho_vol)), other_cols_table_temp_patho_vol))
 
 sp_vol_column_order <- c("Spec_group", "Patient_setting",
                          "MSH", "MSQ", "BIMC", "PACC", "KH", "R", "SL")
