@@ -67,19 +67,13 @@ create.calendar("MSHS_working_days", mshs_holiday,
 bizdays.options$set(default.calendar = "MSHS_working_days")
 
 
-if(dir.exists("/SharedDrive")){
-  start <- "/SharedDrive"
-}else{
-  start <-"J:"
-}
-
 # Select file/folder path for easier file selection and navigation
-if ("Presidents" %in% list.files(start)) {
-  user_directory <- paste0(start,"/Presidents/HSPI-PM/",
+if ("Presidents" %in% list.files("J://")) {
+  user_directory <- paste0("J:/Presidents/HSPI-PM/",
                            "Operations Analytics and Optimization/Projects/",
                            "Service Lines/Lab Kpi/Data")
 } else {
-  user_directory <- paste0(start,"/deans/Presidents/HSPI-PM/",
+  user_directory <- paste0("J:/deans/Presidents/HSPI-PM/",
                            "Operations Analytics and Optimization/Projects/",
                            "Service Lines/Lab Kpi/Data")
 }
@@ -87,7 +81,7 @@ if ("Presidents" %in% list.files(start)) {
 # Import analysis reference data
 reference_file <- paste0(user_directory,
                          "/Code Reference/",
-                         "Analysis Reference 2023-02-13.xlsx")
+                         "Analysis Reference 2022-06-21.xlsx")
 
 # CP and Micro --------------------------------
 scc_test_code <- read_excel(reference_file, sheet = "SCC_TestCodes")
@@ -244,8 +238,8 @@ tat_dashboard_templ <- test_site_prty_setting_tat %>%
         # the only labs processed there. Remove stat and routine stratification
         # for infusion labs since all labs treated the same
         (Division %in% c("Infusion") & (!(Test %in% c("BUN", "HGB")) |
-           !(DashboardSetting %in% c("Amb")) |
-           !(DashboardPriority %in% c("All")))), "Excl", "Incl")) %>%
+                                          !(DashboardSetting %in% c("Amb")) |
+                                          !(DashboardPriority %in% c("All")))), "Excl", "Incl")) %>%
   filter(Incl == "Incl")
 
 vol_dashboard_templ <- test_site_prty_setting_vol %>%
@@ -308,9 +302,6 @@ colnames(table_temp_cyto) <- c("Spec_group", "Patient_setting",
                                "PACC.x", "R.x", "SL.x", "KH.x", "BIMC.y",
                                "MSH.y", "MSQ.y", "NYEE.y", "PACC.y", "R.y",
                                "SL.y", "KH.y")
-
-
-
 
 table_temp_cyto[1] <- c("CYTO GYN", "CYTO GYN", "CYTO NONGYN", "CYTO NONGYN")
 table_temp_cyto[2] <- c("IP", "Amb")
