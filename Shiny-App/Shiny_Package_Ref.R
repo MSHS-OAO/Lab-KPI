@@ -368,6 +368,7 @@ table_temp_cyto <- table_temp_cyto %>%
 
 #this template for cyto is with an assumption that received to result is
 #centralized
+# for "!!!" syntax refer: https://stackoverflow.com/questions/18214395/add-empty-columns-to-a-dataframe-with-specified-names-from-a-vector
 table_temp_cyto_v2 <- expand.grid(Spec_group, Patient_setting)
 
 colnames(table_temp_cyto_v2) <- c("Spec_group", "Patient_setting")
