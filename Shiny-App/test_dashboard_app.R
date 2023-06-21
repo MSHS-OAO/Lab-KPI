@@ -7,8 +7,6 @@ functions_path <- here("Shiny-App/Functions")
 function_sources <- list.files(functions_path, full.names = T, recursive = T)
 sapply(function_sources, source)
 
-
-source("/Functions/AP_cyto_prep.R")
 # Source custom functions for clinical pathology
 source("Shiny_CP_Custom_Functions.R")
 
