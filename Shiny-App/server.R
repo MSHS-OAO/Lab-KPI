@@ -3,6 +3,8 @@ if(Sys.getenv('SHINY_PORT') == "") options(shiny.maxRequestSize=100*1024^2)
 
 server <- function(input, output, session) {
   
+  
+  
   # Chemistry Efficiency Indicators -------
   # Header based on date
   output$chemistry_tat_header <- renderUI({
@@ -341,13 +343,81 @@ server <- function(input, output, session) {
   }
   
   # Operations Indicators -------
-  # output$ops_indicators_header <- renderUI(
-  #   
-  #   input$submit
-  #   
-  # )
+  output$ops_indicators_header <- renderUI({
+
+    input$submit_ops_qlty_data
+    
+    h4(paste0("Operational Indicators - Updated on ",
+       format(ops_qlty_date, "%m/%d/%y")))
+    
+  }
+  )
   
+  output$ops_indicators_status <- function() {
+    
+    input$submit_ops_qlty_data
+    
+    ops_indicators_responses <- ops_qlty_responses_today %>%
+      select(-ID, -StartTime, -CompletionTime, -Email, -Name,
+             -NeverEvents, -NeverEventsComments, -GoodCatch,
+             -CompletionDate, -CompletionHour)
+    
+    ops_indicators_responses <- ops_indicators_responses %>%
+      pivot_longer(cols = !c(Facility, Comments),
+                   names_to = "Metric",
+                   values_to = "Status") %>%
+      mutate(Status = ifelse(str_detect(Status, "Green"),
+                             "Safe",
+                             ifelse(str_detect(Status, "Yellow"),
+                                    "Under Stress",
+                                    ifelse(str_detect(Status, "Red"),
+                                           "Not Safe", NA))))
+    
+    ops_indicators_responses <- ops_qlty_formatting(ops_indicators_responses)
+    
+    ops_indicators_responses <<- ops_indicators_responses %>%
+      pivot_wider(names_from = "Metric",
+                  values_from = "Status") %>%
+      relocate(Comments, .after = last_col())
+    
+    ops_indicators_status <- ops_indicators_responses %>%
+      select(-Comments)
+    
+    kable(ops_indicators_status)
+    
+    # kable(ops_indicators_status, escape = FALSE, align = "c") %>%
+    #       # col.names = c("Facility", "Lab Corp Consumables",
+    #       #               "Vendor Services", "Environment", "Equipment",
+    #       #               "IT", "Service Change", "Acute Volume Increase",
+    #       #               "Staffing")) %>%
+    #   kable_styling(bootstrap_options = "hover", full_width = FALSE,
+    #                 position = "center", row_label_position = "c",
+    #                 font_size = 11) %>%
+    #   row_spec(row = 0, font_size = 13)
+    
+  }
   
+  output$ops_indicators_comments <- function() {
+
+    input$submit_ops_qlty_data
+
+    ops_indicators_comments <- ops_indicators_responses %>%
+      select(Facility, Comments) %>%
+      mutate(Comments = ifelse(is.na(Comments) |
+                                 toupper(Comments) %in% c("NONE", "N/A", "NA"),
+                               "No Issues Reported (Safe)", Comments)
+      )
+
+    kable(ops_indicators_comments, escape = F, align = "c",
+          col.names = c("Facility", "Comments if At Risk or Not Safe")) %>%
+      kable_styling(bootstrap_options = "hover", full_width = TRUE,
+                    position = "center", row_label_position = "c",
+                    font_size = 11) %>%
+      row_spec(row = 0, font_size = 13)
+
+  }
+
+
   
   # Observe event for Clinical Pathology data -------
   observeEvent(input$submit_cp_eff_data, {
@@ -580,7 +650,7 @@ server <- function(input, output, session) {
     {
       showModal(modalDialog(
         title = "Error",
-        "Please submit the latest Operations and Quality Indicators filw.",
+        "Please submit the latest Operations and Quality Indicators file.",
         easyClose = TRUE,
         footer = NULL
       ))

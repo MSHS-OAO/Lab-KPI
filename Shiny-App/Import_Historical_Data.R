@@ -25,7 +25,7 @@ cp_submitted_daily_summary <- cp_daily_repo %>%
 
 
 # Operations and Quality Indicators -------
-ops_qlty_date <- Sys.Date() - 3
+ops_qlty_date <- Sys.Date() - 4
 
 ops_qlty_data <- read_excel(
   paste0(user_directory,
@@ -63,10 +63,7 @@ ops_qlty_responses_today <- ops_qlty_responses_today %>%
   select(-Facility) %>%
   rename("Facility" = FacilitySimple)
 
-ops_indicators_responses <- ops_qlty_responses_today %>%
-  select(-ID, -StartTime, -CompletionTime, -Email, -Name,
-         -NeverEvents, -NeverEventsComments, -GoodCatch,
-         -CompletionDate, -CompletionHour)
+
 
 never_events_responses <- ops_qlty_responses_today %>%
   select(Facility, NeverEvents, NeverEventsComments)
@@ -74,16 +71,6 @@ never_events_responses <- ops_qlty_responses_today %>%
 good_catch_responses <- ops_qlty_responses_today %>%
   select(Facility, GoodCatch)
 
-ops_indicators_responses <- ops_indicators_responses %>%
-  pivot_longer(cols = !c(Facility, Comments),
-               names_to = "Metric",
-               values_to = "Status") %>%
-  mutate(Status = ifelse(str_detect(Status, "Green"),
-                         "Safe",
-                         ifelse(str_detect(Status, "Yellow"),
-                                "Under Stress",
-                                ifelse(str_detect(Status, "Red"),
-                                       "Not Safe", NA))))
 
 # Custom function for formatting -----
 ops_qlty_formatting <- function(x) {
@@ -99,22 +86,6 @@ ops_qlty_formatting <- function(x) {
   
 }
 
-ops_indicators_responses <- ops_qlty_formatting(ops_indicators_responses)
-
-ops_indicators_responses <- ops_indicators_responses %>%
-  pivot_wider(names_from = "Metric",
-              values_from = "Status") %>%
-  relocate(Comments, .after = last_col())
-
-ops_indicators_status <- ops_indicators_responses %>%
-  select(-Comments)
-
-ops_indicators_comments <- ops_indicators_responses %>%
-  select(Facility, Comments) %>%
-  mutate(Comments = ifelse(is.na(Comments) |
-                             toupper(Comments) %in% c("NONE", "N/A", "NA"),
-                           "No Issues Reported (Safe)", Comments)
-  )
 
 
 # Never Events ------
@@ -181,22 +152,22 @@ good_catch_responses <- good_catch_responses %>%
   )
 
 # Kables
-kable(ops_indicators_status, escape = FALSE, align = "c",
-      col.names = c("Facility", "Lab Corp Consumables",
-                    "Vendor Services", "Environment", "Equipment",
-                    "IT", "Service Change", "Acute Volume Increase",
-                    "Staffing")) %>%
-  kable_styling(bootstrap_options = "hover", full_width = FALSE,
-                 position = "center", row_label_position = "c",
-                 font_size = 11) %>%
-  row_spec(row = 0, font_size = 13)
-
-kable(ops_indicators_comments, escape = F, align = "c",
-      col.names = c("Facility", "Comments if At Risk or Not Safe")) %>%
-  kable_styling(bootstrap_options = "hover", full_width = TRUE,
-                position = "center", row_label_position = "c",
-                font_size = 11) %>%
-  row_spec(row = 0, font_size = 13)
+# kable(ops_indicators_status, escape = FALSE, align = "c",
+#       col.names = c("Facility", "Lab Corp Consumables",
+#                     "Vendor Services", "Environment", "Equipment",
+#                     "IT", "Service Change", "Acute Volume Increase",
+#                     "Staffing")) %>%
+#   kable_styling(bootstrap_options = "hover", full_width = FALSE,
+#                  position = "center", row_label_position = "c",
+#                  font_size = 11) %>%
+#   row_spec(row = 0, font_size = 13)
+# 
+# kable(ops_indicators_comments, escape = F, align = "c",
+#       col.names = c("Facility", "Comments if At Risk or Not Safe")) %>%
+#   kable_styling(bootstrap_options = "hover", full_width = TRUE,
+#                 position = "center", row_label_position = "c",
+#                 font_size = 11) %>%
+#   row_spec(row = 0, font_size = 13)
 
 kable(never_events_status, escape = F, align = "c",
       col.names = c("Facility",
