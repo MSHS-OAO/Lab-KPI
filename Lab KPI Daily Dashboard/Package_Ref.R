@@ -237,8 +237,8 @@ tat_dashboard_templ <- test_site_prty_setting_tat %>%
         # the only labs processed there. Remove stat and routine stratification
         # for infusion labs since all labs treated the same
         (Division %in% c("Infusion") & (!(Test %in% c("BUN", "HGB")) |
-           !(DashboardSetting %in% c("Amb")) |
-           !(DashboardPriority %in% c("All")))), "Excl", "Incl")) %>%
+                                          !(DashboardSetting %in% c("Amb")) |
+                                          !(DashboardPriority %in% c("All")))), "Excl", "Incl")) %>%
   filter(Incl == "Incl")
 
 vol_dashboard_templ <- test_site_prty_setting_vol %>%

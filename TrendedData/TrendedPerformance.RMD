@@ -1,0 +1,124 @@
+---
+title: "MSHS Lab Turnaround Time Performance Trends"
+output:
+  html_document:
+    # toc: true
+    toc_depth: 2
+    toc_float: true
+---
+
+<h4><em><span style = "color:red">Draft - Not For Distribution</h4></em></span style = "color:red">
+
+
+```{r global_options, echo = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r package_ref file, warning = FALSE, message = FALSE, echo = FALSE}
+#######
+# Source code for importing the needed packages, constants, reference files, etc.-----
+#######
+source(here::here("TrendedData/Packages_Reference_Info.R"))
+```
+
+```{r Summarize troponin data, warning = FALSE, message = FALSE, echo = FALSE}
+# Code for summarizing and visualizing data
+troponin_targets <- monthly_repo %>%
+  filter(Test %in% "Troponin") %>%
+  select(DashboardSetting, DashboardPriority,
+         ReceiveResultTarget, CollectResultTarget) %>%
+  distinct()
+
+troponin_summary <- monthly_repo %>%
+  filter(Test %in% "Troponin",
+         Year >= 2021,
+         !(Site %in% "MSSN" & Year == 2021 & MonthNo == 1)) %>%
+  group_by(Site, MonthRollUp) %>%
+  summarize(TotalResulted = sum(TotalResulted, na.rm = TRUE),
+            ReceiveResultVolume = sum(ReceiveTime_VolIncl, na.rm = TRUE),
+            CollectResultVolume = sum(CollectTime_VolIncl, na.rm = TRUE),
+            ReceiveResultInTarget = sum(TotalReceiveResultInTarget, na.rm = TRUE),
+            CollectResultInTarget = sum(TotalCollectResultInTarget, na.rm = TRUE),
+            ReceiveResultPercent = ReceiveResultInTarget / ReceiveResultVolume,
+            CollectResultPercent = CollectResultInTarget / CollectResultVolume) %>%
+  ungroup() %>%
+  rename(Month = MonthRollUp)
+```
+
+## {.tabset}
+
+### Troponin      
+#### *Collect to Result*
+```{r Collect to Result Graph, warning = FALSE, message = FALSE, echo = FALSE}
+collect_result_trend <- ggplot(data = troponin_summary,
+                               mapping = aes(x = Month,
+                                             y = CollectResultPercent)) +
+  geom_line(aes(color = Site)) +
+  geom_point(aes(color = Site),
+             size = 0.5) +
+  scale_x_date(limits = c(min(troponin_summary$Month),
+                          max(troponin_summary$Month)),
+               date_breaks = "3 months",
+               date_minor_breaks = "1 month",
+               date_labels = "%m/%y",
+               expand = c(0, 0, 0, 0)
+               ) +
+  scale_y_continuous(limits = c(0.2, 1),
+                     breaks = seq(from = 0.2, to = 1, length.out = 5),
+                     expand = c(0, 0, 0, 0),
+                     labels = label_percent(accuracy = 1)) +
+  scale_color_MountSinai(palette = "main") +
+  labs(title = "% Labs within Target Turnaround Time: Collect to Result",
+       subtitle = "Target Turnaround Time for All Settings: 60 minutes",
+       x = "Month",
+       y = "Percentage of Labs")
+
+ggplotly(collect_result_trend) %>%
+  layout(title = list(text = paste0('% Labs within Target Turnaround Time: Collect to Result',
+                                    '<br>',
+                                    '<sup>',
+                                    'Target Turnaround Time for All Settings and Priorities: 60 minutes',
+                                    '</sup>'))) %>%
+  config(displayModeBar = FALSE)
+
+```
+
+#### *Receive to Result*
+```{r Receive to Result Graph, warning = FALSE, message = FALSE, echo = FALSE}
+receive_result_trend <- ggplot(data = troponin_summary,
+                               mapping = aes(x = Month,
+                                             y = ReceiveResultPercent)) +
+  geom_line(aes(color = Site)) +
+  geom_point(aes(color = Site),
+             size = 0.5) +
+  scale_x_date(limits = c(min(troponin_summary$Month),
+                          max(troponin_summary$Month)),
+               date_breaks = "3 months",
+               date_minor_breaks = "1 month",
+               date_labels = "%m/%y",
+               expand = c(0, 0, 0, 0)
+               ) +
+  scale_y_continuous(limits = c(0.2, 1),
+                     breaks = seq(from = 0.2, to = 1, length.out = 5),
+                     expand = c(0, 0, 0, 0),
+                     labels = label_percent(accuracy = 1)) +
+  scale_color_MountSinai(palette = "main") +
+  labs(title = "% Labs within Turnaround Target: Receive to Result",
+       subtitle = "Target Turnaround Time for All Settings: 50 minutes",
+       x = "Month",
+       y = "Percentage of Labs")
+
+ggplotly(receive_result_trend) %>%
+  layout(title = list(text = paste0('% Labs within Turnaround Target: Receive to Result',
+                                    '<br>',
+                                    '<sup>',
+                                    'Target Turnaround Time for All Settings and Priorities: 50 minutes',
+                                    '</sup>'))) %>%
+  config(displayModeBar = FALSE)
+
+```
+<h6>*TAT Analysis excludes add on orders, labs with missing timestamps, labs with negative TAT, and labs not from above settings. Labs with missing collection times excluded from collect-to-result analysis. Valid labs from all settings and priorities are included in above calculations.*</h6>
+  
+  
+
+<h6> *End of report.* </h6>
