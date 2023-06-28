@@ -397,6 +397,8 @@ table_temp_cyto_vol <- table_temp_cyto_vol %>%
 #Patho
 #this template for patho (sp) is with an assumption that received to result is
 #not centralized
+# Centralized vs Non centralized table creation.
+
 Spec_group <- c("Breast", "GI")
 Patient_setting <- c("IP", "Amb")
 

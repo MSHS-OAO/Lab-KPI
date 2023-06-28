@@ -642,8 +642,191 @@ server <- function(input, output, session) {
   }
   
   )
+  # Observe event for AP Processing  -------
+  observeEvent(input$submit_ap_eff_data, {
+    button_name <- "submit_ap_eff_data"
+    shinyjs::disable(button_name)
+    
+    flag <- 0
+    
+    epic_cyto_file <- input$epic_cyto
+    ap_cyto_signed_file <- input$ap_cyto_signed
+    cyto_backlog_file <- input$cyto_backlog
+    
+    
+    if(is.null(epic_cyto_file) | is.null(ap_cyto_signed_file) | is.null(cyto_backlog_file) )
+    {
+      showModal(modalDialog(
+        title = "Error",
+        "Please submit all the three latest AP files.",
+        easyClose = TRUE,
+        footer = NULL
+      ))
+    } else {
+      
+      tryCatch({
+        
+        # Read in epic cyto file
+        epic_cyto_filename <- epic_cyto_file$datapath
+        epic_cyto_data_raw <- read_excel(epic_cyto_filename)
+        
+      },
+      
+      error = function(err){
+        showModal(modalDialog(
+          title = "Read Error",
+          paste0("There seems to be an issue reading Epic Cytology file."),
+          easyClose = TRUE,
+          footer = modalButton("Dismiss")
+        ))
+        shinyjs::enable(button_name)
+      }
+      )
+      
+      tryCatch({
+        
+        # Read in signed cases report
+        ap_cyto_signed_filename <- ap_cyto_signed_file$datapath
+        ap_cyto_signed_data_raw <- read_excel(ap_cyto_signed_filename)
+        
+      },
+      
+      error = function(err){
+        showModal(modalDialog(
+          title = "Read Error",
+          paste0("There seems to be an issue reading AP & Cytology Signed Cases file."),
+          easyClose = TRUE,
+          footer = modalButton("Dismiss")
+        ))
+        shinyjs::enable(button_name)
+      }
+      )
+      
+      tryCatch({
+        
+        # Read in epic cyto file
+        cyto_backlog_filename <- cyto_backlog_file$datapath
+        cyto_backlog_data_raw <- read_excel(cyto_backlog_filename)
+        
+        
+      },
+      
+      error = function(err){
+        showModal(modalDialog(
+          title = "Read Error",
+          paste0("There seems to be an issue reading Cytology Backlog file."),
+          easyClose = TRUE,
+          footer = modalButton("Dismiss")
+        ))
+        shinyjs::enable(button_name)
+      }
+      )
+      
+      
+      flag <- 1
+      
+    }
+    
+    if (flag == 1) {
+      
+      # Try processing the data
+      
+      
+      tryCatch({
+        # Process Epic Cytology and AP Signed cases data
+        result <- cyto_prep(epic_cyto_data_raw,ap_cyto_signed_data_raw)
+        summarized_data_cyto <- result[[1]]
+        processed_epic_signed_cases_data <- result[[2]]
+
+        flag <- 2
+      },
+      error = function(err){
+        showModal(modalDialog(
+          title = "Processing Error",
+          paste0("There seems to be an issue processing this Epic Cytology/ AP Signed Cases Report file.",
+                 " Please check that the correct file was selected."),
+          easyClose = TRUE,
+          footer = modalButton("Dismiss")
+        ))
+        shinyjs::enable(button_name)
+      }
+      )
+      
+    }
+    
+    if (flag == 2) {
+      
+      # Try processing the data
+      
+      
+      tryCatch({
+        # Process  AP Signed cases data
+        result <- cyto_prep(ap_cyto_signed_data_raw,gi_codes)
+        summarized_data_patho <- result[[1]]
+        processed_signed_cases_data <- result[[2]]
+        
+        
+        flag <- 3
+      },
+      error = function(err){
+        showModal(modalDialog(
+          title = "Processing Error",
+          paste0("There seems to be an issue processing this AP Signed Cases Report file.",
+                 " Please check that the correct file was selected."),
+          easyClose = TRUE,
+          footer = modalButton("Dismiss")
+        ))
+        shinyjs::enable(button_name)
+      }
+      )
+      
+    }
+    
+    if (flag == 3) {
+      
+      # Try processing the data
+      
+      
+      tryCatch({
+        # Process  backlog data
+        processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw)
+        
+        flag <- 4
+      },
+      error = function(err){
+        showModal(modalDialog(
+          title = "Processing Error",
+          paste0("There seems to be an issue processing Backlog file.",
+                 " Please check that the correct file was selected."),
+          easyClose = TRUE,
+          footer = modalButton("Dismiss")
+        ))
+        shinyjs::enable(button_name)
+      }
+      )
+      
+    }
+    
+    if (flag == 4) {
+      showModal(modalDialog(
+        title = "Success",
+        paste0("The data has been submitted successfully!"),
+        easyClose = TRUE,
+        footer = modalButton("Dismiss")
+      ))
+      shinyjs::enable(button_name)
+    }
+    
+    
+    
+  }
+  
+  )
+  
   
 }
+
+
 
  
 
