@@ -597,8 +597,8 @@ summarize_cp_tat <- function(x, lab_division) {
         CollectResultTarget = paste0("<=", CollectResultTarget, " min"),
         #
         # Format percentage of labs in target
-        ReceiveResultPercent = percent(ReceiveResultPercent, digits = 0),
-        CollectResultPercent = percent(CollectResultPercent, digits = 0),
+        ReceiveResultPercent = formattable::percent(ReceiveResultPercent, digits = 0),
+        CollectResultPercent = formattable::percent(CollectResultPercent, digits = 0),
         #
         # Apply conditional color formatting to TAT percentages based on status
         # definitions for each lab division
@@ -886,7 +886,7 @@ kable_missing_collections <- function(x) {
       group_by(Site) %>%
       summarize(ResultedVolume = sum(TotalResulted),
                 MissingCollection = sum(TotalMissingCollections, na.rm = TRUE),
-                Percent = percent(MissingCollection / ResultedVolume,
+                Percent = formattable::percent(MissingCollection / ResultedVolume,
                                   digits = 0),
                 .groups = "keep") %>%
       ungroup() %>%

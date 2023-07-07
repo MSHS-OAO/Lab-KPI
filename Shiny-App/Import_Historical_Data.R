@@ -170,14 +170,14 @@ good_catch_responses <- good_catch_responses %>%
 #                 position = "center", row_label_position = "c",
 #                 font_size = 11) %>%
 #   row_spec(row = 0, font_size = 13)
-
-kable(never_events_status, escape = F, align = "c",
-      col.names = c("Facility",
-                    "Specimen(s) Lost",
-                    "QNS - specimen that cannot be recollected",
-                    "Treatment based on mislabeled/misidentified specimen",
-                    "Treatment based on false positive/false negative results")) %>%
-  kable_styling(bootstrap_options = "hover", full_width = FALSE,
-                position = "center", row_label_position = "c",
-                font_size = 11) %>%
-  row_spec(row = 0, font_size = 13)
+# 
+# kable(never_events_status, escape = F, align = "c",
+#       col.names = c("Facility",
+#                     "Specimen(s) Lost",
+#                     "QNS - specimen that cannot be recollected",
+#                     "Treatment based on mislabeled/misidentified specimen",
+#                     "Treatment based on false positive/false negative results")) %>%
+#   kable_styling(bootstrap_options = "hover", full_width = FALSE,
+#                 position = "center", row_label_position = "c",
+#                 font_size = 11) %>%
+#   row_spec(row = 0, font_size = 13)

@@ -450,9 +450,15 @@ server <- function(input, output, session) {
     flag <- 0
     
     scc_file <- input$scc
-    
+
     sun_file <- input$sunquest
     
+    # scc_file <- paste0(user_directory,
+    #                    "/SCC CP Reports/Doc05-09_0003_20054042 2023-05-09.xlsx")
+    # 
+    # sun_file <- paste0(user_directory,
+    #                    "/SUN CP Reports/KPI_Daily_TAT_Report_Updated 2023-05-09.xls")
+
     if(is.null(scc_file) |
        is.null(sun_file))
        {
@@ -469,6 +475,7 @@ server <- function(input, output, session) {
         # Read in SCC file
         scc_filename <- scc_file$datapath
         scc_data_raw <- read_excel(scc_filename)
+        # scc_data_raw <- read_excel(scc_file)
         
         flag <- 1
 
@@ -493,6 +500,7 @@ server <- function(input, output, session) {
         # Read in Sunquest file
         sun_filename <- sun_file$datapath
         sun_data_raw <- read_excel(sun_filename)
+        # sun_data_raw <- read_excel(sun_file)
         
         flag <- 2
         
@@ -660,7 +668,7 @@ server <- function(input, output, session) {
   )
   
   # Observe event for Ops & Quality Indicators -------
-  observeEvent(input$submit_cp_eff_data, {
+  observeEvent(input$submit_ops_qlty_data, {
     button_name <- "submit_ops_qlty_data"
     shinyjs::disable(button_name)
     
