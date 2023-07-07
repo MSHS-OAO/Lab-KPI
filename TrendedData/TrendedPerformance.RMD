@@ -23,76 +23,55 @@ source(here::here("TrendedData/Packages_Reference_Info.R"))
 
 ```{r Summarize troponin data, warning = FALSE, message = FALSE, echo = FALSE}
 # Code for summarizing and visualizing data
-troponin_targets <- monthly_repo %>%
-  filter(Test %in% "Troponin") %>%
-  select(DashboardSetting, DashboardPriority,
-         ReceiveResultTarget, CollectResultTarget) %>%
-  distinct()
+filtered_df <- monthly_repo %>%
+  filter(Year >= 2021,
+         !(Site %in% "MSSN" & Year == 2021 & MonthNo == 1),
+         Division %in% c("Chemistry", "Hematology"),
+         !(MasterSetting %in% c("Amb", "Other"))) %>%
+  rename(CareSetting = MasterSetting,
+         TestPriority = DashboardPriority)
 
-troponin_summary <- monthly_repo %>%
-  filter(Test %in% "Troponin",
-         Year >= 2021,
-         !(Site %in% "MSSN" & Year == 2021 & MonthNo == 1)) %>%
-  group_by(Site, MonthRollUp) %>%
-  summarize(TotalResulted = sum(TotalResulted, na.rm = TRUE),
-            ReceiveResultVolume = sum(ReceiveTime_VolIncl, na.rm = TRUE),
-            CollectResultVolume = sum(CollectTime_VolIncl, na.rm = TRUE),
+
+test_targets <- filtered_df %>%
+  select(Test,
+         CareSetting, TestPriority,
+         ReceiveResultTarget) %>%
+  distinct() %>%
+  arrange(Test, TestPriority, CareSetting)
+
+test_summary <- filtered_df %>%
+  group_by(Test, CareSetting, TestPriority, Site, MonthRollUp) %>%
+  summarize(ReceiveResultVolume = sum(ReceiveTime_VolIncl, na.rm = TRUE),
             ReceiveResultInTarget = sum(TotalReceiveResultInTarget, na.rm = TRUE),
-            CollectResultInTarget = sum(TotalCollectResultInTarget, na.rm = TRUE),
-            ReceiveResultPercent = ReceiveResultInTarget / ReceiveResultVolume,
-            CollectResultPercent = CollectResultInTarget / CollectResultVolume) %>%
+            ReceiveResultPercent = ReceiveResultInTarget / ReceiveResultVolume) %>%
   ungroup() %>%
   rename(Month = MonthRollUp)
 ```
 
 ## {.tabset}
 
-### Troponin      
-#### *Collect to Result*
-```{r Collect to Result Graph, warning = FALSE, message = FALSE, echo = FALSE}
-collect_result_trend <- ggplot(data = troponin_summary,
-                               mapping = aes(x = Month,
-                                             y = CollectResultPercent)) +
-  geom_line(aes(color = Site)) +
-  geom_point(aes(color = Site),
-             size = 0.5) +
-  scale_x_date(limits = c(min(troponin_summary$Month),
-                          max(troponin_summary$Month)),
-               date_breaks = "3 months",
-               date_minor_breaks = "1 month",
-               date_labels = "%m/%y",
-               expand = c(0, 0, 0, 0)
-               ) +
-  scale_y_continuous(limits = c(0.2, 1),
-                     breaks = seq(from = 0.2, to = 1, length.out = 5),
-                     expand = c(0, 0, 0, 0),
-                     labels = label_percent(accuracy = 1)) +
-  scale_color_MountSinai(palette = "main") +
-  labs(title = "% Labs within Target Turnaround Time: Collect to Result",
-       subtitle = "Target Turnaround Time for All Settings: 60 minutes",
-       x = "Month",
-       y = "Percentage of Labs")
+### Chemistry
 
-ggplotly(collect_result_trend) %>%
-  layout(title = list(text = paste0('% Labs within Target Turnaround Time: Collect to Result',
-                                    '<br>',
-                                    '<sup>',
-                                    'Target Turnaround Time for All Settings and Priorities: 60 minutes',
-                                    '</sup>'))) %>%
-  config(displayModeBar = FALSE)
+*Select the appropriate test*
 
-```
+#### {.tabset}
 
-#### *Receive to Result*
-```{r Receive to Result Graph, warning = FALSE, message = FALSE, echo = FALSE}
-receive_result_trend <- ggplot(data = troponin_summary,
+##### Troponin
+```{r Troponin, warning = FALSE, message = FALSE, echo = FALSE}
+test_df <- test_summary %>%
+  filter(Test == "Troponin",
+         CareSetting == "ED",
+         TestPriority == "All") %>%
+  select(-ReceiveResultVolume, -ReceiveResultInTarget)
+
+receive_result_trend <- ggplot(data = test_df,
                                mapping = aes(x = Month,
                                              y = ReceiveResultPercent)) +
   geom_line(aes(color = Site)) +
   geom_point(aes(color = Site),
              size = 0.5) +
-  scale_x_date(limits = c(min(troponin_summary$Month),
-                          max(troponin_summary$Month)),
+  scale_x_date(limits = c(min(test_df$Month),
+                          max(test_df$Month)),
                date_breaks = "3 months",
                date_minor_breaks = "1 month",
                date_labels = "%m/%y",
@@ -103,7 +82,7 @@ receive_result_trend <- ggplot(data = troponin_summary,
                      expand = c(0, 0, 0, 0),
                      labels = label_percent(accuracy = 1)) +
   scale_color_MountSinai(palette = "main") +
-  labs(title = "% Labs within Turnaround Target: Receive to Result",
+  labs(title = "% Labs within Receive to Result Turnaround Target",
        subtitle = "Target Turnaround Time for All Settings: 50 minutes",
        x = "Month",
        y = "Percentage of Labs")
@@ -116,9 +95,68 @@ ggplotly(receive_result_trend) %>%
                                     '</sup>'))) %>%
   config(displayModeBar = FALSE)
 
+
+```
+
+##### Lactate WB
+```{r Receive to Result Graph, warning = FALSE, message = FALSE, echo = FALSE}
+# receive_result_trend <- ggplot(data = troponin_summary,
+#                                mapping = aes(x = Month,
+#                                              y = ReceiveResultPercent)) +
+#   geom_line(aes(color = Site)) +
+#   geom_point(aes(color = Site),
+#              size = 0.5) +
+#   scale_x_date(limits = c(min(troponin_summary$Month),
+#                           max(troponin_summary$Month)),
+#                date_breaks = "3 months",
+#                date_minor_breaks = "1 month",
+#                date_labels = "%m/%y",
+#                expand = c(0, 0, 0, 0)
+#                ) +
+#   scale_y_continuous(limits = c(0.2, 1),
+#                      breaks = seq(from = 0.2, to = 1, length.out = 5),
+#                      expand = c(0, 0, 0, 0),
+#                      labels = label_percent(accuracy = 1)) +
+#   scale_color_MountSinai(palette = "main") +
+#   labs(title = "% Labs within Turnaround Target: Receive to Result",
+#        subtitle = "Target Turnaround Time for All Settings: 50 minutes",
+#        x = "Month",
+#        y = "Percentage of Labs")
+# 
+# ggplotly(receive_result_trend) %>%
+#   layout(title = list(text = paste0('% Labs within Turnaround Target: Receive to Result',
+#                                     '<br>',
+#                                     '<sup>',
+#                                     'Target Turnaround Time for All Settings and Priorities: 50 minutes',
+#                                     '</sup>'))) %>%
+#   config(displayModeBar = FALSE)
+
 ```
 <h6>*TAT Analysis excludes add on orders, labs with missing timestamps, labs with negative TAT, and labs not from above settings. Labs with missing collection times excluded from collect-to-result analysis. Valid labs from all settings and priorities are included in above calculations.*</h6>
   
-  
+##### BUN
+```{r BUN plots}
+
+```
+
+
+### Hematology
+
+*Select the appropriate test*
+
+#### {.tabset}
+
+##### PT
+``` {r PT}
+
+```
+
+##### HGB
+``` {r HGB}
+
+```
+
+#### {-}
+### {-}
 
 <h6> *End of report.* </h6>
