@@ -375,7 +375,7 @@ server <- function(input, output, session) {
     
     ops_indicators_responses <- ops_qlty_formatting(ops_indicators_responses)
     
-    ops_indicators_responses <<- ops_indicators_responses %>%
+    ops_indicators_responses <- ops_indicators_responses %>%
       pivot_wider(names_from = "Metric",
                   values_from = "Status") %>%
       relocate(Comments, .after = last_col())
@@ -383,23 +383,46 @@ server <- function(input, output, session) {
     ops_indicators_status <- ops_indicators_responses %>%
       select(-Comments)
     
-    kable(ops_indicators_status)
+    # kable(ops_indicators_status)
     
-    # kable(ops_indicators_status, escape = FALSE, align = "c") %>%
-    #       # col.names = c("Facility", "Lab Corp Consumables",
-    #       #               "Vendor Services", "Environment", "Equipment",
-    #       #               "IT", "Service Change", "Acute Volume Increase",
-    #       #               "Staffing")) %>%
-    #   kable_styling(bootstrap_options = "hover", full_width = FALSE,
-    #                 position = "center", row_label_position = "c",
-    #                 font_size = 11) %>%
-    #   row_spec(row = 0, font_size = 13)
+    kable(ops_indicators_status, escape = FALSE, align = "c") %>%
+          # col.names = c("Facility", "Lab Corp Consumables",
+          #               "Vendor Services", "Environment", "Equipment",
+          #               "IT", "Service Change", "Acute Volume Increase",
+          #               "Staffing")) %>%
+      kable_styling(bootstrap_options = "hover", full_width = FALSE,
+                    position = "center", row_label_position = "c",
+                    font_size = 11) %>%
+      row_spec(row = 0, font_size = 13)
     
   }
   
   output$ops_indicators_comments <- function() {
 
     input$submit_ops_qlty_data
+    
+    ops_indicators_responses <- ops_qlty_responses_today %>%
+      select(-ID, -StartTime, -CompletionTime, -Email, -Name,
+             -NeverEvents, -NeverEventsComments, -GoodCatch,
+             -CompletionDate, -CompletionHour)
+    
+    ops_indicators_responses <- ops_indicators_responses %>%
+      pivot_longer(cols = !c(Facility, Comments),
+                   names_to = "Metric",
+                   values_to = "Status") %>%
+      mutate(Status = ifelse(str_detect(Status, "Green"),
+                             "Safe",
+                             ifelse(str_detect(Status, "Yellow"),
+                                    "Under Stress",
+                                    ifelse(str_detect(Status, "Red"),
+                                           "Not Safe", NA))))
+    
+    ops_indicators_responses <- ops_qlty_formatting(ops_indicators_responses)
+    
+    ops_indicators_responses <- ops_indicators_responses %>%
+      pivot_wider(names_from = "Metric",
+                  values_from = "Status") %>%
+      relocate(Comments, .after = last_col())
 
     ops_indicators_comments <- ops_indicators_responses %>%
       select(Facility, Comments) %>%
