@@ -1,11 +1,34 @@
 ---
 title: "MSHS Lab Turnaround Time Performance Trends"
 output:
-  html_document:
-    # toc: true
-    toc_depth: 2
-    toc_float: true
+  flexdashboard::flex_dashboard:
+    # orientation: rows
+    vertical_layout: scroll
 ---
+
+<style>                     
+.navbar {
+  background-color:#221F72;
+  border-color:white;
+  color:white;
+}
+
+.nav-tabs-custom > .nav-tabs > li.active {
+  border-top-color: #221F72;
+}
+
+.navbar .navbar-nav > li > a:focus {
+    background-color: #ACACAD;
+    color: white;
+}
+
+.navbar .navbar-nav > .active > a,
+.navbar .navbar-nav > .active > a:focus {
+  color: white;
+  background-color: #ACACAD;
+}
+
+</style>
 
 <h4><em><span style = "color:red">Draft - Not For Distribution</h4></em></span style = "color:red">
 
@@ -48,115 +71,229 @@ test_summary <- filtered_df %>%
   rename(Month = MonthRollUp)
 ```
 
-## {.tabset}
-
-### Chemistry
-
-*Select the appropriate test*
-
-#### {.tabset}
-
-##### Troponin
-```{r Troponin, warning = FALSE, message = FALSE, echo = FALSE}
-test_df <- test_summary %>%
-  filter(Test == "Troponin",
-         CareSetting == "ED",
-         TestPriority == "All") %>%
-  select(-ReceiveResultVolume, -ReceiveResultInTarget)
-
-receive_result_trend <- ggplot(data = test_df,
-                               mapping = aes(x = Month,
-                                             y = ReceiveResultPercent)) +
-  geom_line(aes(color = Site)) +
-  geom_point(aes(color = Site),
-             size = 0.5) +
-  scale_x_date(limits = c(min(test_df$Month),
-                          max(test_df$Month)),
-               date_breaks = "3 months",
-               date_minor_breaks = "1 month",
-               date_labels = "%m/%y",
-               expand = c(0, 0, 0, 0)
-               ) +
-  scale_y_continuous(limits = c(0.2, 1),
-                     breaks = seq(from = 0.2, to = 1, length.out = 5),
-                     expand = c(0, 0, 0, 0),
-                     labels = label_percent(accuracy = 1)) +
-  scale_color_MountSinai(palette = "main") +
-  labs(title = "% Labs within Receive to Result Turnaround Target",
-       subtitle = "Target Turnaround Time for All Settings: 50 minutes",
+<!-- # Custom functions for creating graphs -->
+```{r Custom functions for creating graphs}
+graphing_function <- function(test, priority, setting) {
+  
+  data <- test_summary %>%
+    filter(Test == test,
+           TestPriority == priority,
+           CareSetting == setting,
+           ReceiveResultVolume > 0)
+  
+  turnaround_target <- test_targets %>%
+                          filter(Test == test,
+                                 TestPriority == priority,
+                                 CareSetting == setting) %>%
+                          distinct(ReceiveResultTarget) %>%
+                          pull()
+  
+  receive_result_trend <- ggplot(data = data,
+                                 mapping = aes(x = Month,
+                                               y = ReceiveResultPercent)) +
+    geom_line(aes(color = Site)) +
+    geom_point(aes(color = Site), size = 0.5) +
+    scale_x_date(limits = c(min(data$Month),
+                          max(data$Month)),
+                 date_breaks = "3 months",
+                 date_minor_breaks = "1 month",
+                 date_labels = "%m/%y",
+                 expand = c(0, 0, 0, 0)
+                 ) +
+    scale_y_continuous(limits = c(.9*min(data$ReceiveResultPercent),
+                                  1.1*max(data$ReceiveResultPercent)),
+                       breaks = seq(from = plyr::round_any(
+                         .9*min(data$ReceiveResultPercent),
+                         0.1, f = floor),
+                         to = plyr::round_any(
+                           1.1*max(data$ReceiveResultPercent),
+                           0.1, f = ceiling),
+                       length.out = 5),
+                       expand = c(0, 0, 0, 0),
+                       labels = label_percent(accuracy = 1)) +
+    scale_color_MountSinai(palette = "main") +
+    labs(title = "% Labs within Receive to Result Target Turnaround Time",
+         subtitle = paste0("Target Turnaround Time for ",
+                           priority, 
+                           " ",    
+                           test,
+                           " Orders in ",
+                           setting,
+                           ": ",
+                           turnaround_target,
+                           " min"),
        x = "Month",
        y = "Percentage of Labs")
-
-ggplotly(receive_result_trend) %>%
-  layout(title = list(text = paste0('% Labs within Turnaround Target: Receive to Result',
-                                    '<br>',
-                                    '<sup>',
-                                    'Target Turnaround Time for All Settings and Priorities: 50 minutes',
-                                    '</sup>'))) %>%
-  config(displayModeBar = FALSE)
-
-
-```
-
-##### Lactate WB
-```{r Receive to Result Graph, warning = FALSE, message = FALSE, echo = FALSE}
-# receive_result_trend <- ggplot(data = troponin_summary,
-#                                mapping = aes(x = Month,
-#                                              y = ReceiveResultPercent)) +
-#   geom_line(aes(color = Site)) +
-#   geom_point(aes(color = Site),
-#              size = 0.5) +
-#   scale_x_date(limits = c(min(troponin_summary$Month),
-#                           max(troponin_summary$Month)),
-#                date_breaks = "3 months",
-#                date_minor_breaks = "1 month",
-#                date_labels = "%m/%y",
-#                expand = c(0, 0, 0, 0)
-#                ) +
-#   scale_y_continuous(limits = c(0.2, 1),
-#                      breaks = seq(from = 0.2, to = 1, length.out = 5),
-#                      expand = c(0, 0, 0, 0),
-#                      labels = label_percent(accuracy = 1)) +
-#   scale_color_MountSinai(palette = "main") +
-#   labs(title = "% Labs within Turnaround Target: Receive to Result",
-#        subtitle = "Target Turnaround Time for All Settings: 50 minutes",
-#        x = "Month",
-#        y = "Percentage of Labs")
-# 
-# ggplotly(receive_result_trend) %>%
-#   layout(title = list(text = paste0('% Labs within Turnaround Target: Receive to Result',
-#                                     '<br>',
-#                                     '<sup>',
-#                                     'Target Turnaround Time for All Settings and Priorities: 50 minutes',
-#                                     '</sup>'))) %>%
-#   config(displayModeBar = FALSE)
-
-```
-<h6>*TAT Analysis excludes add on orders, labs with missing timestamps, labs with negative TAT, and labs not from above settings. Labs with missing collection times excluded from collect-to-result analysis. Valid labs from all settings and priorities are included in above calculations.*</h6>
   
-##### BUN
-```{r BUN plots}
+  receive_result_trend <- ggplotly(receive_result_trend) %>%
+    layout(title = list(text = paste0(
+      '% Labs within Receive to Result Target Turnaround Time',
+      '<br>',
+      '<sup>',
+      paste0("Target Turnaround Time for ",
+             priority, 
+             " ",    
+             test,
+             " Orders in ",
+             setting,
+             ": ",
+             turnaround_target,
+             " min"),
+      '</sup>'))) %>%
+    config(displayModeBar = FALSE)
+  
+  return(receive_result_trend)
+    
+  
+  
+  
+}
+
 
 ```
 
+# Troponin {data-navmenu="Chemistry"}
 
-### Hematology
+Column {.tabset .tabset-fade}
+------------------------
 
-*Select the appropriate test*
+### ED Stat Labs
+```{r Troponin ED, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "Troponin", priority = "All", setting = "ED")
+```
 
-#### {.tabset}
+### ICU Stat Labs
+```{r Troponin ICU, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "Troponin", priority = "All", setting = "ICU")
+```
 
-##### PT
-``` {r PT}
+### IP Non-ICU Stat Labs
+```{r Troponin IP Non-ICU, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "Troponin", priority = "All", setting = "IP Non-ICU")
+```
+
+# Lactate WB {data-navmenu="Chemistry"}
+
+Column {.tabset .tabset-fade}
+------------------------
+
+### ED Stat Labs
+```{r Lactate WB ED, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "Lactate WB", priority = "All", setting = "ED")
+```
+
+### ICU Stat Labs
+```{r Lactate WB ICU, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "Lactate WB", priority = "All", setting = "ICU")
+```
+
+### IP Non-ICU Stat Labs
+```{r Lactate WB IP Non-ICU, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "Lactate WB", priority = "All", setting = "IP Non-ICU")
+```
+
+# BUN {data-navmenu="Chemistry"}
+
+Column {.tabset .tabset-fade}
+------------------------
+
+### ED Stat Labs
+```{r BUN ED, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "BUN", priority = "Stat", setting = "ED")
+```
+
+### ICU Stat Labs
+```{r BUN ICU, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "BUN", priority = "Stat", setting = "ICU")
+```
+
+### IP Non-ICU Stat Labs
+```{r BUN IP Non-ICU Stat, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "BUN", priority = "Stat", setting = "IP Non-ICU")
+```
+
+### IP Non-ICU Routine Labs
+```{r BUN IP Non-ICU Routine, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "BUN", priority = "Routine", setting = "IP Non-ICU")
+```
+
+# PT {data-navmenu="Hematology"}
+
+Column {.tabset .tabset-fade}
+------------------------
+
+### ED Stat Labs
+```{r PT ED, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "PT", priority = "Stat", setting = "ED")
+```
+
+### ICU Stat Labs
+```{r PT ICU, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "PT", priority = "Stat", setting = "ICU")
+```
+
+### IP Non-ICU Stat Labs
+```{r PT IP Non-ICU Stat, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "PT", priority = "Stat", setting = "IP Non-ICU")
+```
+
+### IP Non-ICU Routine Labs
+```{r PT IP Non-ICU Routine, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "PT", priority = "Routine", setting = "IP Non-ICU")
+```
+
+# HGB {data-navmenu="Hematology"}
+
+Column {.tabset .tabset-fade}
+------------------------
+
+### ED Labs
+``` {r HGB ED, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "HGB", priority = "Stat", setting = "ED")
+```
+
+### ICU Labs
+```{r HGB ICU, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "HGB", priority = "Stat", setting = "ICU")
+```
+
+### IP Non-ICU Stat Labs
+```{r HGB IP Non-ICU Stat, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "HGB", priority = "Stat", setting = "IP Non-ICU")
+```
+
+### IP Non-ICU Routine Labs
+```{r HGB IP Non-ICU Routine, warning = FALSE, message = FALSE, echo = FALSE}
+graphing_function(test = "HGB", priority = "Routine", setting = "IP Non-ICU")
 
 ```
 
-##### HGB
-``` {r HGB}
+Assumptions & Targets
+================================
+<h5> Turnaround Time Targets </h5>
+```{r Targets}
+
+targets_table <- filtered_df %>%
+  select(Division, Test, TestPriority, CareSetting, ReceiveResultTarget) %>%
+  distinct() %>%
+  arrange(Division, Test, desc(TestPriority), CareSetting)
+
+kable(targets_table,
+      escape = FALSE,
+      align = "c",
+      col.names = c("Lab Division", "Test", "Order Priority", "Care Setting",
+                    "Receive to Result Target Turnaround Time (min)")) %>%
+  kable_styling(bootstrap_options = "hover",
+                position = "center",
+                font_size = 11,
+                full_width = FALSE) %>%
+  column_spec(column = c(1:ncol(targets_table)),
+              border_right = "thin solid lightgray") %>%
+  row_spec(row = 0,
+           bold = TRUE,
+           color = "white",
+           background = MountSinai_colors["dark purple"]) %>%
+  collapse_rows(columns = 1:3)
 
 ```
-
-#### {-}
-### {-}
-
-<h6> *End of report.* </h6>
+<!-- <h6>*TAT Analysis excludes add on orders, labs with missing timestamps, labs with negative TAT, and labs not from above settings. Labs with missing collection times excluded from collect-to-result analysis. Valid labs from all settings and priorities are included in above calculations.*</h6> -->

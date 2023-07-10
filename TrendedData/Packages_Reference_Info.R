@@ -40,6 +40,10 @@ library(tidyr)
 library(ggplot2)
 library(scales)
 library(plotly)
+library(flexdashboard)
+library(bslib)
+# library(plyr)
+# library(data.table)
 
 
 #Clear existing history
