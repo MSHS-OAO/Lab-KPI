@@ -688,6 +688,8 @@ server <- function(input, output, session) {
         # Read in signed cases report
         ap_cyto_signed_filename <- ap_cyto_signed_file$datapath
         ap_cyto_signed_data_raw <- read_excel(ap_cyto_signed_filename,skip = 1, 1)
+        ap_cyto_signed_data_raw <- ap_cyto_signed_data_raw %>% 
+          filter(row_number() <= n()-1)
         
       },
       
