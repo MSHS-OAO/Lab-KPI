@@ -6,13 +6,7 @@ cyto_prep <- function(epic_data, pp_data) {
   if (is.null(epic_data) || is.null(pp_data) || 
       nrow(epic_data) == 0 || nrow(pp_data) == 0) {
     summarized_table <- NULL
-<<<<<<< HEAD
     return(summarized_table)
-=======
-    print(1)
-    return(summarized_table)
-    
->>>>>>> a8fa5243e49dccb717203d71811146dce45c49de
   } else {
     print(2)
     
@@ -165,13 +159,5 @@ cyto_prep <- function(epic_data, pp_data) {
     # summarize_table <- summarized_table %>%
     #   filter(Signed_out_date_only %in% dates)
     return(summarized_table)
-<<<<<<< HEAD
-    
-    
   }
 }
-=======
-
-  }
-}
->>>>>>> a8fa5243e49dccb717203d71811146dce45c49de
