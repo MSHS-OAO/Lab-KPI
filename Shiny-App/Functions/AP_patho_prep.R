@@ -4,6 +4,9 @@
 patho_prep <- function(raw_data) {
   if (is.null(raw_data) || nrow(raw_data) == 0) {
     sp_data <- NULL
+    summarized_table <- NULL
+    return(summarized_table)
+    
   } else {
     
     #------------Extract the All Breast and GI specs Data Only--------------#
@@ -157,8 +160,9 @@ patho_prep <- function(raw_data) {
     # # Filter out any specimens signed out on other dates
     # summarize_table <- summarized_table %>%
     #   filter(Signed_out_date_only %in% dates)
+    return(summarized_table)
+    
     
   }
   
-  return(summarized_table)
 }

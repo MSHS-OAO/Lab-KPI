@@ -765,8 +765,58 @@ server <- function(input, output, session) {
       
       # save the data
       
-      
       tryCatch({
+        if(!is.null(summarized_data_cyto)){
+          remove_dupl_dates_test_level <- anti_join(cyto_daily_repo,
+                                                    summary_cyto,
+                                                    by = "report_date_only")
+          
+          cyto_daily_repo <- rbind(remove_dupl_dates_test_level, summary_cyto)
+          
+          cyto_daily_repo <- cyto_daily_repo %>%
+            arrange(Facility, report_date_only)
+          
+          saveRDS(cyto_daily_repo,
+                  paste0(user_directory,
+                         "/Shiny App Repo/APDailySummary",
+                         "/APCytologyRepo30Days.rds"))
+          
+        }
+        
+        
+        if(!is.null(summarized_data_patho)){
+          remove_dupl_dates_test_level <- anti_join(patho_daily_repo,
+                                                    summary_patho,
+                                                    by = "report_date_only")
+          
+          patho_daily_repo <- rbind(remove_dupl_dates_test_level, summary_patho)
+          
+          patho_daily_repo <- patho_daily_repo %>%
+            arrange(Facility, report_date_only)
+          
+          saveRDS(patho_daily_repo,
+                  paste0(user_directory,
+                         "/Shiny App Repo/APDailySummary",
+                         "/APPathologyRepo30Days.rds"))
+          
+        }
+        
+        if(!is.null(processed_backlog_data)){
+          remove_dupl_dates_test_level <- anti_join(backlog_daily_repo,
+                                                    processed_backlog_data,
+                                                    by = "Report_Date")
+          
+          backlog_daily_repo <- rbind(remove_dupl_dates_test_level, processed_backlog_data)
+          
+          backlog_daily_repo <- backlog_daily_repo %>%
+            arrange(Facility, Report_Date)
+          
+          saveRDS(patho_daily_repo,
+                  paste0(user_directory,
+                         "/Shiny App Repo/APDailySummary",
+                         "/BacklogRepo30Days.rds"))
+          
+        }
       
         
         flag <- 3
