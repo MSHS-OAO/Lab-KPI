@@ -5,17 +5,8 @@
 cyto_prep <- function(epic_data, pp_data) {
   if (is.null(epic_data) || is.null(pp_data) || 
       nrow(epic_data) == 0 || nrow(pp_data) == 0) {
-    summarized_table <- NULL
-<<<<<<< HEAD
-    return(summarized_table)
-=======
-    print(1)
-    return(summarized_table)
-    
->>>>>>> a8fa5243e49dccb717203d71811146dce45c49de
+    cyto_final <- NULL
   } else {
-    print(2)
-    
     # Preprocess Epic data
     # Select specimens that were finalized in Epic based on Lab Status
     epic_data_final <- epic_data %>%
@@ -164,14 +155,8 @@ cyto_prep <- function(epic_data, pp_data) {
     # # Filter out any specimens signed out on other dates
     # summarize_table <- summarized_table %>%
     #   filter(Signed_out_date_only %in% dates)
-    return(summarized_table)
-<<<<<<< HEAD
     
     
   }
+  return(summarized_table)
 }
-=======
-
-  }
-}
->>>>>>> a8fa5243e49dccb717203d71811146dce45c49de

@@ -3,11 +3,9 @@
 
 patho_prep <- function(raw_data) {
   if (is.null(raw_data) || nrow(raw_data) == 0) {
-    sp_data <- NULL
     summarized_table <- NULL
     return(summarized_table)
-    
-  } else {
+    } else {
     
     #------------Extract the All Breast and GI specs Data Only--------------#
     # Merge the inclusion/exclusion criteria with PowerPath data to determine
@@ -161,8 +159,6 @@ patho_prep <- function(raw_data) {
     # summarize_table <- summarized_table %>%
     #   filter(Signed_out_date_only %in% dates)
     return(summarized_table)
-    
-    
   }
   
 }

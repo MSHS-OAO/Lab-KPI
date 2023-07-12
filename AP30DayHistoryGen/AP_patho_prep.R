@@ -1,51 +1,44 @@
-# Function to preprate prepare cytology data for pre-processing by crosswalking
-# Epic and PowerPath data
-# combines orginal cyto_prep, pre_processing_pp in Daily_Run_AP_Custom_Functions
+#create a function to prepare pathology data for pre-processing
+# combines orginal patho_prep, pre_processing_pp in Daily_Run_AP_Custom_Functions
 
-cyto_prep <- function(epic_data, pp_data) {
-  if (is.null(epic_data) || is.null(pp_data) || 
-      nrow(epic_data) == 0 || nrow(pp_data) == 0) {
-    summarized_table <- NULL
-<<<<<<< HEAD
-    return(summarized_table)
-=======
-    print(1)
-    return(summarized_table)
-    
->>>>>>> a8fa5243e49dccb717203d71811146dce45c49de
+patho_prep <- function(raw_data) {
+  if (is.null(raw_data) || nrow(raw_data) == 0) {
+    sp_data <- NULL
   } else {
-    print(2)
     
-    # Preprocess Epic data
-    # Select specimens that were finalized in Epic based on Lab Status
-    epic_data_final <- epic_data %>%
-      filter(LAB_STATUS %in% c("Final result", "Edited Result - FINAL"))
+    #------------Extract the All Breast and GI specs Data Only--------------#
+    # Merge the inclusion/exclusion criteria with PowerPath data to determine
+    # which GI cases to include in the analysis
     
-    # Create dataframe of unique specimen ID for crosswalking with PowerPath data
-    # cross-walking with PowerPath data
-    epic_data_spec <- epic_data_final %>%
-      distinct(SPECIMEN_ID)
+    raw_data <- merge(x = raw_data, y = gi_codes, all.x = TRUE)
     
-    # Update names for MSH and MSM
-    pp_data <- pp_data %>%
+    raw_data <- raw_data %>%
       mutate(Facility = case_when(Facility == "MSS" ~ "MSH",
                                   Facility == "STL"~ "SL",
-                                  TRUE ~ Facility))
-    
-    # Subset PowerPath data to keep Cyto Gyn and Cyto NonGyn and primary
-    # specimens only
-    cyto_raw <- pp_data %>%
-      filter(spec_sort_order == "A" &
-               spec_group %in% c("CYTO NONGYN", "CYTO GYN"))
-    
-    cyto_final <- merge(x = cyto_raw, y = epic_data_spec,
-                        by.x = "Case_no",
-                        by.y = "SPECIMEN_ID")
+                                  TRUE ~ Facility),
+             spec_group = case_when(spec_group == "BREAST" ~ "Breast", 
+                                    TRUE ~ spec_group))
     
     
+    #Create dataframe with cases that should be excluded based on GI code
+    exclude_gi_codes_df <- raw_data %>%
+      filter(spec_group %in% c("GI") &
+               !(GI_Code_InclExcl %in% c("Include")))
     
+    # Create vector of case numbers to exclude
+    exclude_case_num <- unique(exclude_gi_codes_df$Case_no)
+    
+    # Subset surgical pathology data based on inclusion criteria
+    sp_data <- raw_data %>%
+      filter(# Select primary specimens only
+        spec_sort_order == "A" &
+          # Select GI specimens with codes that are included and any breast specimens
+          ((spec_group == "GI" & !(Case_no %in% exclude_case_num)) |
+             (spec_group == "Breast" )) &
+          # Exclude NYEE
+          Facility != "NYEE")
     # Crosswalk Rev_ctr and patient setting for PowerPath data
-    raw_data_ps <- merge(x = cyto_final, y = patient_setting, all.x = TRUE)
+    raw_data_ps <- merge(x = sp_data, y = patient_setting, all.x = TRUE)
     
     # Update MSB patient setting based on patient type column
     raw_data_ps <- raw_data_ps %>%
@@ -164,14 +157,8 @@ cyto_prep <- function(epic_data, pp_data) {
     # # Filter out any specimens signed out on other dates
     # summarize_table <- summarized_table %>%
     #   filter(Signed_out_date_only %in% dates)
-    return(summarized_table)
-<<<<<<< HEAD
-    
     
   }
+  
+  return(summarized_table)
 }
-=======
-
-  }
-}
->>>>>>> a8fa5243e49dccb717203d71811146dce45c49de
