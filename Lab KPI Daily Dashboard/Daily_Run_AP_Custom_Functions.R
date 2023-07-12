@@ -52,6 +52,9 @@ patho_prep <- function(raw_data, gi_codes) {
     # Merge the inclusion/exclusion criteria with PowerPath data to determine
     # which GI cases to include in the analysis
     
+    raw_data <- raw_data %>%
+      mutate(Spec_code = trimws(Spec_code))
+    
     raw_data <- merge(x = raw_data, y = gi_codes, all.x = TRUE)
     
     raw_data <- raw_data %>%

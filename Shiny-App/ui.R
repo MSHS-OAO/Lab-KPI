@@ -289,6 +289,7 @@ ui <-
                           )
                         )
                ),
+               # Data Submissions ----
                tabPanel("Data Submission",
                         tabsetPanel(
                           tabPanel("Clinical Pathology Efficiency Indicators",
