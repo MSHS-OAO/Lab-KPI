@@ -1,6 +1,7 @@
 source("AP30DayHistoryGen/Package_Ref.R")
 source("AP30DayHistoryGen/AP_cyto_prep.R")
 source("AP30DayHistoryGen/AP_patho_prep.R")
+source("AP30DayHistoryGen/AP_pre_processing_backlog.R")
 library("lubridate")
 
 # defining end date - Today
@@ -19,6 +20,7 @@ for (date in days) {
   source("AP30DayHistoryGen/Daily_Run_Raw_Data_Import.R")
   summary_cyto <- cyto_prep(epic_data_raw,pp_data_raw)
   summary_patho <- patho_prep(pp_data_raw)
+  processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw)
   
   
 
@@ -36,6 +38,24 @@ for (date in days) {
             paste0(user_directory,
                    "/Shiny App Repo/APDailySummary",
                    "/APCytologyRepo30Days.rds"))
+    
+  }
+  
+  
+  if(!is.null(proccesed_backlog_data)){
+    remove_dupl_dates_test_level <- anti_join(backlog_daily_repo,
+                                              processed_backlog_data,
+                                              by = "Report_Date")
+    
+    backlog_daily_repo <- rbind(remove_dupl_dates_test_level, processed_backlog_data)
+    
+    backlog_daily_repo <- backlog_daily_repo %>%
+      arrange(Facility, Report_Date)
+    
+    saveRDS(backlog_daily_repo,
+            paste0(user_directory,
+                   "/Shiny App Repo/APDailySummary",
+                   "/BacklogRepo30Days.rds"))
     
   }
   
