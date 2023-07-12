@@ -95,8 +95,9 @@ graphing_function <- function(test, priority, setting) {
     geom_point(aes(color = Site), size = 0.5) +
     scale_x_date(limits = c(min(data$Month),
                           max(data$Month)),
-                 date_breaks = "3 months",
-                 date_minor_breaks = "1 month",
+                 date_breaks = "1 months",
+                 # date_minor_breaks = "1 month",
+                 # minor_breaks = waiver(),
                  date_labels = "%m/%y",
                  expand = c(0, 0, 0, 0)
                  ) +
@@ -111,6 +112,7 @@ graphing_function <- function(test, priority, setting) {
                        length.out = 5),
                        expand = c(0, 0, 0, 0),
                        labels = label_percent(accuracy = 1)) +
+    theme(axis.text.x = element_text(face="bold", angle=45)) +
     scale_color_MountSinai(palette = "main") +
     labs(title = "% Labs within Receive to Result Target Turnaround Time",
          subtitle = paste0("Target Turnaround Time for ",
@@ -126,20 +128,36 @@ graphing_function <- function(test, priority, setting) {
        y = "Percentage of Labs")
   
   receive_result_trend <- ggplotly(receive_result_trend) %>%
-    layout(title = list(text = paste0(
-      '% Labs within Receive to Result Target Turnaround Time',
-      '<br>',
-      '<sup>',
-      paste0("Target Turnaround Time for ",
-             priority, 
-             " ",    
-             test,
-             " Orders in ",
-             setting,
-             ": ",
-             turnaround_target,
-             " min"),
-      '</sup>'))) %>%
+    layout(
+      title = list(text = paste0(
+        '% Labs within Receive to Result Target Turnaround Time',
+        '<br>',
+        '<sup>',
+        paste0("Target Turnaround Time for ",
+               priority,
+               " ",
+               test,
+               " Orders in ",
+               setting,
+               ": ",
+               turnaround_target,
+               " min"),
+        '</sup>')),
+        xaxis = list(
+          type = 'date',
+          tickvals = as.list(
+            as.numeric(seq.Date(from = min(data$Month),
+                       to = max(data$Month),
+                       by = "1 month"))
+          ),
+          ticktext = as.list(
+            format(
+              seq.Date(from = min(data$Month),
+                       to = max(data$Month),
+                       by = "3 months"),
+            "%m/%y"))
+          )
+      ) %>%
     config(displayModeBar = FALSE)
   
   return(receive_result_trend)
@@ -160,6 +178,8 @@ Column {.tabset .tabset-fade}
 ### ED Stat Labs
 ```{r Troponin ED, warning = FALSE, message = FALSE, echo = FALSE}
 graphing_function(test = "Troponin", priority = "All", setting = "ED")
+
+
 ```
 
 ### ICU Stat Labs
