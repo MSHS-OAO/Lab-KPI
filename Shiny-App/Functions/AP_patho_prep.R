@@ -1,7 +1,7 @@
 #create a function to prepare pathology data for pre-processing
 # combines orginal patho_prep, pre_processing_pp in Daily_Run_AP_Custom_Functions
 
-patho_prep <- function(raw_data, gi_codes) {
+patho_prep <- function(raw_data) {
   if (is.null(raw_data) || nrow(raw_data) == 0) {
     sp_data <- NULL
   } else {
@@ -160,8 +160,5 @@ patho_prep <- function(raw_data, gi_codes) {
     
   }
   
-  return_tables <- list(summarized_table,
-                        raw_data_new)
-  
-  return(return_tables)
+  return(summarized_table)
 }

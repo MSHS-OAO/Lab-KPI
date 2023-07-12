@@ -38,7 +38,7 @@ library(stringr)
 library(writexl)
 library(gsubfn)
 library(tidyr)
-
+library(here)
 #Clear existing history
 rm(list = ls())
 #-------------------------------holiday/weekend-------------------------------#
@@ -48,6 +48,9 @@ today <- as.Date("5/9/23", format("%m/%d/%y"))
 #Determine if yesterday was a holiday/weekend
 #get yesterday's DOW
 yesterday <- today - 1
+# Determine date of resulted labs/specimens
+resulted_date <- yesterday
+
 
 #Get yesterday's DOW
 yesterday_day <- wday(yesterday, label = TRUE, abbr = TRUE)

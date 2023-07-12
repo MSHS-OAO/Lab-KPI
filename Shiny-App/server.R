@@ -687,7 +687,7 @@ server <- function(input, output, session) {
         
         # Read in signed cases report
         ap_cyto_signed_filename <- ap_cyto_signed_file$datapath
-        ap_cyto_signed_data_raw <- read_excel(ap_cyto_signed_filename)
+        ap_cyto_signed_data_raw <- read_excel(ap_cyto_signed_filename,skip = 1, 1)
         
       },
       
@@ -706,7 +706,7 @@ server <- function(input, output, session) {
         
         # Read in epic cyto file
         cyto_backlog_filename <- cyto_backlog_file$datapath
-        cyto_backlog_data_raw <- read_excel(cyto_backlog_filename)
+        cyto_backlog_data_raw <- read_excel(cyto_backlog_filename,skip = 1, 1)
         
         
       },
@@ -734,17 +734,22 @@ server <- function(input, output, session) {
       
       tryCatch({
         # Process Epic Cytology and AP Signed cases data
-        result <- cyto_prep(epic_cyto_data_raw,ap_cyto_signed_data_raw)
-        summarized_data_cyto <- result[[1]]
-        processed_epic_signed_cases_data <- result[[2]]
+        summarized_data_cyto <- cyto_prep(epic_cyto_data_raw,ap_cyto_signed_data_raw)
+        print(1)
+        # Process  AP Signed cases data
+        summarized_data_patho <- patho_prep(ap_cyto_signed_data_raw)
+        print(2)
+        # Process  backlog data
+        processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw)
+        
 
         flag <- 2
       },
       error = function(err){
         showModal(modalDialog(
           title = "Processing Error",
-          paste0("There seems to be an issue processing this Epic Cytology/ AP Signed Cases Report file.",
-                 " Please check that the correct file was selected."),
+          paste0("There seems to be an issue processing this Epic Cytology/ AP Signed Cases Report/ Backlog file.",
+                 "Please check that the correct file was selected."),
           easyClose = TRUE,
           footer = modalButton("Dismiss")
         ))
@@ -756,23 +761,19 @@ server <- function(input, output, session) {
     
     if (flag == 2) {
       
-      # Try processing the data
+      # save the data
       
       
       tryCatch({
-        # Process  AP Signed cases data
-        result <- cyto_prep(ap_cyto_signed_data_raw,gi_codes)
-        summarized_data_patho <- result[[1]]
-        processed_signed_cases_data <- result[[2]]
-        
+      
         
         flag <- 3
       },
       error = function(err){
         showModal(modalDialog(
           title = "Processing Error",
-          paste0("There seems to be an issue processing this AP Signed Cases Report file.",
-                 " Please check that the correct file was selected."),
+          paste0("There seems to be an issue storing the data.",
+                 "Please submit again."),
           easyClose = TRUE,
           footer = modalButton("Dismiss")
         ))
@@ -783,31 +784,6 @@ server <- function(input, output, session) {
     }
     
     if (flag == 3) {
-      
-      # Try processing the data
-      
-      
-      tryCatch({
-        # Process  backlog data
-        processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw)
-        
-        flag <- 4
-      },
-      error = function(err){
-        showModal(modalDialog(
-          title = "Processing Error",
-          paste0("There seems to be an issue processing Backlog file.",
-                 " Please check that the correct file was selected."),
-          easyClose = TRUE,
-          footer = modalButton("Dismiss")
-        ))
-        shinyjs::enable(button_name)
-      }
-      )
-      
-    }
-    
-    if (flag == 4) {
       showModal(modalDialog(
         title = "Success",
         paste0("The data has been submitted successfully!"),

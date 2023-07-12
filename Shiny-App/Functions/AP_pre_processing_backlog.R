@@ -67,15 +67,34 @@ pre_processing_backlog <- function(cyto_backlog_raw) {
                 backlog[backlog > Received.to.signed.out.target..Days.],
                 prob = 0.5, na.rm = TRUE))),
         
+        percentile_75th =
+          format(
+            ceiling(
+              quantile(
+                backlog[backlog > Received.to.signed.out.target..Days.],
+                prob = 0.75, na.rm = TRUE))),
+        
         maximum = format(
           ceiling(
             max(
               backlog[backlog > Received.to.signed.out.target..Days.],
               na.rm = TRUE))),
         
+        average = format(
+          ceiling(
+            mean(
+              backlog[backlog > Received.to.signed.out.target..Days.],
+              na.rm = TRUE))),
+        
+        minimum = format(
+          ceiling(
+            min(
+              backlog[backlog > Received.to.signed.out.target..Days.],
+              na.rm = TRUE))),
+        
         cyto_acc_vol = as.numeric(sum(acc_date == acc_date_only,
                                       na.rm = TRUE))) %>%
-      mutate(maximum = if_else(maximum == "-Inf","0",
+      mutate(maximum = if_else(maximum %in% c("-Inf") ,"0",
                                maximum),
              maximum = as.numeric(maximum))
     
@@ -83,7 +102,7 @@ pre_processing_backlog <- function(cyto_backlog_raw) {
     colnames(summarized_table) <-
       c("Spec_code", "Spec_group", "Facility", "Patient_setting", "Rev_ctr",
         "acc_date_only", "acc_day_only", "Report_Date", "cyto_backlog",
-        "percentile_25th", "percentile_50th", "maximum", "cyto_acc_vol")
+        "percentile_25th", "percentile_50th", "percentile_75th","minimum","average","maximum", "cyto_acc_vol")
   }
   return(summarized_table)
   

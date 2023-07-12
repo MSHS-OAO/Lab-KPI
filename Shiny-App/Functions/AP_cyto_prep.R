@@ -158,8 +158,5 @@ cyto_prep <- function(epic_data, pp_data) {
     
     
   }
-  return_tables <- list(summarized_table,
-                        raw_data_new)
-  
-  return(return_tables)
+  return(summarized_table)
 }
