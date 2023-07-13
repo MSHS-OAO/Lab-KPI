@@ -13,9 +13,11 @@ patho_prep <- function(raw_data) {
     
     raw_data <- merge(x = raw_data, y = gi_codes, all.x = TRUE)
     
+    
+    # Create a mapping for SITES
     raw_data <- raw_data %>%
       mutate(Facility = case_when(Facility == "MSS" ~ "MSH",
-                                  Facility == "STL"~ "SL",
+                                  Facility == "STL"~ "SL", #Rename to MSM
                                   TRUE ~ Facility),
              spec_group = case_when(spec_group == "BREAST" ~ "Breast", 
                                     TRUE ~ spec_group))
