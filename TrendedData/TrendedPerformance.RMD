@@ -13,25 +13,47 @@ output:
   color:white;
 }
 
-.nav-tabs-custom > .nav-tabs > li.active {
-  border-top-color: #221F72;
-}
-
-.navbar .navbar-nav > li > a:focus {
-    background-color: #ACACAD;
-    color: white;
-}
-
 .navbar .navbar-nav > .active > a,
+.navbar .navbar-nav > .active > a:hover,
 .navbar .navbar-nav > .active > a:focus {
   color: white;
   background-color: #ACACAD;
 }
 
+.navbar .navbar-nav > li > a:hover,
+.navbar .navbar-nav > li > a:focus {
+  color: white;
+  background-color: #ACACAD;
+}
+
+.navbar .dropdown-menu > .active > a,
+.navbar .dropdown-menu > .active > a:hover,
+.navbar .dropdown-menu > .active > a:focus {
+  color: white;
+  background-color: #ACACAD;
+}
+
+.navbar .dropdown-menu > li > a:hover,
+.navbar .dropdown-menu > li > a:focus {
+  color: white;
+  background-color: #ACACAD;
+}
+
+.navbar .nav li.dropdown.open > .dropdown-toggle,
+.navbar .nav li.dropdown.active > .dropdown-toggle,
+.navbar .nav li.dropdown.open.active > .dropdown-toggle {
+  color: white;
+  background-color: #ACACAD;
+}
+
+.nav-tabs-custom > .nav-tabs > li.active {
+  border-top-color: #221F72;
+}
+
 </style>
 
+<h3><em><b>Lab Receipt to Result Turnaround Time Compliance </h3></em></b>
 <h4><em><span style = "color:red">Draft - Not For Distribution</h4></em></span style = "color:red">
-
 
 ```{r global_options, echo = FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
@@ -88,6 +110,21 @@ graphing_function <- function(test, priority, setting) {
                           distinct(ReceiveResultTarget) %>%
                           pull()
   
+  month_vector <- format(seq.Date(from = min(data$Month),
+                               to = max(data$Month),
+                               by = "2 months"),
+                      "%m/%y")
+  
+  empty_vector <- rep(" ", length(month_vector))
+  
+  tick_text <- c(rbind(month_vector, empty_vector))
+  
+  if(month_vector[length(month_vector)] == format(max(data$Month), "%m/%y")){
+    tick_text <- tick_text[1:(length(tick_text) - 1)]
+  } else {
+    tick_text <- tick_text
+  }
+
   receive_result_trend <- ggplot(data = data,
                                  mapping = aes(x = Month,
                                                y = ReceiveResultPercent)) +
@@ -130,16 +167,16 @@ graphing_function <- function(test, priority, setting) {
   receive_result_trend <- ggplotly(receive_result_trend) %>%
     layout(
       title = list(text = paste0(
-        '% Labs within Receive to Result Target Turnaround Time',
+        '% Labs within Target Turnaround Time',
         '<br>',
         '<sup>',
         paste0("Target Turnaround Time for ",
                priority,
                " ",
-               test,
-               " Orders in ",
                setting,
-               ": ",
+               " ",
+               test,
+               " Orders: ",
                turnaround_target,
                " min"),
         '</sup>')),
@@ -150,12 +187,7 @@ graphing_function <- function(test, priority, setting) {
                        to = max(data$Month),
                        by = "1 month"))
           ),
-          ticktext = as.list(
-            format(
-              seq.Date(from = min(data$Month),
-                       to = max(data$Month),
-                       by = "3 months"),
-            "%m/%y"))
+          ticktext = as.list(tick_text)
           )
       ) %>%
     config(displayModeBar = FALSE)
@@ -167,14 +199,14 @@ graphing_function <- function(test, priority, setting) {
   
 }
 
-
 ```
 
 # Troponin {data-navmenu="Chemistry"}
 
+<h4> **Troponin Labs** </h4>
+
 Column {.tabset .tabset-fade}
 ------------------------
-
 ### ED Stat Labs
 ```{r Troponin ED, warning = FALSE, message = FALSE, echo = FALSE}
 graphing_function(test = "Troponin", priority = "All", setting = "ED")
@@ -193,6 +225,8 @@ graphing_function(test = "Troponin", priority = "All", setting = "IP Non-ICU")
 ```
 
 # Lactate WB {data-navmenu="Chemistry"}
+
+<h4> **Lactate WB Labs** </h4>
 
 Column {.tabset .tabset-fade}
 ------------------------
@@ -213,6 +247,8 @@ graphing_function(test = "Lactate WB", priority = "All", setting = "IP Non-ICU")
 ```
 
 # BUN {data-navmenu="Chemistry"}
+
+<h4> **BUN Labs** </h4>
 
 Column {.tabset .tabset-fade}
 ------------------------
@@ -239,6 +275,8 @@ graphing_function(test = "BUN", priority = "Routine", setting = "IP Non-ICU")
 
 # PT {data-navmenu="Hematology"}
 
+<h4> **PT Labs** </h4>
+
 Column {.tabset .tabset-fade}
 ------------------------
 
@@ -264,15 +302,17 @@ graphing_function(test = "PT", priority = "Routine", setting = "IP Non-ICU")
 
 # HGB {data-navmenu="Hematology"}
 
+<h4> **HGB Labs** </h4>
+
 Column {.tabset .tabset-fade}
 ------------------------
 
-### ED Labs
+### ED Stat Labs
 ``` {r HGB ED, warning = FALSE, message = FALSE, echo = FALSE}
 graphing_function(test = "HGB", priority = "Stat", setting = "ED")
 ```
 
-### ICU Labs
+### ICU Stat Labs
 ```{r HGB ICU, warning = FALSE, message = FALSE, echo = FALSE}
 graphing_function(test = "HGB", priority = "Stat", setting = "ICU")
 ```
@@ -288,14 +328,66 @@ graphing_function(test = "HGB", priority = "Routine", setting = "IP Non-ICU")
 
 ```
 
-Assumptions & Targets
+Reference
 ================================
-<h5> Turnaround Time Targets </h5>
-```{r Targets}
 
+Column {.tabset .tabset-fade}
+------------------------
+
+### Data Sources & Methodology
+<h4><b>Definition table</b></h4>
+The table below summarizes the definitions for the terminology used in this dashboard.
+```{r Data Definitions and Assumptions}
+
+definition_table <-
+  data.frame(read_excel(reference_file, sheet = "Definitions_Trended"),
+             stringsAsFactors = FALSE)
+
+definition_table  %>%
+  kable(format = "html", escape = FALSE, align = "c",
+        col.names = c("Terminology Used", "Terminology Definition")) %>%
+  kable_styling(bootstrap_options = "hover", position = "center",
+                font_size = 11, full_width = FALSE) %>%
+  column_spec(column = c(1, 2), border_right = "thin solid lightgray") %>%
+  row_spec(row = 0, font_size = 13, background = "#221f72", color = "white")
+
+
+```
+
+<h4><b>Data Sources</b></h4>
+MSH and MSQ: Based on repository of summarized daily SCC reports.</br>
+MSBI, MSB, MSW, MSM: Based on repository of summarized daily Sunquest reports.</br>
+The table below summarizes the test codes and IDs used from these daily reports.
+```{r Test codes}
+
+test_codes_kable <- full_join(scc_test_code, sun_test_code,
+                              by = c("Test" = "Test",
+                                     "Division" = "Division"))
+
+test_codes_kable <- test_codes_kable %>%
+  filter(Division %in% c("Chemistry", "Hematology")) %>%
+  select(Division, Test, SCC_TestID, SUN_TestCode) %>%
+  mutate(Test = factor(Test, levels = cp_lab_order, ordered = TRUE)) %>%
+  arrange(Test)
+
+test_codes_kable %>%
+  kable(format = "html", escape = FALSE, align = "c",
+        col.names = c("Lab Division", "Test", "SCC Test ID",
+                      "Sunquest Test Code")) %>%
+  kable_styling(bootstrap_options = "hover", position = "center",
+                font_size = 11, full_width = FALSE) %>%
+  column_spec(column = c(1, 2, 3, 4), border_right = "thin solid lightgray") %>%
+  row_spec(row = 0, font_size = 13, background = "#221f72", color = "white") %>%
+  collapse_rows()
+
+```
+
+### Target Turnaround Times
+```{r Target Turnaround Times}
 targets_table <- filtered_df %>%
   select(Division, Test, TestPriority, CareSetting, ReceiveResultTarget) %>%
   distinct() %>%
+  mutate(Test = factor(Test, levels = cp_lab_order, ordered = TRUE)) %>%
   arrange(Division, Test, desc(TestPriority), CareSetting)
 
 kable(targets_table,
@@ -313,7 +405,15 @@ kable(targets_table,
            bold = TRUE,
            color = "white",
            background = MountSinai_colors["dark purple"]) %>%
-  collapse_rows(columns = 1:3)
+  collapse_rows(columns = 1:2)
 
 ```
-<!-- <h6>*TAT Analysis excludes add on orders, labs with missing timestamps, labs with negative TAT, and labs not from above settings. Labs with missing collection times excluded from collect-to-result analysis. Valid labs from all settings and priorities are included in above calculations.*</h6> -->
+<h4><b>Additional notes on target turnaround times:</b></h4>
+
+* ED & ICU Labs:
+    + All labs are treated as stat regardless of documented priority.
+* Troponin and Lactate WB:
+    + All labs are treated as stat regardless of documented priority and patient setting.
+* Exclusions:
+    + Turnaround time analysis excludes labs with out of order steps (ie, collect after receive), missing timestamps, add-on orders (order time more than 5 min after receive time), and labs not originating in IP or ED (ie, Outreach).
+    + MSH BUN & HGB labs exclude RTC labs.

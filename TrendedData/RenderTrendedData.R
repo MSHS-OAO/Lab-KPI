@@ -37,5 +37,5 @@ rmarkdown::render(paste0("TrendedData/",
                     user_directory,
                     "HSPI-PM/Operations Analytics and Optimization/",
                     "Projects/Service Lines/Lab KPI/TrendedData2023/",
-                    "Troponin Performance ",
+                    "MSHS Lab KPI Trended Performance ",
                     format(Sys.Date(), "%m-%d-%y")))

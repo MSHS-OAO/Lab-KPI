@@ -48,30 +48,6 @@ library(bslib)
 
 #Clear existing history
 rm(list = ls())
-#-------------------------------holiday/weekend-------------------------------#
-# Get today and yesterday's date
-today <- Sys.Date()
-
-#Determine if yesterday was a holiday/weekend
-#get yesterday's DOW
-yesterday <- today - 1
-
-#Get yesterday's DOW
-yesterday_day <- wday(yesterday, label = TRUE, abbr = TRUE)
-
-#Remove Good Friday from MSHS Holidays
-nyse_holidays <- as.Date(holidayNYSE(year = 1990:2100))
-good_friday <- as.Date(GoodFriday())
-mshs_holiday <- nyse_holidays[good_friday != nyse_holidays]
-
-#Determine whether yesterday was a holiday/weekend
-#holiday_det <- isHoliday(yesterday, holidays = mshs_holiday)
-holiday_det <- isHoliday(as.timeDate(yesterday), holidays = mshs_holiday)
-
-#Set up a calendar for collect to received TAT calculations for Path & Cyto
-create.calendar("MSHS_working_days", mshs_holiday,
-                weekdays = c("saturday", "sunday"))
-bizdays.options$set(default.calendar = "MSHS_working_days")
 
 #Function to determine path to share drive on R Workbench or R Studio
 
@@ -102,29 +78,29 @@ define_root_path <- function(){
 # Select file/folder path for easier file selection and navigation
 user_directory <- define_root_path()
 
+# Import analysis reference data
+reference_file <- paste0(user_directory,
+                         "HSPI-PM/Operations Analytics and Optimization/Projects/",
+                         "Service Lines/Lab KPI/Data/Code Reference/",
+                         "Analysis Reference 2023-07-13.xlsx")
+
+# CP and Micro --------------------------------
+scc_test_code <- read_excel(reference_file, sheet = "SCC_TestCodes")
+sun_test_code <- read_excel(reference_file, sheet = "SUN_TestCodes")
+
+cp_lab_order <- c("Troponin",
+                  "Lactate WB",
+                  "BUN",
+                  "HGB",
+                  "PT")
+
 # Import monthly repository
 monthly_repo <- readRDS(
   file = paste0(user_directory,
                 "HSPI-PM/Operations Analytics and Optimization/Projects/",
                 "Service Lines/Lab KPI/Data/CP Repositories/MonthlyRepo/",
-                "Monthly Repo Dec2020 to May2023 as of 06-20-23.RDS")
+                "Monthly Repo Dec2020 to Jun2023 as of 07-10-23.RDS")
 )
-
-weekly_repo <- readRDS(
-  file = paste0(user_directory,
-                "HSPI-PM/Operations Analytics and Optimization/Projects/",
-                "Service Lines/Lab KPI/Data/CP Repositories/WeeklyRepo/",
-                "Weekly Repo 12-06-20 to 06-17-23 as of 06-20-23.rds")
-)
-
-all_sites <- c("MSH", "MSQ", "MSBI", "MSB", "MSW", "MSM", "MSSN", "RTC")
-hosp_sites <- c("MSH", "MSQ", "MSBI", "MSB", "MSW", "MSM", "MSSN")
-infusion_sites <- c("RTC")
-
-pt_setting_order <- c("ED", "ICU", "IP Non-ICU", "Amb", "Other")
-pt_setting_order2 <- c("ED & ICU", "IP Non-ICU", "Amb", "Other")
-
-cp_division_order <- c("Chemistry", "Hematology", "Microbiology RRL", "Infusion")
 
 # Color Palettes -----------
 # Mount Sinai corporate colors
