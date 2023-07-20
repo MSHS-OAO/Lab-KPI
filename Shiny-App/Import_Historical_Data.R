@@ -12,6 +12,12 @@ cp_daily_repo <- readRDS(paste0(user_directory,
                              "/Shiny App Repo/CPDailySummary",
                              "/CPDailySummary.rds"))
 
+
+ap_summary <- readRDS(paste0(user_directory,
+                                "/Shiny App Repo/APDailySummary",
+                                "/APRepo60Days.rds"))
+
+
 # Tables will show data for latest date in repository be default
 cp_resulted_date <- max(cp_daily_repo$ResultDate)
 

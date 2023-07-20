@@ -8,6 +8,7 @@ analyze_pp <- function(summarized_table) {
     cyto_acc_vol1 <- NULL
   } else {
     #Calculate total number of cases signed per spec group
+    # Do we really need this?
     vol_cases_signed <- summarized_table %>%
       group_by(Spec_group,
                Patient_setting) %>%
@@ -21,10 +22,7 @@ analyze_pp <- function(summarized_table) {
                Patient_setting) %>%
       summarise(no_cases_signed =
                   sum(No_cases_signed_out,
-                      na.rm = TRUE))
-    
-
-    vol_cases_signed_strat <- vol_cases_signed_strat %>%
+                      na.rm = TRUE))%>%
       pivot_wider(id_cols = c(Spec_group,Patient_setting),
                   names_from = Facility,
                   values_from = no_cases_signed,

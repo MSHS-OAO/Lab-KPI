@@ -869,10 +869,10 @@ server <- function(input, output, session) {
       tryCatch({
         if(!is.null(summarized_data_cyto)){
           remove_dupl_dates_test_level <- anti_join(cyto_daily_repo,
-                                                    summary_cyto,
+                                                    ap_summary,
                                                     by = "report_date_only")
           
-          cyto_daily_repo <- rbind(remove_dupl_dates_test_level, summary_cyto)
+          cyto_daily_repo <- rbind(remove_dupl_dates_test_level, ap_summary)
           
           cyto_daily_repo <- cyto_daily_repo %>%
             arrange(Facility, report_date_only)
@@ -880,17 +880,17 @@ server <- function(input, output, session) {
           saveRDS(cyto_daily_repo,
                   paste0(user_directory,
                          "/Shiny App Repo/APDailySummary",
-                         "/APCytologyRepo30Days.rds"))
+                         "/APRepo60Days.rds"))
           
         }
         
         
         if(!is.null(summarized_data_patho)){
           remove_dupl_dates_test_level <- anti_join(patho_daily_repo,
-                                                    summary_patho,
+                                                    ap_summary,
                                                     by = "report_date_only")
           
-          patho_daily_repo <- rbind(remove_dupl_dates_test_level, summary_patho)
+          patho_daily_repo <- rbind(remove_dupl_dates_test_level, ap_summary)
           
           patho_daily_repo <- patho_daily_repo %>%
             arrange(Facility, report_date_only)
@@ -898,7 +898,7 @@ server <- function(input, output, session) {
           saveRDS(patho_daily_repo,
                   paste0(user_directory,
                          "/Shiny App Repo/APDailySummary",
-                         "/APPathologyRepo30Days.rds"))
+                         "/APRepo60Days.rds"))
           
         }
         
