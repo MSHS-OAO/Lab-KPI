@@ -1,13 +1,13 @@
-ap_summary_07_12 <- ap_summary %>%
-  filter(REPORT_DATE == as.Date("2023-07-12"))
-
-
-tab_data_pathology <- ap_summary_07_12 %>%
-  filter(TAB == "SURGICAL PATHOLOGY")
-
-
-tab_data_cytology <- ap_summary_07_12 %>%
-  filter(TAB == "CYTOLOGY")
+# ap_summary_07_12 <- ap_summary %>%
+#   filter(REPORT_DATE == as.Date("2023-07-12"))
+# 
+# 
+# tab_data_pathology <- ap_summary_07_12 %>%
+#   filter(TAB == "SURGICAL PATHOLOGY")
+# 
+# 
+# tab_data_cytology <- ap_summary_07_12 %>%
+#   filter(TAB == "CYTOLOGY")
 
 
 
@@ -55,6 +55,23 @@ get_efficiency_indicators_surgical_pathology <- function(summarized_data){
   
   efficiency_indicator_pathology_tab <- left_join(table_ap_template_surgical_pathology,
                                                   efficiency_indicator_pathology_tab) %>%
+    pivot_wider(id_cols = c(SPECIMEN_GROUP,PATIENT_SETTING,SITE),
+                names_from = c(METRIC),
+                values_from = VALUE) %>%
+    mutate(received_to_signed_out_within_target = percent(received_to_signed_out_within_target, digits = 0),
+           received_to_signed_out_within_target = cell_spec(
+             received_to_signed_out_within_target, "html",
+             color = ifelse(is.na(received_to_signed_out_within_target), "lightgray",
+                            ifelse((received_to_signed_out_within_target >= 0.90),
+                              "green",
+                              ifelse(
+                                (received_to_signed_out_within_target >= 0.8) |
+                                  (received_to_signed_out_within_target > 0.9),
+                                "orange", "red")))),
+           avg_collection_to_signed_out = as.character(avg_collection_to_signed_out)) %>%
+    pivot_longer(cols = c(avg_collection_to_signed_out,received_to_signed_out_within_target),
+                 names_to  = "METRIC",
+                 values_to = "VALUE") %>%
     pivot_wider(id_cols = c(SPECIMEN_GROUP,PATIENT_SETTING),
                 names_from = c(METRIC,SITE),
                 values_from = VALUE)
@@ -98,4 +115,4 @@ get_efficiency_indicators_surgical_pathology <- function(summarized_data){
 }
 
 #Tests Surgical Pathology Efficiency Data ----
-pathology_eff_data <- get_efficiency_indicators_surgical_pathology(tab_data_pathology)
+#pathology_eff_data <- get_efficiency_indicators_surgical_pathology(tab_data_pathology)

@@ -1,13 +1,13 @@
-ap_summary_07_12 <- ap_summary %>%
-  filter(REPORT_DATE == as.Date("2023-07-12"))
-
-
-tab_data_pathology <- ap_summary_07_12 %>%
-  filter(TAB == "SURGICAL PATHOLOGY")
-
-
-tab_data_cytology <- ap_summary_07_12 %>%
-  filter(TAB == "CYTOLOGY")
+# ap_summary_07_12 <- ap_summary %>%
+#   filter(REPORT_DATE == as.Date("2023-07-12"))
+# 
+# 
+# tab_data_pathology <- ap_summary_07_12 %>%
+#   filter(TAB == "SURGICAL PATHOLOGY")
+# 
+# 
+# tab_data_cytology <- ap_summary_07_12 %>%
+#   filter(TAB == "CYTOLOGY")
 
 
 
@@ -32,7 +32,17 @@ get_efficiency_indicators_cytology <- function(summarized_data){
                       (REC_TO_SIGNED_OUT_WITHIN_TARGET *
                          NO_CASES_SIGNED_OUT) /
                         sum(NO_CASES_SIGNED_OUT),
-                      na.rm = TRUE), 2)))
+                      na.rm = TRUE), 2))) %>%
+    mutate(received_to_signed_out_within_target = percent(received_to_signed_out_within_target, digits = 0),
+           received_to_signed_out_within_target = cell_spec(
+             received_to_signed_out_within_target, "html",
+             color = ifelse(is.na(received_to_signed_out_within_target), "lightgray",
+                            ifelse((received_to_signed_out_within_target >= 0.90),
+                                   "green",
+                                   ifelse(
+                                     (received_to_signed_out_within_target >= 0.8) |
+                                       (received_to_signed_out_within_target > 0.9),
+                                     "orange", "red")))))
   
   #Calculate average collection to signed out
   efficiency_indicator_cytology_tab <- summarized_data %>%
@@ -93,4 +103,4 @@ get_efficiency_indicators_cytology <- function(summarized_data){
 }
 
 #Tests Surgical Cytology Efficiency Data ----
-cytology_eff_data <- get_efficiency_indicators_cytology(tab_data_cytology)
+#cytology_eff_data <- get_efficiency_indicators_cytology(tab_data_cytology)
