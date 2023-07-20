@@ -187,7 +187,7 @@ cyto_prep <- function(epic_data, pp_data) {
              COL_TO_SIGNED_OUT_MEDIAN = Patient_metric_med,
              COL_TO_SIGNED_OUT_STDDEV = Patient_metric_std,
              CYTO_ACCESSION_VOLUME = cyto_acc_vol) %>%
-      mutate(TAB = "CYTO")
+      mutate(TAB = "CYTOLOGY") 
     # # Filter out any specimens signed out on other dates
     # summarize_table <- summarized_table %>%
     #   filter(Signed_out_date_only %in% dates)

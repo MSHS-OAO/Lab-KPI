@@ -188,7 +188,7 @@ patho_prep <- function(raw_data) {
              COL_TO_SIGNED_OUT_MEDIAN = Patient_metric_med,
              COL_TO_SIGNED_OUT_STDDEV = Patient_metric_std,
              CYTO_ACCESSION_VOLUME = cyto_acc_vol) %>%
-      mutate(TAB = "PATHO")
+      mutate(TAB = "SURGICAL PATHOLOGY")
     
     # # Filter out any specimens signed out on other dates
     # summarize_table <- summarized_table %>%
