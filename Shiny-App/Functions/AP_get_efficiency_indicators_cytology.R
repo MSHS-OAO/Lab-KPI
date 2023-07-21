@@ -1,13 +1,13 @@
-ap_summary_07_12 <- ap_summary %>%
-  filter(REPORT_DATE == as.Date("2023-07-12"))
-
-
-tab_data_pathology <- ap_summary_07_12 %>%
-  filter(TAB == "SURGICAL PATHOLOGY")
-
-
-tab_data_cytology <- ap_summary_07_12 %>%
-  filter(TAB == "CYTOLOGY")
+# ap_summary_07_12 <- ap_summary %>%
+#   filter(REPORT_DATE == as.Date("2023-07-12"))
+# 
+# 
+# tab_data_pathology <- ap_summary_07_12 %>%
+#   filter(TAB == "SURGICAL PATHOLOGY")
+# 
+# 
+# tab_data_cytology <- ap_summary_07_12 %>%
+#   filter(TAB == "CYTOLOGY")
 
 
 
@@ -56,6 +56,10 @@ get_efficiency_indicators_cytology <- function(summarized_data){
   
   efficiency_indicator_cytology_tab <- left_join(table_ap_template_cytology,
                                                  efficiency_indicator_cytology_tab) %>%
+    mutate(VALUE = cell_spec(VALUE, "html",
+             color = ifelse(is.na(VALUE), 
+                            "lightgray",
+                            "black"))) %>%
     pivot_wider(id_cols = c(SPECIMEN_GROUP,PATIENT_SETTING),
                 names_from = c(METRIC,SITE),
                 values_from = VALUE)
@@ -84,8 +88,17 @@ get_efficiency_indicators_cytology <- function(summarized_data){
            avg_collection_to_signed_out_MSB,
            avg_collection_to_signed_out_MSW,
            avg_collection_to_signed_out_MSM,
-           avg_collection_to_signed_out_NYEE)
-  
+           avg_collection_to_signed_out_NYEE) %>%
+    mutate(received_to_signed_out_within_target = percent(received_to_signed_out_within_target, digits = 0),
+           received_to_signed_out_within_target = cell_spec(
+             received_to_signed_out_within_target, "html",
+             color = ifelse(is.na(received_to_signed_out_within_target), "lightgray",
+                            ifelse((received_to_signed_out_within_target >= 0.90),
+                                   "green",
+                                   ifelse(
+                                     (received_to_signed_out_within_target >= 0.8) |
+                                       (received_to_signed_out_within_target > 0.9),
+                                     "orange", "red")))))
   
   
   return(efficiency_indicator_cytology_tab)
@@ -93,4 +106,4 @@ get_efficiency_indicators_cytology <- function(summarized_data){
 }
 
 #Tests Surgical Cytology Efficiency Data ----
-cytology_eff_data <- get_efficiency_indicators_cytology(tab_data_cytology)
+#cytology_eff_data <- get_efficiency_indicators_cytology(tab_data_cytology)

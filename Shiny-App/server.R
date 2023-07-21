@@ -244,6 +244,41 @@ server <- function(input, output, session) {
   }
   )
   
+  # Surgical Pathology - Efficiency Indicators ----
+  output$surg_path_kpi <- function(){
+    
+    input$submit_ap_eff_data
+    
+    
+    signed_out_date <- input$ap_report_date_eff_indicators
+    
+    
+    ap_summary_07_12 <- ap_summary %>%
+      filter(SIGNED_OUT_DATE == as.Date(signed_out_date))
+    tab_data_pathology <- ap_summary_07_12 %>%
+      filter(TAB == "SURGICAL PATHOLOGY")
+    
+    pathology_eff_data <- get_efficiency_indicators_surgical_pathology(tab_data_pathology)
+    ap_ei_kable_surgical_pathology(pathology_eff_data)
+    
+  }
+  
+  # Cytology - Efficiency Indicators ----
+  output$cyto_kpi <- function(){
+    
+    input$submit_ap_eff_data
+    
+    ap_summary_07_12 <- ap_summary %>%
+      filter(REPORT_DATE == as.Date("2023-07-12"))
+    tab_data_cytology <- ap_summary_07_12 %>%
+      filter(TAB == "CYTOLOGY")
+    
+    cytlogy_eff_data <- get_efficiency_indicators_cytology(tab_data_cytology)
+    ap_ei_kable_cytology(cytlogy_eff_data)
+    
+  }
+  
+  
   # KPI Tables
   output$missing_collections <- function() {
     
@@ -750,10 +785,22 @@ server <- function(input, output, session) {
     
     flag <- 0
     
+    report_date <- input$ap_report_date
     epic_cyto_file <- input$epic_cyto
     ap_cyto_signed_file <- input$ap_cyto_signed
     cyto_backlog_file <- input$cyto_backlog
+    resulted_date <<- as.Date(report_date-1)
+    print(typeof(resulted_date))
+    print(resulted_date)
     
+    if(is.null(report_date)){
+      showModal(modalDialog(
+        title = "Error",
+        "Please select report date",
+        easyClose = TRUE,
+        footer = NULL
+      ))
+    }
     
     if(is.null(epic_cyto_file) | is.null(ap_cyto_signed_file) | is.null(cyto_backlog_file) )
     {
@@ -837,13 +884,16 @@ server <- function(input, output, session) {
       
       tryCatch({
         # Process Epic Cytology and AP Signed cases data
-        summarized_data_cyto <- cyto_prep(epic_cyto_data_raw,ap_cyto_signed_data_raw)
+        summarized_data_cyto <- cyto_prep(epic_cyto_data_raw,ap_cyto_signed_data_raw,resulted_date)
+        View(summarized_data_cyto)
         print(1)
         # Process  AP Signed cases data
-        summarized_data_patho <- patho_prep(ap_cyto_signed_data_raw)
+        summarized_data_patho <- patho_prep(ap_cyto_signed_data_raw,resulted_date)
+        View(summarized_data_patho)
         print(2)
         # Process  backlog data
         processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw)
+        View(processed_backlog_data)
         
 
         flag <- 2
@@ -868,38 +918,37 @@ server <- function(input, output, session) {
       
       tryCatch({
         if(!is.null(summarized_data_cyto)){
-          remove_dupl_dates_test_level <- anti_join(cyto_daily_repo,
-                                                    ap_summary,
-                                                    by = "report_date_only")
+          remove_dupl_dates_test_level <- anti_join(ap_summary,
+                                                    summarized_data_cyto)
           
-          cyto_daily_repo <- rbind(remove_dupl_dates_test_level, ap_summary)
+          ap_summary <- rbind(remove_dupl_dates_test_level, summarized_data_cyto)
           
-          cyto_daily_repo <- cyto_daily_repo %>%
-            arrange(Facility, report_date_only)
+          ap_summary <- ap_summary %>%
+            arrange(SITE, REPORT_DATE)
           
-          saveRDS(cyto_daily_repo,
+          saveRDS(ap_summary,
                   paste0(user_directory,
                          "/Shiny App Repo/APDailySummary",
                          "/APRepo60Days.rds"))
+          print("CYTO")
           
         }
         
         
         if(!is.null(summarized_data_patho)){
-          remove_dupl_dates_test_level <- anti_join(patho_daily_repo,
-                                                    ap_summary,
-                                                    by = "report_date_only")
+          remove_dupl_dates_test_level <- anti_join(ap_summary,
+                                                    summarized_data_patho)
           
-          patho_daily_repo <- rbind(remove_dupl_dates_test_level, ap_summary)
+          ap_summary <- rbind(remove_dupl_dates_test_level, summarized_data_patho)
           
-          patho_daily_repo <- patho_daily_repo %>%
-            arrange(Facility, report_date_only)
+          ap_summary <- ap_summary %>%
+            arrange(SITE, REPORT_DATE)
           
-          saveRDS(patho_daily_repo,
+          saveRDS(ap_summary,
                   paste0(user_directory,
                          "/Shiny App Repo/APDailySummary",
                          "/APRepo60Days.rds"))
-          
+          print("PATHO")
         }
         
         if(!is.null(processed_backlog_data)){
@@ -912,10 +961,10 @@ server <- function(input, output, session) {
           backlog_daily_repo <- backlog_daily_repo %>%
             arrange(Facility, Report_Date)
           
-          saveRDS(patho_daily_repo,
+          saveRDS(backlog_daily_repo,
                   paste0(user_directory,
                          "/Shiny App Repo/APDailySummary",
-                         "/BacklogRepo30Days.rds"))
+                         "/BacklogRepo60Days.rds"))
           
         }
       
