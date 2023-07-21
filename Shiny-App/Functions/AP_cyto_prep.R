@@ -2,7 +2,7 @@
 # Epic and PowerPath data
 # combines orginal cyto_prep, pre_processing_pp in Daily_Run_AP_Custom_Functions
 
-cyto_prep <- function(epic_data, pp_data) {
+cyto_prep <- function(epic_data, pp_data,resulted_date) {
   if (is.null(epic_data) || is.null(pp_data) || 
       nrow(epic_data) == 0 || nrow(pp_data) == 0) {
     summarized_table <- NULL

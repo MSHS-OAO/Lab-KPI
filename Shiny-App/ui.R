@@ -147,32 +147,47 @@ ui <-
                                      tableOutput("add_on_volume")
                                      )
                                    ),
+                          # Surgical Pathology - Efficiency Indicators ----
                           tabPanel("Surgical Pathology",
-                                   HTML(
-                                     paste0("<h4><em>",
-                                            "Surgical Pathology KPI ",
-                                            "(Specimens Signed Out on ",
-                                            format(yesterday, "%m/%d/%y"),
-                                            ")",
-                                            "</h4></em>")
-                                   ),
-                                   HTML(
-                                     paste0("<h5>Status Definitions: ",
-                                            "<span style = 'color:red'>",
-                                            "Red: </span>",
-                                            "<80%, ",
-                                            "<span style = 'color:orange'>",
-                                            "Yellow: </span>",
-                                            ">=80% & <90%, ",
-                                            "<span style = 'color:green'>",
-                                            "Green: </span>",
-                                            ">=90%",
-                                            "</h5>")
-                                   ),
+                                   br(),
+                                   br(),
+                                   column(4,
+                                          box(title = NULL, solidHeader = FALSE, width = 12,
+                                            fluidRow(dateInput("ap_report_date_eff_indicators",
+                                                      label = "Select the signed out date",
+                                                      value = Sys.Date()-1,
+                                                      max = Sys.Date(),
+                                                      min = Sys.Date() -60)
+                                   )),
+                                   fluidRow(
+                                     HTML(
+                                       paste0("<h4><em>",
+                                              "Surgical Pathology KPI ",
+                                              "(Specimens Signed Out on ",
+                                              format(Sys.Date()-1, "%m/%d/%y"),
+                                              ")",
+                                              "</h4></em>")
+                                     )),
+                                   fluidRow(
+                                     HTML(
+                                       paste0("<h5>Status Definitions: ",
+                                              "<span style = 'color:red'>",
+                                              "Red: </span>",
+                                              "<80%, ",
+                                              "<span style = 'color:orange'>",
+                                              "Yellow: </span>",
+                                              ">=80% & <90%, ",
+                                              "<span style = 'color:green'>",
+                                              "Green: </span>",
+                                              ">=90%",
+                                              "</h5>")
+                                   ))),
+                                   
                                    fluidRow(
                                      tableOutput("surg_path_kpi")
                                      )
                                    ),
+                          # Cytology - Efficiency Indicators ----
                           tabPanel("Cytology",
                                    HTML(
                                      paste0("<h4><em>",
@@ -314,6 +329,13 @@ ui <-
                           ),
                           tabPanel("Anatomic Pathology Efficiency Indicators",
                                    fluidPage(
+                                     fluidRow(h4("Report Date"),
+                                              dateInput("ap_report_date",
+                                                        label = "Select the date the reports are generated:",
+                                                        value = Sys.Date(),
+                                                        max = Sys.Date(),
+                                                        min = Sys.Date() -7)
+                                     ),
                                      fluidRow(h4("Epic Cytology"),
                                               fileInput("epic_cyto",
                                                         label = "Submit Epic Cytology file"

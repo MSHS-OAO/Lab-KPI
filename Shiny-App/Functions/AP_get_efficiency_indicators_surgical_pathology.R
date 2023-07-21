@@ -1,16 +1,3 @@
-# ap_summary_07_12 <- ap_summary %>%
-#   filter(REPORT_DATE == as.Date("2023-07-12"))
-# 
-# 
-# tab_data_pathology <- ap_summary_07_12 %>%
-#   filter(TAB == "SURGICAL PATHOLOGY")
-# 
-# 
-# tab_data_cytology <- ap_summary_07_12 %>%
-#   filter(TAB == "CYTOLOGY")
-
-
-
 # For Efficiency Indicators Surgical Pathology Tab ----
 get_efficiency_indicators_surgical_pathology <- function(summarized_data){
   # get the volume by patient setting
@@ -68,6 +55,9 @@ get_efficiency_indicators_surgical_pathology <- function(summarized_data){
                                 (received_to_signed_out_within_target >= 0.8) |
                                   (received_to_signed_out_within_target > 0.9),
                                 "orange", "red")))),
+           avg_collection_to_signed_out = cell_spec(
+             avg_collection_to_signed_out, "html",
+             color = ifelse(is.na(avg_collection_to_signed_out), "lightgray","black")),
            avg_collection_to_signed_out = as.character(avg_collection_to_signed_out)) %>%
     pivot_longer(cols = c(avg_collection_to_signed_out,received_to_signed_out_within_target),
                  names_to  = "METRIC",
@@ -113,6 +103,3 @@ get_efficiency_indicators_surgical_pathology <- function(summarized_data){
   return(efficiency_indicator_pathology_tab)
   
 }
-
-#Tests Surgical Pathology Efficiency Data ----
-#pathology_eff_data <- get_efficiency_indicators_surgical_pathology(tab_data_pathology)
