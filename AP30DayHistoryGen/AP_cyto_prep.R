@@ -5,7 +5,7 @@
 cyto_prep <- function(epic_data, pp_data) {
   if (is.null(epic_data) || is.null(pp_data) || 
       nrow(epic_data) == 0 || nrow(pp_data) == 0) {
-    cyto_final <- NULL
+    summarized_table <- NULL
   } else {
     # Preprocess Epic data
     # Select specimens that were finalized in Epic based on Lab Status
@@ -151,6 +151,32 @@ cyto_prep <- function(epic_data, pp_data) {
         "Lab_metric_avg", "Lab_metric_med", "Lab_metric_std",
         "Lab_metric_within_target", "Patient_metric_avg", "Patient_metric_med",
         "Patient_metric_std", "cyto_acc_vol")
+    
+    summarized_table <- summarized_table %>%
+      rename(SPECIMEN_CODE = Spec_code,
+             SPECIMEN_GROUP = Spec_group,
+             SITE = Facility,
+             PATIENT_SETTING = Patient_setting,
+             REVENUE_CENTER = Rev_ctr,
+             SIGNED_OUT_DATE = Signed_out_date_only,
+             SIGNED_OUT_DAY = Signed_out_day_only,
+             REC_TO_SIGNED_OUT_TARGET = Lab_metric_target,
+             COL_TO_SIGNED_OUT_TARGET = Patient_metric_target,
+             ACCESSION_DATE = acc_date_only,
+             ACCESION_DAY = acc_day_only,
+             REPORT_DATE = report_date_only,
+             REPORT_DAY = report_day_only,
+             NO_CASES_SIGNED_OUT = No_cases_signed_out,
+             REC_TO_SIGNED_OUT_AVG = Lab_metric_avg,
+             REC_TO_SIGNED_OUT_MEDIAN = Lab_metric_med,
+             REC_TO_SIGNED_OUT_STDDEV = Lab_metric_std,
+             REC_TO_SIGNED_OUT_WITHIN_TARGET = Lab_metric_within_target,
+             COL_TO_SIGNED_OUT_AVG = Patient_metric_avg,
+             COL_TO_SIGNED_OUT_MEDIAN = Patient_metric_med,
+             COL_TO_SIGNED_OUT_STDDEV = Patient_metric_std,
+             CYTO_ACCESSION_VOLUME = cyto_acc_vol) %>%
+      mutate(TAB = "CYTOLOGY") 
+    
     
     # # Filter out any specimens signed out on other dates
     # summarize_table <- summarized_table %>%

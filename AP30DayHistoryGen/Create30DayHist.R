@@ -8,11 +8,15 @@ library("lubridate")
 end_date <- Sys.Date()
 
 # defining start date - 30 days back
-start_date <- end_date - 60
+start_date <- end_date - 180
 
 # generating range of dates
 days <- seq(start_date, end_date,"days")
 print(days)
+
+
+ap_summary <- NULL
+backlog_daily_repo <- NULL
 
 for (date in days) {
   today <- as.Date(date,origin = "1970-01-01")
@@ -22,27 +26,33 @@ for (date in days) {
   summary_patho <- patho_prep(pp_data_raw)
   processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw)
   
+  if (date == as.Date("2023-01-22")){
+    ap_summary <<- rbind(summary_cyto,
+                         summary_patho)
+    backlog_daily_repo <<- processed_backlog_data
+  }
+    
+  
   
 
   if(!is.null(summary_cyto)){
-    remove_dupl_dates_test_level <- anti_join(cyto_daily_repo,
-                                              summary_cyto,
-                                              by = "report_date_only")
+    remove_dupl_dates_test_level <- anti_join(ap_summary,
+                                              summary_cyto)
     
-    cyto_daily_repo <- rbind(remove_dupl_dates_test_level, summary_cyto)
+    ap_summary <- rbind(remove_dupl_dates_test_level, summary_cyto)
     
-    cyto_daily_repo <- cyto_daily_repo %>%
-      arrange(Facility, report_date_only)
+    ap_summary <- ap_summary %>%
+      arrange(SITE, REPORT_DATE)
     
-    saveRDS(cyto_daily_repo,
+    saveRDS(ap_summary,
             paste0(user_directory,
                    "/Shiny App Repo/APDailySummary",
-                   "/APCytologyRepo30Days.rds"))
+                   "/APRepo180Days.rds"))
     
   }
   
   
-  if(!is.null(proccesed_backlog_data)){
+  if(!is.null(processed_backlog_data)){
     remove_dupl_dates_test_level <- anti_join(backlog_daily_repo,
                                               processed_backlog_data,
                                               by = "Report_Date")
@@ -61,19 +71,18 @@ for (date in days) {
   
   
   if(!is.null(summary_patho)){
-    remove_dupl_dates_test_level <- anti_join(patho_daily_repo,
-                                              summary_patho,
-                                              by = "report_date_only")
+    remove_dupl_dates_test_level <- anti_join(ap_summary,
+                                              summary_patho)
     
-    patho_daily_repo <- rbind(remove_dupl_dates_test_level, summary_patho)
+    ap_summary <- rbind(remove_dupl_dates_test_level, summary_patho)
     
-    patho_daily_repo <- patho_daily_repo %>%
-      arrange(Facility, report_date_only)
+    ap_summary <- ap_summary %>%
+      arrange(SITE, REPORT_DATE)
     
-    saveRDS(patho_daily_repo,
+    saveRDS(ap_summary,
             paste0(user_directory,
                    "/Shiny App Repo/APDailySummary",
-                   "/APPathologyRepo30Days.rds"))
+                   "/APRepo180Days.rds"))
     
   }
   
