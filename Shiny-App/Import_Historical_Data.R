@@ -27,16 +27,12 @@ cp_submitted_daily_summary <- cp_daily_repo %>%
 
 
 # Operations and Quality Indicators -------
-# ops_qlty_date <- Sys.Date() - 4
-
 ops_qlty_data <- read_excel(
   paste0(user_directory,
          "/Quality and Ops Indicators Form Responses",
-         "/MSHS Lab KPI Operations and Quality Indicators Forms.xlsx"))
+         "/MSHS Lab KPI Operations and Quality Indicators Forms 07252023.xlsx"))
 
 ops_qlty_responses <- ops_qlty_data
-
-ops_qlty_date <- max(date(ops_qlty_responses$CompletionDate))
 
 colnames(ops_qlty_responses) <- c(
   "ID", "StartTime", "CompletionTime", "Email", "Name", "Facility",
@@ -52,6 +48,9 @@ ops_qlty_responses <- ops_qlty_responses %>%
   mutate(CompletionDate = as.Date(CompletionTime),
          CompletionHour = hour(CompletionTime)) %>%
   filter(!duplicated(cbind(Facility, CompletionDate)))
+
+
+ops_qlty_date <- max(date(ops_qlty_responses$CompletionDate))
 
 ops_qlty_responses_today <- ops_qlty_responses %>%
   filter(CompletionDate == ops_qlty_date|

@@ -244,6 +244,23 @@ server <- function(input, output, session) {
   }
   )
   
+  # KPI Tables
+  output$missing_collections <- function() {
+    
+    input$submit_cp_eff_data
+    
+    kable_missing_collections(x = cp_submitted_daily_summary)
+    
+  }
+  
+  output$add_on_volume <- function() {
+    
+    input$submit_cp_eff_data
+    
+    kable_add_on_volume(x = cp_submitted_daily_summary)
+    
+  }
+  
   # Surgical Pathology - Efficiency Indicators ----
   output$surg_path_kpi <- function(){
     
@@ -275,24 +292,6 @@ server <- function(input, output, session) {
     
     cytlogy_eff_data <- get_efficiency_indicators_cytology(tab_data_cytology)
     ap_ei_kable_cytology(cytlogy_eff_data)
-    
-  }
-  
-  
-  # KPI Tables
-  output$missing_collections <- function() {
-    
-    input$submit_cp_eff_data
-    
-    kable_missing_collections(x = cp_submitted_daily_summary)
-      
-  }
-  
-  output$add_on_volume <- function() {
-    
-    input$submit_cp_eff_data
-    
-    kable_add_on_volume(x = cp_submitted_daily_summary)
     
   }
   

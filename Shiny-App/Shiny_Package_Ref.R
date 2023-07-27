@@ -113,12 +113,12 @@ daily_repo <- readRDS(
 # AP Summary Import ----
 ap_summary <- readRDS(paste0(user_directory,
                              "/Shiny App Repo/APDailySummary",
-                             "/APRepo60Days.rds"))
+                             "/APRepo180Days.rds"))
 
 # AP Backlog Import 
 backlog_daily_repo <- readRDS(paste0(user_directory,
                                      "/Shiny App Repo/APDailySummary",
-                                     "/BacklogRepo60Days.rds"))
+                                     "/BacklogRepo180Days.rds"))
 
 # Import analysis reference data
 reference_file <- paste0(user_directory,
