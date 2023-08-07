@@ -23,6 +23,7 @@ library(DBI)
 library(glue)
 library(foreach)
 library(doParallel)
+library(parallel)
 
 #Clear existing history
 rm(list = ls())
@@ -231,7 +232,8 @@ values <- glue(
   return(values)
 }
 
-processed_data <- test_data
+# processed_data <- test_data
+processed_data <- raw_data_60days_db
 
 # processed_data <- rbind(error_row, typical_row)
 
@@ -282,14 +284,30 @@ temp_table <- "CP_RAW_DATA_60DAYS_TEMP"
 repo_table <- "CP_RAW_DATA_60DAYS"
 
 # Convert the each row of tibble to INTO clause of insert statement on temporary table
-inserts <- lapply(
-  lapply(
-    lapply(split(processed_data , 
+# inserts <- lapply(
+#   lapply(
+#     lapply(split(processed_data , 
+#                  1:nrow(processed_data)),
+#            as.list), 
+#     as.character),
+#   FUN = get_values_raw_cp_data, temp_table) # 2.5 min
+# 
+# # Convert the each row of tibble to INTO clause of insert statement on temporary table
+# inserts2 <- lapply(
+#   lapply(split(processed_data , 
+#                  1:nrow(processed_data)),
+#            as.list),
+#   as.character)
+
+system.time(
+  inserts <- mclapply(
+  mclapply(
+    mclapply(split(processed_data , 
                  1:nrow(processed_data)),
            as.list), 
     as.character),
   FUN = get_values_raw_cp_data, temp_table)
-
+)
 
 values <- glue_collapse(inserts,sep = "\n\n")
 
@@ -475,41 +493,72 @@ for (i in 1:length(split_insert_queries)) {
 # then merge into the repo table
 # then truncate
 
+
+
+write_to_temp_table <- function(x) {
+  oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+  dbBegin(oao_personal_conn)
+  dbExecute(oao_personal_conn, x)
+  dbCommit(oao_personal_conn)
+  # dbDisconnect(oao_personal_conn)
+  
+}
+
+# mclapply(split_queries_final, test_function)
+
 oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
 dbBegin(oao_personal_conn)
 
-tryCatch({
-  print("Before first truncate")
-  dbExecute(oao_personal_conn, truncate_query)
-  print("After first truncate")
-  registerDoParallel()
+system.time(
   
-  foreach(i = 1:length(split_queries_final),
-          .packages = c("DBI", "odbc"))%dopar%{
-            oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
-            dbBegin(oao_personal_conn)
-            dbExecute(oao_personal_conn, split_queries_final[[i]])
-            dbCommit(oao_personal_conn)
+  tryCatch({
+    print("Before first truncate")
+    dbExecute(oao_personal_conn, truncate_query)
+    print("After first truncate")
+    
+    system.time(
+      
+      mclapply(split_queries_final, write_to_temp_table)
+      
+    )
+    
+    
+    # registerDoParallel()
+    # 
+    # foreach(i = 1:length(split_queries_final),
+    #         .packages = c("DBI", "odbc"))%dopar%{
+    #           oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+    #           dbBegin(oao_personal_conn)
+    #           dbExecute(oao_personal_conn, split_queries_final[[i]])
+    #           dbCommit(oao_personal_conn)
+    # 
+    #         }
+    # 
+    # registerDoSEQ()
+    
+    # dbCommit(oao_personal_conn)
+    
+    print("After all rows added to temporary table")
+    dbExecute(oao_personal_conn, query)
+    print("After merge into repo table")
+    dbExecute(oao_personal_conn, truncate_query)
+    print("After second truncate")
+    dbCommit(oao_personal_conn)
+    print("After repo table commit")
+    dbDisconnect(oao_personal_conn)
+    print("Success!")
+  },
+  error = function(err){
+    print("error")
+    dbRollback(oao_personal_conn)
+    dbExecute(oao_personal_conn, truncate_query)
+    dbDisconnect(oao_personal_conn)
+    
+  })
+  
+  
+)
 
-          }
-
-  registerDoSEQ()
-  
-  print("After all rows added to temporary table")
-  dbExecute(oao_personal_conn, query)
-  print("After merge into repo table")
-  dbExecute(oao_personal_conn, truncate_query)
-  print("After second truncate")
-  dbCommit(oao_personal_conn)
-  dbDisconnect(oao_personal_conn)
-  print("Success!")
-},
-error = function(err){
-  print("error")
-  dbRollback(oao_personal_conn)
-  dbDisconnect(oao_personal_conn)
-  
-})
 
 
 
