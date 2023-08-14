@@ -111,7 +111,7 @@ raw_data_60days_db <- raw_data_60days %>%
          ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", ORDER_ID)) %>%
   filter(!is.na(RECEIVE_TIME))
 
-test_data <- raw_data_60days_db[1:100000, ]
+test_data <- raw_data_60days_db[500001:nrow(raw_data_60days_db), ]
 # test_data <- raw_data_60days_db
 
 get_values_raw_cp_data <- function(x, table_name){
@@ -232,8 +232,9 @@ values <- glue(
   return(values)
 }
 
-# processed_data <- test_data
-processed_data <- raw_data_60days_db
+
+processed_data <- test_data
+# processed_data <- raw_data_60days_db
 
 # processed_data <- rbind(error_row, typical_row)
 
@@ -279,6 +280,8 @@ processed_data <- processed_data %>%
   mutate(across(where(is.character), replace_na, replace = '')) %>%
   mutate(across(everything(), gsub, pattern = "&",
                 replacement = " ' || chr(38) || ' "))
+
+# processed_data <- processed_data[61001:61200, ]
 
 temp_table <- "CP_RAW_DATA_60DAYS_TEMP"
 repo_table <- "CP_RAW_DATA_60DAYS"
@@ -515,14 +518,10 @@ system.time(
     print("Before first truncate")
     dbExecute(oao_personal_conn, truncate_query)
     print("After first truncate")
+
+    mclapply(split_queries_final, write_to_temp_table)
     
-    system.time(
-      
-      mclapply(split_queries_final, write_to_temp_table)
-      
-    )
-    
-    
+    # # 8.3 min
     # registerDoParallel()
     # 
     # foreach(i = 1:length(split_queries_final),
@@ -559,257 +558,26 @@ system.time(
   
 )
 
-
-
-
-
-# Daily Summary Repo ----------------------
-
-daily_summary_repo <- readRDS(
-  paste0(user_directory,
-         "/CP Repositories/DailyRepo",
-         "/Daily Repo 12-01-20 to 07-23-23 as of 07-24-23.RDS")
-)
-
-daily_repo_db <- daily_summary_repo %>%
-  select(-WeekStart, -WeekEnd, -WeekOf,
-         -MonthNo, -MonthName, -Year) %>%
-  rename(SITE = Site,
-         RESULT_DATE = ResultDate,
-         TEST = Test,
-         DIVISION = Division,
-         SETTING_ROLL_UP = SettingRollUp,
-         DETAILED_SETTING = MasterSetting,
-         DASHBOARD_SETTING = DashboardSetting,
-         ADJ_PRIORITY = AdjPriority,
-         DASHBOARD_PRIORITY = DashboardPriority,
-         RECEIVE_RESULT_TARGET = ReceiveResultTarget,
-         COLLECT_RESULT_TARGET = CollectResultTarget,
-         TOTAL_RESULTED = TotalResulted,
-         RECEIVE_TIME_VOL_INCL = ReceiveTime_VolIncl,
-         COLLECT_TIME_VOL_INCL = CollectTime_VolIncl,
-         TOTAL_RECEIVE_RESULT_IN_TARGET = TotalReceiveResultInTarget,
-         TOTAL_COLLECT_RESULT_IN_TARGET = TotalCollectResultInTarget,
-         TOTAL_ADD_ON_ORDER = TotalAddOnOrder,
-         TOTAL_MISSING_COLLECTIONS = TotalMissingCollections,
-         COLLECT_RECEIVE_AVG = CollectReceive_Avg,
-         COLLECT_RECEIVE_MEDIAN = CollectReceive_Median,
-         COLLECT_RECEIVE_95 = CollectReceive_95,
-         RECEIVE_RESULT_AVG = ReceiveResult_Avg,
-         RECEIVE_RESULT_MEDIAN = ReceiveResult_Median,
-         RECEIVE_RESULT_95 = ReceiveResult_95,
-         COLLECT_RESULT_AVG = CollectResult_Avg,
-         COLLECT_RESULT_MEDIAN = CollectResult_Median,
-         COLLECT_RESULT_95 = CollectResult_95)
+# # Test connection to database and check dates ----------
+# oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+# 
+# raw_data_repo <- "CP_R_DATE_TEST"
+# 
+# date_filter_query <- glue('DELETE FROM {raw_data_repo}
+#                           WHERE RESULT_DATE < (TO_DATE(SYSDATE) - 60);')
+# 
+# dbBegin(oao_personal_conn)
+# dbExecute(oao_personal_conn, date_filter_query)
+# dbCommit(oao_personal_conn)
+# dbDisconnect(oao_personal_conn)
 
 
 
 
 
-
-get_values_daily_summary <- function(x, table_name){
-  
-  site <- x[1]
-  result_date <- x[2]
-  test <- x[3]
-  division <- x[4]
-  setting_roll_up <- x[5]
-  detailed_setting <- x[6]
-  dashboard_setting <- x[7]
-  adj_priority <- x[8]
-  dashboard_priority <- x[9]
-  receive_result_target <- x[10]
-  collect_result_target <- x[11]
-  total_resulted <- x[12]
-  receive_time_vol_incl <- x[13]
-  collect_time_vol_incl <- x[14]
-  total_receive_result_in_target <- x[15]
-  total_collect_result_in_target <- x[16]
-  total_add_on <- x[17]
-  total_missing_collections <- x[18]
-  collect_receive_avg <- x[19]
-  collect_receive_median <- x[20]
-  collect_receive_95 <- x[21]
-  receive_result_avg <- x[22]
-  receive_result_median <- x[23]
-  receive_result_95 <- x[24]
-  collect_result_avg <- x[25]
-  collect_result_median <- x[26]
-  collect_result_95 <- x[27]
-  
-  
-  values <- glue(
-    "INTO \"{table_name}\" 
-    (SITE,
-    RESULT_DATE,
-    TEST,
-    DIVISION,
-    SETTING_ROLL_UP,
-    DETAILED_SETTING,
-    DASHBOARD_SETTING,
-    ADJ_PRIORITY,
-    DASHBOARD_PRIORITY,
-    RECEIVE_RESULT_TARGET,
-    COLLECT_RESULT_TARGET,
-    TOTAL_RESULTED,
-    RECEIVE_TIME_VOL_INCL,
-    COLLECT_TIME_VOL_INCL,
-    TOTAL_RECEIVE_RESULT_IN_TARGET,
-    TOTAL_COLLECT_RESULT_IN_TARGET,
-    TOTAL_ADD_ON_ORDER,
-    TOTAL_MISSING_COLLECTIONS,
-    COLLECT_RECEIVE_AVG,
-    COLLECT_RECEIVE_MEDIAN,
-    COLLECT_RECEIVE_95,
-    RECEIVE_RESULT_AVG,
-    RECEIVE_RESULT_MEDIAN,
-    RECEIVE_RESULT_95,
-    COLLECT_RESULT_AVG,
-    COLLECT_RESULT_MEDIAN,
-    COLLECT_RESULT_95) 
-    
-    VALUES (
-    '{site}',
-    TO_DATE('{result_date}', 'YYYY-MM-DD'),
-    '{test}',  
-    '{division}',
-    '{setting_roll_up}',
-    '{detailed_setting}',
-    '{dashboard_setting}',
-    '{adj_priority}',
-    '{dashboard_priority}',
-    '{receive_result_target}',
-    '{collect_result_target}',
-    '{total_resulted}',
-    '{receive_time_vol_incl}',
-    '{collect_time_vol_incl}',
-    '{total_receive_result_in_target}',
-    '{total_collect_result_in_target}',
-    '{total_add_on}',
-    '{total_missing_collections}',
-    '{collect_receive_avg}',
-    '{collect_receive_median}',
-    '{collect_receive_95}',
-    '{receive_result_avg}',
-    '{receive_result_median}',
-    '{receive_result_95}',
-    '{collect_result_avg}',
-    '{collect_result_median}',
-    '{collect_result_95}')"
-    )
-  
-  return(values)
-}
-
-TABLE_NAME <- "CP_DAILY_REPO"
-
-processed_input_data <- daily_repo_db
-
-# Ensure all the fields are correct data type
-processed_input_data <- processed_input_data %>%
-  mutate(SITE = as.character(SITE),
-         RESULT_DATE = format(RESULT_DATE, "%Y-%m-%d"),
-         TEST = as.character(TEST),
-         DIVISION = as.character(DIVISION),
-         SETTING_ROLL_UP = as.character(SETTING_ROLL_UP),
-         DETAILED_SETTING = as.character(DETAILED_SETTING),
-         DASHBOARD_SETTING = as.character(DASHBOARD_SETTING),
-         ADJ_PRIORITY = as.character(ADJ_PRIORITY),
-         DASHBOARD_PRIORITY = as.character(DASHBOARD_PRIORITY),
-         RECEIVE_RESULT_TARGET = as.integer(RECEIVE_RESULT_TARGET),
-         COLLECT_RESULT_TARGET = as.integer(COLLECT_RESULT_TARGET),
-         TOTAL_RESULTED = as.integer(TOTAL_RESULTED),
-         RECEIVE_TIME_VOL_INCL = as.integer(RECEIVE_TIME_VOL_INCL),
-         COLLECT_TIME_VOL_INCL = as.integer(COLLECT_TIME_VOL_INCL),
-         TOTAL_RECEIVE_RESULT_IN_TARGET = as.integer(TOTAL_RECEIVE_RESULT_IN_TARGET),
-         TOTAL_COLLECT_RESULT_IN_TARGET = as.integer(TOTAL_COLLECT_RESULT_IN_TARGET),
-         TOTAL_ADD_ON_ORDER = as.integer(TOTAL_ADD_ON_ORDER),
-         TOTAL_MISSING_COLLECTIONS = as.integer(TOTAL_MISSING_COLLECTIONS),
-         COLLECT_RECEIVE_AVG = as.numeric(COLLECT_RECEIVE_AVG),
-         COLLECT_RECEIVE_MEDIAN = as.numeric(COLLECT_RECEIVE_MEDIAN),
-         COLLECT_RECEIVE_95 = as.numeric(COLLECT_RECEIVE_95),
-         RECEIVE_RESULT_AVG = as.numeric(RECEIVE_RESULT_AVG),
-         RECEIVE_RESULT_MEDIAN = as.numeric(RECEIVE_RESULT_MEDIAN),
-         RECEIVE_RESULT_95 = as.numeric(RECEIVE_RESULT_95),
-         COLLECT_RESULT_AVG = as.numeric(COLLECT_RESULT_AVG),
-         COLLECT_RESULT_MEDIAN = as.numeric(COLLECT_RESULT_MEDIAN),
-         COLLECT_RESULT_95 = as.numeric(COLLECT_RESULT_95)
-         )
-    
-# Convert the each record/row of tibble to INTO clause of insert statement
-inserts <- lapply(
-  lapply(
-    lapply(split(processed_input_data, 
-                 1:nrow(processed_input_data)),
-           as.list), 
-    as.character),
-  FUN = get_values ,TABLE_NAME)
-
-values <- glue_collapse(inserts,sep = "\n\n")
-    
-# Combine into statements from get_values() function and combine with insert statements
-all_data <- glue('INSERT ALL 
-                  {values}
-                 SELECT 1 from DUAL;')
-    
-# # glue() query to merge data from temporary table to summary_repo table
-# query = glue('MERGE INTO MSHS_CENSUS_REPO CR
-#                     USING "{TABLE_NAME}" SOURCE_TABLE
-#                     ON (  CR."SITE" = SOURCE_TABLE."SITE" AND
-#                           CR."DEPARTMENT" = SOURCE_TABLE."DEPARTMENT" AND
-#                           CR."REFRESH_TIME" = SOURCE_TABLE."REFRESH_TIME")
-#                     WHEN MATCHED THEN 
-#                     UPDATE  SET CR."CENSUS" = SOURCE_TABLE."CENSUS"
-#                     WHEN NOT MATCHED THEN
-#                     INSERT( CR."SITE",
-#                             CR."DEPARTMENT",
-#                             CR."CENSUS",
-#                             CR."REFRESH_TIME"
-#                             )  
-#                     VALUES( SOURCE_TABLE."SITE",
-#                             SOURCE_TABLE."DEPARTMENT",
-#                             SOURCE_TABLE."CENSUS",
-#                             SOURCE_TABLE."REFRESH_TIME");')
-#     
-#     # glue query for dropping the table
-#     truncate_query <- glue('TRUNCATE TABLE "{TABLE_NAME}";')
-#     
-#     print("Before OAO Cloud DB Connection")
-#     # conn <- dbConnect(drv = odbc::odbc(),  ## Create connection for updating picker choices
-#     #                   dsn = dsn)
-    
-oao_personal_dsn <- "OAO Cloud DB Kate"
-    
-oao_personal_conn <- dbConnect(odbc(),
-                                   oao_personal_dsn)
-    
-dbBegin(oao_personal_conn)
-# ## Execute staments and if there is an error  with one of them rollback changes
-tryCatch({
-  # print("Before first truncate")
-  # dbExecute(oao_personal_conn, truncate_query)
-  print("After first truncate")
-  dbExecute(oao_personal_conn, all_data)
-  print("After all data glue statement")
-  # dbExecute(oao_personal_conn, query)
-  # print("After merge")
-  # dbExecute(oao_personal_conn, truncate_query)
-  # print("After second truncate")
-  dbCommit(oao_personal_conn)
-  dbDisconnect(oao_personal_conn)
-  print("Success!")
-  },
-  error = function(err){
-    #print(err)
-    dbRollback(oao_personal_conn)
-    dbDisconnect(oao_personal_conn)
-    dbExecute(oao_personal_conn, truncate_query)
-    print("Error")
-  }
-)
-
-
-
-id_primary_keys_1 <- daily_repo_db %>%
-  select(SITE, RESULT_DATE, TEST, DETAILED_SETTING, ADJ_PRIORITY) %>%
-  distinct()
+# 
+# 
+# 
+# id_primary_keys_1 <- daily_repo_db %>%
+#   select(SITE, RESULT_DATE, TEST, DETAILED_SETTING, ADJ_PRIORITY) %>%
+#   distinct()
