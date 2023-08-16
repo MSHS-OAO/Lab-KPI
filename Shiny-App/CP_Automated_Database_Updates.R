@@ -281,7 +281,7 @@ preprocess_scc <- function(raw_scc)  {
                                       units = "mins")
                            > 5, "AddOn", "Original"),
       # Determine if collection time is missing
-      MISSING_COLLECT = COLLECT_TIME %in% RECEIVE_TIME, # COLLECT_TO_RECEIVE_TAT %in% 0,
+      MISSING_COLLECT = COLLECTION_DATE %in% RECEIVE_DATE, # COLLECT_TO_RECEIVE_TAT %in% 0,
       #
       # Determine TAT based on test, division, priority, and patient setting
       # Create column concatenating test and division to determine TAT targets
@@ -659,3 +659,650 @@ test_new_sun_function <- lapply(
 )
 
 test_scc_insert <- test_new_scc_function[[1]]
+
+# Add raw data to OAO database tables ---------------
+
+## Get values function -----------------
+get_values_raw_cp_data <- function(x, table_name){
+  
+  loc_code <- x[1]
+  loc_name <- x[2]
+  order_id <- x[3]
+  request_md <- x[4]
+  msmrn <- x[5]
+  work_shift <- x[6]
+  test_name <- x[7]
+  test <- x[8]
+  division <- x[9]
+  order_priority <- x[10]
+  site <- x[11]
+  icu <- x[12]
+  loc_type <- x[13]
+  setting <- x[14]
+  setting_roll_up <- x[15]
+  detailed_setting <- x[16]
+  dashboard_setting <- x[17]
+  adj_priority <- x[18]
+  dashboard_priority <- x[19]
+  order_time <- x[20]
+  collect_time <- x[21]
+  receive_time <- x[22]
+  result_time <- x[23]
+  result_date <- x[24]
+  collect_to_receive_tat <- x[25]
+  receive_to_result_tat <- x[26]
+  collect_to_result_tat <- x[27]
+  add_on_final <- x[28]
+  missing_collect <- x[29]
+  receive_result_target <- x[30]
+  collect_result_target <- x[31]
+  receive_result_in_target <- x[32]
+  collect_result_in_target <- x[33]
+  receive_time_tat_incl <- x[34]
+  collect_time_tat_incl <- x[35]
+  
+  
+  values <- glue(
+    "INTO \"{table_name}\" 
+    (LOC_CODE,
+    LOC_NAME,    
+    ORDER_ID,
+    REQUEST_MD,
+    MSMRN,
+    WORK_SHIFT,
+    TEST_NAME,
+    TEST,
+    DIVISION,
+    ORDER_PRIORITY,
+    SITE,
+    ICU,
+    LOC_TYPE,
+    SETTING,
+    SETTING_ROLL_UP,
+    DETAILED_SETTING,
+    DASHBOARD_SETTING,
+    ADJ_PRIORITY,
+    DASHBOARD_PRIORITY,
+    ORDER_TIME,
+    COLLECT_TIME,
+    RECEIVE_TIME,
+    RESULT_TIME,
+    RESULT_DATE,
+    COLLECT_TO_RECEIVE_TAT,
+    RECEIVE_TO_RESULT_TAT,
+    COLLECT_TO_RESULT_TAT,
+    ADD_ON_FINAL,
+    MISSING_COLLECT,
+    RECEIVE_RESULT_TARGET,
+    COLLECT_RESULT_TARGET,
+    RECEIVE_RESULT_IN_TARGET,
+    COLLECT_RESULT_IN_TARGET,
+    RECEIVE_TIME_TAT_INCL,
+    COLLECT_TIME_TAT_INCL) 
+    
+    VALUES (
+    '{loc_code}',
+    '{loc_name}',         
+    '{order_id}',
+    '{request_md}',
+    '{msmrn}',
+    '{work_shift}',
+    '{test_name}',
+    '{test}',
+    '{division}',
+    '{order_priority}',
+    '{site}',
+    '{icu}',
+    '{loc_type}',
+    '{setting}',
+    '{setting_roll_up}',
+    '{detailed_setting}',
+    '{dashboard_setting}',
+    '{adj_priority}',
+    '{dashboard_priority}',
+    TO_TIMESTAMP('{order_time}', 'YYYY-MM-DD HH24:MI:SS'),
+    TO_TIMESTAMP('{collect_time}', 'YYYY-MM-DD HH24:MI:SS'),
+    TO_TIMESTAMP('{receive_time}', 'YYYY-MM-DD HH24:MI:SS'),
+    TO_TIMESTAMP('{result_time}', 'YYYY-MM-DD HH24:MI:SS'),
+    TO_DATE('{result_date}', 'YYYY-MM-DD'),
+    '{collect_to_receive_tat}',
+    '{receive_to_result_tat}',
+    '{collect_to_result_tat}',
+    '{add_on_final}',
+    '{missing_collect}',
+    '{receive_result_target}',
+    '{collect_result_target}',
+    '{receive_result_in_target}',
+    '{collect_result_in_target}',
+    '{receive_time_tat_incl}',
+    '{collect_time_tat_incl}')"
+  )
+  
+  return(values)
+}
+
+## Ensure data format is correct ---------
+processed_data <- test_scc_insert
+
+processed_data <- processed_data %>%
+  mutate(LOC_CODE = as.character(LOC_CODE),
+         LOC_NAME = as.character(LOC_NAME),
+         ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", as.character(ORDER_ID)),
+         REQUEST_MD = as.character(REQUEST_MD),
+         MSMRN = ifelse(is.na(MSMRN), "NoMRN", as.character(MSMRN)),
+         WORK_SHIFT = as.character(WORK_SHIFT),
+         TEST_NAME = as.character(TEST_NAME),
+         TEST = as.character(TEST),
+         DIVISION = as.character(DIVISION),
+         ORDER_PRIORITY = as.character(ORDER_PRIORITY),
+         SITE = as.character(SITE),
+         ICU = as.numeric(ICU),
+         LOC_TYPE = as.character(LOC_TYPE),
+         SETTING = as.character(SETTING),
+         SETTING_ROLL_UP = as.character(SETTING_ROLL_UP),
+         DETAILED_SETTING = as.character(DETAILED_SETTING),
+         DASHBOARD_SETTING = as.character(DASHBOARD_SETTING),
+         ADJ_PRIORITY = as.character(ADJ_PRIORITY),
+         DASHBOARD_PRIORITY = as.character(DASHBOARD_PRIORITY),
+         ORDER_TIME = format(ORDER_TIME, "%Y-%m-%d %H:%M:%S"),
+         COLLECT_TIME = format(COLLECT_TIME, "%Y-%m-%d %H:%M:%S"),
+         RECEIVE_TIME = format(RECEIVE_TIME, "%Y-%m-%d %H:%M:%S"),
+         RESULT_TIME = format(RESULT_TIME, "%Y-%m-%d %H:%M:%S"),
+         RESULT_DATE = format(RESULT_DATE, "%Y-%m-%d"),
+         COLLECT_TO_RECEIVE_TAT = as.numeric(COLLECT_TO_RECEIVE_TAT),
+         RECEIVE_TO_RESULT_TAT = as.numeric(RECEIVE_TO_RESULT_TAT),
+         COLLECT_TO_RESULT_TAT = as.numeric(COLLECT_TO_RESULT_TAT),
+         ADD_ON_FINAL = as.character(ADD_ON_FINAL),
+         MISSING_COLLECT = as.numeric(MISSING_COLLECT),
+         RECEIVE_RESULT_TARGET = as.numeric(RECEIVE_RESULT_TARGET),
+         COLLECT_RESULT_TARGET = as.numeric(COLLECT_RESULT_TARGET),
+         RECEIVE_RESULT_IN_TARGET = as.numeric(RECEIVE_RESULT_IN_TARGET),
+         COLLECT_RESULT_IN_TARGET = as.numeric(COLLECT_RESULT_IN_TARGET),
+         RECEIVE_TIME_TAT_INCL = as.numeric(RECEIVE_TIME_TAT_INCL),
+         COLLECT_TIME_TAT_INCL = as.numeric(COLLECT_TIME_TAT_INCL)
+  ) %>%
+  mutate(across(everything(),
+                function(x) {gsub("\'", "''", x)})) %>%
+  # mutate(across(COLLECT_TO_RECEIVE_TAT,
+  #               function(x) {gsub("\'", "''", x)})) %>%
+  mutate(across(where(is.character), replace_na, replace = '')) %>%
+  mutate(across(everything(), gsub, pattern = "&",
+                replacement = "'||chr(38)||'"))
+
+## Table names -----------
+temp_table <- "CP_RAW_DATA_60DAYS_TEMP"
+repo_table <- "CP_RAW_DATA_60DAYS"
+
+## Create insert statements -------------
+system.time(
+  inserts <- mclapply(
+    mclapply(
+      mclapply(split(processed_data ,
+                     1:nrow(processed_data)),
+               as.list),
+      as.character),
+    FUN = get_values_raw_cp_data, temp_table)
+)
+# 
+# values <- glue_collapse(inserts, sep = "\n\n")
+# 
+# # Combine into statements from get_values() function and combine with insert statements
+# all_data <- glue('INSERT ALL 
+#                   {values}
+#                  SELECT 1 from DUAL;')
+# 
+# ## Truncate query for temporary table -------------
+# truncate_query <- glue('TRUNCATE TABLE "{temp_table}";')
+# 
+# ## Merge query for repo table -----------
+# # glue() query to merge data from temporary table to repository table
+# query <- glue('MERGE INTO "{repo_table}" RT
+#                     USING "{temp_table}" SOURCE_TABLE
+#                     ON (  RT."ORDER_ID" = SOURCE_TABLE."ORDER_ID" AND
+#                           RT."MSMRN" = SOURCE_TABLE."MSMRN" AND
+#                           RT."TEST_NAME" = SOURCE_TABLE."TEST_NAME" AND
+#                           RT."RESULT_TIME" = SOURCE_TABLE."RESULT_TIME")
+#                     WHEN MATCHED THEN
+#                     UPDATE SET RT."LOC_CODE" = SOURCE_TABLE."LOC_CODE",
+#                                RT."LOC_NAME" = SOURCE_TABLE."LOC_NAME",
+#                                RT."REQUEST_MD" = SOURCE_TABLE."REQUEST_MD",
+#                                RT."WORK_SHIFT" = SOURCE_TABLE."WORK_SHIFT",
+#                                RT."TEST" = SOURCE_TABLE."TEST",
+#                                RT."DIVISION" = SOURCE_TABLE."DIVISION",
+#                                RT."ORDER_PRIORITY" = SOURCE_TABLE."ORDER_PRIORITY",
+#                                RT."SITE" = SOURCE_TABLE."SITE",
+#                                RT."ICU" = SOURCE_TABLE."ICU",
+#                                RT."LOC_TYPE" = SOURCE_TABLE."LOC_TYPE",
+#                                RT."SETTING" = SOURCE_TABLE."SETTING",
+#                                RT."SETTING_ROLL_UP" = SOURCE_TABLE."SETTING_ROLL_UP",
+#                                RT."DETAILED_SETTING" = SOURCE_TABLE."DETAILED_SETTING",
+#                                RT."DASHBOARD_SETTING" = SOURCE_TABLE."DASHBOARD_SETTING",
+#                                RT."ADJ_PRIORITY" = SOURCE_TABLE."ADJ_PRIORITY",
+#                                RT."DASHBOARD_PRIORITY" = SOURCE_TABLE."DASHBOARD_PRIORITY",
+#                                RT."ORDER_TIME" = SOURCE_TABLE."ORDER_TIME",
+#                                RT."COLLECT_TIME" = SOURCE_TABLE."COLLECT_TIME",
+#                                RT."RECEIVE_TIME" = SOURCE_TABLE."RECEIVE_TIME",
+#                                RT."RESULT_DATE" = SOURCE_TABLE."RESULT_DATE",
+#                                RT."COLLECT_TO_RECEIVE_TAT" = SOURCE_TABLE."COLLECT_TO_RECEIVE_TAT",
+#                                RT."RECEIVE_TO_RESULT_TAT" = SOURCE_TABLE."RECEIVE_TO_RESULT_TAT",
+#                                RT."COLLECT_TO_RESULT_TAT" = SOURCE_TABLE."COLLECT_TO_RESULT_TAT",
+#                                RT."ADD_ON_FINAL" = SOURCE_TABLE."ADD_ON_FINAL",
+#                                RT."MISSING_COLLECT" = SOURCE_TABLE."MISSING_COLLECT",
+#                                RT."RECEIVE_RESULT_TARGET" = SOURCE_TABLE."RECEIVE_RESULT_TARGET",
+#                                RT."COLLECT_RESULT_TARGET" = SOURCE_TABLE."COLLECT_RESULT_TARGET",
+#                                RT."RECEIVE_RESULT_IN_TARGET" = SOURCE_TABLE."RECEIVE_RESULT_IN_TARGET",
+#                                RT."COLLECT_RESULT_IN_TARGET" = SOURCE_TABLE."COLLECT_RESULT_IN_TARGET",
+#                                RT."RECEIVE_TIME_TAT_INCL" = SOURCE_TABLE."RECEIVE_TIME_TAT_INCL",
+#                                RT."COLLECT_TIME_TAT_INCL" = SOURCE_TABLE."COLLECT_TIME_TAT_INCL"
+#                     WHEN NOT MATCHED THEN
+#                     INSERT(RT."LOC_CODE",
+#                            RT."LOC_NAME",
+#                            RT."ORDER_ID",
+#                            RT."REQUEST_MD",
+#                            RT."MSMRN",
+#                            RT."WORK_SHIFT",
+#                            RT."TEST_NAME",
+#                            RT."TEST",
+#                            RT."DIVISION",
+#                            RT."ORDER_PRIORITY",
+#                            RT."SITE",
+#                            RT."ICU",
+#                            RT."LOC_TYPE",
+#                            RT."SETTING",
+#                            RT."SETTING_ROLL_UP",
+#                            RT."DETAILED_SETTING",
+#                            RT."DASHBOARD_SETTING",
+#                            RT."ADJ_PRIORITY",
+#                            RT."DASHBOARD_PRIORITY",
+#                            RT."ORDER_TIME",
+#                            RT."COLLECT_TIME",
+#                            RT."RECEIVE_TIME",
+#                            RT."RESULT_TIME",
+#                            RT."RESULT_DATE",
+#                            RT."COLLECT_TO_RECEIVE_TAT",
+#                            RT."RECEIVE_TO_RESULT_TAT",
+#                            RT."COLLECT_TO_RESULT_TAT",
+#                            RT."ADD_ON_FINAL",
+#                            RT."MISSING_COLLECT",
+#                            RT."RECEIVE_RESULT_TARGET",
+#                            RT."COLLECT_RESULT_TARGET",
+#                            RT."RECEIVE_RESULT_IN_TARGET",
+#                            RT."COLLECT_RESULT_IN_TARGET",
+#                            RT."RECEIVE_TIME_TAT_INCL",
+#                            RT."COLLECT_TIME_TAT_INCL"
+#                     )
+#                     VALUES(SOURCE_TABLE."LOC_CODE",
+#                            SOURCE_TABLE."LOC_NAME",
+#                            SOURCE_TABLE."ORDER_ID",
+#                            SOURCE_TABLE."REQUEST_MD",
+#                            SOURCE_TABLE."MSMRN",
+#                            SOURCE_TABLE."WORK_SHIFT",
+#                            SOURCE_TABLE."TEST_NAME",
+#                            SOURCE_TABLE."TEST",
+#                            SOURCE_TABLE."DIVISION",
+#                            SOURCE_TABLE."ORDER_PRIORITY",
+#                            SOURCE_TABLE."SITE",
+#                            SOURCE_TABLE."ICU",
+#                            SOURCE_TABLE."LOC_TYPE",
+#                            SOURCE_TABLE."SETTING",
+#                            SOURCE_TABLE."SETTING_ROLL_UP",
+#                            SOURCE_TABLE."DETAILED_SETTING",
+#                            SOURCE_TABLE."DASHBOARD_SETTING",
+#                            SOURCE_TABLE."ADJ_PRIORITY",
+#                            SOURCE_TABLE."DASHBOARD_PRIORITY",
+#                            SOURCE_TABLE."ORDER_TIME",
+#                            SOURCE_TABLE."COLLECT_TIME",
+#                            SOURCE_TABLE."RECEIVE_TIME",
+#                            SOURCE_TABLE."RESULT_TIME",
+#                            SOURCE_TABLE."RESULT_DATE",
+#                            SOURCE_TABLE."COLLECT_TO_RECEIVE_TAT",
+#                            SOURCE_TABLE."RECEIVE_TO_RESULT_TAT",
+#                            SOURCE_TABLE."COLLECT_TO_RESULT_TAT",
+#                            SOURCE_TABLE."ADD_ON_FINAL",
+#                            SOURCE_TABLE."MISSING_COLLECT",
+#                            SOURCE_TABLE."RECEIVE_RESULT_TARGET",
+#                            SOURCE_TABLE."COLLECT_RESULT_TARGET",
+#                            SOURCE_TABLE."RECEIVE_RESULT_IN_TARGET",
+#                            SOURCE_TABLE."COLLECT_RESULT_IN_TARGET",
+#                            SOURCE_TABLE."RECEIVE_TIME_TAT_INCL",
+#                            SOURCE_TABLE."COLLECT_TIME_TAT_INCL"
+#                     );')
+# 
+# 
+# # Split data into smaller chunks for faster processing --------
+# chunk_length <- 200
+# 
+# split_insert_queries <- split(inserts,
+#                               ceiling(seq_along(inserts) / chunk_length))
+# 
+# split_queries_final <- list()
+# 
+# for (i in 1:length(split_insert_queries)) {
+#   row <- glue_collapse(split_insert_queries[[i]], sep = "\n\n")
+#   # row <- gsub("\'", "''", row)
+#   # row <- gsub("&", " ' || chr(38) || ' ", row)
+#   sql <- glue('INSERT ALL {row} SELECT 1 FROM DUAL;')
+#   split_queries_final <- append(split_queries_final, sql)
+# }
+
+write_to_temp_table <- function(x) {
+  oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+  dbBegin(oao_personal_conn)
+  dbExecute(oao_personal_conn, x)
+  dbCommit(oao_personal_conn)
+  # dbDisconnect(oao_personal_conn)
+  
+}
+
+all_data_glue <- function(x) {
+  all_data <- glue('INSERT ALL
+                   {x}
+                   SELECT 1 from DUAL;')
+}
+
+merge_to_repo_query <- function(temp_table, repo_table) {
+  
+  glue(
+    'MERGE INTO "{repo_table}" RT
+  USING "{temp_table}" SOURCE_TABLE
+  ON (  RT."ORDER_ID" = SOURCE_TABLE."ORDER_ID" AND
+        RT."MSMRN" = SOURCE_TABLE."MSMRN" AND
+        RT."TEST_NAME" = SOURCE_TABLE."TEST_NAME" AND
+        RT."RESULT_TIME" = SOURCE_TABLE."RESULT_TIME")
+        WHEN MATCHED THEN
+        UPDATE SET RT."LOC_CODE" = SOURCE_TABLE."LOC_CODE",
+                   RT."LOC_NAME" = SOURCE_TABLE."LOC_NAME",
+                   RT."REQUEST_MD" = SOURCE_TABLE."REQUEST_MD",
+                   RT."WORK_SHIFT" = SOURCE_TABLE."WORK_SHIFT",
+                   RT."TEST" = SOURCE_TABLE."TEST",
+                   RT."DIVISION" = SOURCE_TABLE."DIVISION",
+                   RT."ORDER_PRIORITY" = SOURCE_TABLE."ORDER_PRIORITY",
+                   RT."SITE" = SOURCE_TABLE."SITE",
+                   RT."ICU" = SOURCE_TABLE."ICU",
+                   RT."LOC_TYPE" = SOURCE_TABLE."LOC_TYPE",
+                   RT."SETTING" = SOURCE_TABLE."SETTING",
+                   RT."SETTING_ROLL_UP" = SOURCE_TABLE."SETTING_ROLL_UP",
+                   RT."DETAILED_SETTING" = SOURCE_TABLE."DETAILED_SETTING",
+                   RT."DASHBOARD_SETTING" = SOURCE_TABLE."DASHBOARD_SETTING",
+                   RT."ADJ_PRIORITY" = SOURCE_TABLE."ADJ_PRIORITY",
+                   RT."DASHBOARD_PRIORITY" = SOURCE_TABLE."DASHBOARD_PRIORITY",
+                   RT."ORDER_TIME" = SOURCE_TABLE."ORDER_TIME",
+                   RT."COLLECT_TIME" = SOURCE_TABLE."COLLECT_TIME",
+                   RT."RECEIVE_TIME" = SOURCE_TABLE."RECEIVE_TIME",
+                   RT."RESULT_DATE" = SOURCE_TABLE."RESULT_DATE",
+                   RT."COLLECT_TO_RECEIVE_TAT" = SOURCE_TABLE."COLLECT_TO_RECEIVE_TAT",
+                   RT."RECEIVE_TO_RESULT_TAT" = SOURCE_TABLE."RECEIVE_TO_RESULT_TAT",
+                   RT."COLLECT_TO_RESULT_TAT" = SOURCE_TABLE."COLLECT_TO_RESULT_TAT",
+                   RT."ADD_ON_FINAL" = SOURCE_TABLE."ADD_ON_FINAL",
+                   RT."MISSING_COLLECT" = SOURCE_TABLE."MISSING_COLLECT",
+                   RT."RECEIVE_RESULT_TARGET" = SOURCE_TABLE."RECEIVE_RESULT_TARGET",
+                   RT."COLLECT_RESULT_TARGET" = SOURCE_TABLE."COLLECT_RESULT_TARGET",
+                   RT."RECEIVE_RESULT_IN_TARGET" = SOURCE_TABLE."RECEIVE_RESULT_IN_TARGET",
+                   RT."COLLECT_RESULT_IN_TARGET" = SOURCE_TABLE."COLLECT_RESULT_IN_TARGET",
+                   RT."RECEIVE_TIME_TAT_INCL" = SOURCE_TABLE."RECEIVE_TIME_TAT_INCL",
+                   RT."COLLECT_TIME_TAT_INCL" = SOURCE_TABLE."COLLECT_TIME_TAT_INCL"
+        WHEN NOT MATCHED THEN
+        INSERT(RT."LOC_CODE",
+               RT."LOC_NAME",
+               RT."ORDER_ID",
+               RT."REQUEST_MD",
+               RT."MSMRN",
+               RT."WORK_SHIFT",
+               RT."TEST_NAME",
+               RT."TEST",
+               RT."DIVISION",
+               RT."ORDER_PRIORITY",
+               RT."SITE",
+               RT."ICU",
+               RT."LOC_TYPE",
+               RT."SETTING",
+               RT."SETTING_ROLL_UP",
+               RT."DETAILED_SETTING",
+               RT."DASHBOARD_SETTING",
+               RT."ADJ_PRIORITY",
+               RT."DASHBOARD_PRIORITY",
+               RT."ORDER_TIME",
+               RT."COLLECT_TIME",
+               RT."RECEIVE_TIME",
+               RT."RESULT_TIME",
+               RT."RESULT_DATE",
+               RT."COLLECT_TO_RECEIVE_TAT",
+               RT."RECEIVE_TO_RESULT_TAT",
+               RT."COLLECT_TO_RESULT_TAT",
+               RT."ADD_ON_FINAL",
+               RT."MISSING_COLLECT",
+               RT."RECEIVE_RESULT_TARGET",
+               RT."COLLECT_RESULT_TARGET",
+               RT."RECEIVE_RESULT_IN_TARGET",
+               RT."COLLECT_RESULT_IN_TARGET",
+               RT."RECEIVE_TIME_TAT_INCL",
+               RT."COLLECT_TIME_TAT_INCL"
+               )
+         VALUES(SOURCE_TABLE."LOC_CODE",
+                SOURCE_TABLE."LOC_NAME",
+                SOURCE_TABLE."ORDER_ID",
+                SOURCE_TABLE."REQUEST_MD",
+                SOURCE_TABLE."MSMRN",
+                SOURCE_TABLE."WORK_SHIFT",
+                SOURCE_TABLE."TEST_NAME",
+                SOURCE_TABLE."TEST",
+                SOURCE_TABLE."DIVISION",
+                SOURCE_TABLE."ORDER_PRIORITY",
+                SOURCE_TABLE."SITE",
+                SOURCE_TABLE."ICU",
+                SOURCE_TABLE."LOC_TYPE",
+                SOURCE_TABLE."SETTING",
+                SOURCE_TABLE."SETTING_ROLL_UP",
+                SOURCE_TABLE."DETAILED_SETTING",
+                SOURCE_TABLE."DASHBOARD_SETTING",
+                SOURCE_TABLE."ADJ_PRIORITY",
+                SOURCE_TABLE."DASHBOARD_PRIORITY",
+                SOURCE_TABLE."ORDER_TIME",
+                SOURCE_TABLE."COLLECT_TIME",
+                SOURCE_TABLE."RECEIVE_TIME",
+                SOURCE_TABLE."RESULT_TIME",
+                SOURCE_TABLE."RESULT_DATE",
+                SOURCE_TABLE."COLLECT_TO_RECEIVE_TAT",
+                SOURCE_TABLE."RECEIVE_TO_RESULT_TAT",
+                SOURCE_TABLE."COLLECT_TO_RESULT_TAT",
+                SOURCE_TABLE."ADD_ON_FINAL",
+                SOURCE_TABLE."MISSING_COLLECT",
+                SOURCE_TABLE."RECEIVE_RESULT_TARGET",
+                SOURCE_TABLE."COLLECT_RESULT_TARGET",
+                SOURCE_TABLE."RECEIVE_RESULT_IN_TARGET",
+                SOURCE_TABLE."COLLECT_RESULT_IN_TARGET",
+                SOURCE_TABLE."RECEIVE_TIME_TAT_INCL",
+                SOURCE_TABLE."COLLECT_TIME_TAT_INCL"
+                );'
+  )
+
+} 
+
+system.time(
+  lapply(
+    X = test_new_scc_function[1:2],
+    
+    FUN = function(x) {
+      temp_table <- "TEMP_TABLE_TEST"
+      repo_table <- "REPO_TABLE_TEST"
+      
+      x <- x %>%
+        mutate(LOC_CODE = as.character(LOC_CODE),
+               LOC_NAME = as.character(LOC_NAME),
+               ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", as.character(ORDER_ID)),
+               REQUEST_MD = as.character(REQUEST_MD),
+               MSMRN = ifelse(is.na(MSMRN), "NoMRN", as.character(MSMRN)),
+               WORK_SHIFT = as.character(WORK_SHIFT),
+               TEST_NAME = as.character(TEST_NAME),
+               TEST = as.character(TEST),
+               DIVISION = as.character(DIVISION),
+               ORDER_PRIORITY = as.character(ORDER_PRIORITY),
+               SITE = as.character(SITE),
+               ICU = as.numeric(ICU),
+               LOC_TYPE = as.character(LOC_TYPE),
+               SETTING = as.character(SETTING),
+               SETTING_ROLL_UP = as.character(SETTING_ROLL_UP),
+               DETAILED_SETTING = as.character(DETAILED_SETTING),
+               DASHBOARD_SETTING = as.character(DASHBOARD_SETTING),
+               ADJ_PRIORITY = as.character(ADJ_PRIORITY),
+               DASHBOARD_PRIORITY = as.character(DASHBOARD_PRIORITY),
+               ORDER_TIME = format(ORDER_TIME, "%Y-%m-%d %H:%M:%S"),
+               COLLECT_TIME = format(COLLECT_TIME, "%Y-%m-%d %H:%M:%S"),
+               RECEIVE_TIME = format(RECEIVE_TIME, "%Y-%m-%d %H:%M:%S"),
+               RESULT_TIME = format(RESULT_TIME, "%Y-%m-%d %H:%M:%S"),
+               RESULT_DATE = format(RESULT_DATE, "%Y-%m-%d"),
+               COLLECT_TO_RECEIVE_TAT = as.numeric(COLLECT_TO_RECEIVE_TAT),
+               RECEIVE_TO_RESULT_TAT = as.numeric(RECEIVE_TO_RESULT_TAT),
+               COLLECT_TO_RESULT_TAT = as.numeric(COLLECT_TO_RESULT_TAT),
+               ADD_ON_FINAL = as.character(ADD_ON_FINAL),
+               MISSING_COLLECT = as.numeric(MISSING_COLLECT),
+               RECEIVE_RESULT_TARGET = as.numeric(RECEIVE_RESULT_TARGET),
+               COLLECT_RESULT_TARGET = as.numeric(COLLECT_RESULT_TARGET),
+               RECEIVE_RESULT_IN_TARGET = as.numeric(RECEIVE_RESULT_IN_TARGET),
+               COLLECT_RESULT_IN_TARGET = as.numeric(COLLECT_RESULT_IN_TARGET),
+               RECEIVE_TIME_TAT_INCL = as.numeric(RECEIVE_TIME_TAT_INCL),
+               COLLECT_TIME_TAT_INCL = as.numeric(COLLECT_TIME_TAT_INCL)
+        ) %>%
+        mutate(across(everything(),
+                      function(x) {gsub("\'", "''", x)})) %>%
+        # mutate(across(COLLECT_TO_RECEIVE_TAT,
+        #               function(x) {gsub("\'", "''", x)})) %>%
+        mutate(across(where(is.character), replace_na, replace = '')) %>%
+        mutate(across(everything(), gsub, pattern = "&",
+                      replacement = "'||chr(38)||'"))
+      
+      inserts <- mclapply(
+        mclapply(
+          mclapply(split(x , 
+                         1:nrow(x)),
+                   as.list), 
+          as.character),
+        FUN = get_values_raw_cp_data, temp_table)
+
+      values <- glue_collapse(inserts, sep = "\n\n")
+      
+      # # Combine into statements from get_values() function and combine with insert statements
+      # all_data <- glue('INSERT ALL {values} SELECT 1 from DUAL;')
+      all_data <- all_data_glue(x = values)
+
+      # Truncate query for temporary table -------------
+      truncate_query <- glue('TRUNCATE TABLE "{temp_table}";')
+
+      ## Merge query for repo table -----------
+      # glue() query to merge data from temporary table to repository table
+      query <- merge_to_repo_query(temp_table = temp_table, repo_table = repo_table)
+
+
+      chunk_length <- 200
+
+      split_insert_queries <- split(inserts,
+                                    ceiling(seq_along(inserts) / chunk_length))
+
+      split_queries_final <- list()
+
+      for (i in 1:length(split_insert_queries)) {
+        row <- glue_collapse(split_insert_queries[[i]], sep = "\n\n")
+        # row <- gsub("\'", "''", row)
+        # row <- gsub("&", " ' || chr(38) || ' ", row)
+        sql <- glue('INSERT ALL {row} SELECT 1 FROM DUAL;')
+        split_queries_final <- append(split_queries_final, sql)
+      }
+
+      oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+      dbBegin(oao_personal_conn)
+
+      print("Table writing time:")
+
+        tryCatch({
+          print("Before first truncate")
+          dbExecute(oao_personal_conn, truncate_query)
+          print("After first truncate")
+
+          # mclapply(split_queries_final, write_to_temp_table)
+
+
+          registerDoParallel()
+
+          foreach(i = 1:length(split_queries_final),
+                  .packages = c("DBI", "odbc"))%dopar%{
+                    oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+                    dbBegin(oao_personal_conn)
+                    dbExecute(oao_personal_conn, split_queries_final[[i]])
+                    dbCommit(oao_personal_conn)
+
+                  }
+
+          registerDoSEQ()
+
+          # dbCommit(oao_personal_conn)
+
+          print("After all rows added to temporary table")
+          dbExecute(oao_personal_conn, query)
+          print("After merge into repo table")
+          dbExecute(oao_personal_conn, truncate_query)
+          print("After second truncate")
+          dbCommit(oao_personal_conn)
+          print("After repo table commit")
+          dbDisconnect(oao_personal_conn)
+          print("Success!")
+        },
+        error = function(err){
+          print("error")
+          dbRollback(oao_personal_conn)
+          dbExecute(oao_personal_conn, truncate_query)
+          dbDisconnect(oao_personal_conn)
+
+        })
+
+    }
+  )
+)
+
+oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+dbBegin(oao_personal_conn)
+
+system.time(
+  
+  tryCatch({
+    print("Before first truncate")
+    dbExecute(oao_personal_conn, truncate_query)
+    print("After first truncate")
+    
+    mclapply(split_queries_final, write_to_temp_table)
+    
+    
+    # registerDoParallel()
+    # 
+    # foreach(i = 1:length(split_queries_final),
+    #         .packages = c("DBI", "odbc"))%dopar%{
+    #           oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+    #           dbBegin(oao_personal_conn)
+    #           dbExecute(oao_personal_conn, split_queries_final[[i]])
+    #           dbCommit(oao_personal_conn)
+    # 
+    #         }
+    # 
+    # registerDoSEQ()
+    
+    # dbCommit(oao_personal_conn)
+    
+    print("After all rows added to temporary table")
+    # dbExecute(oao_personal_conn, query)
+    # print("After merge into repo table")
+    # dbExecute(oao_personal_conn, truncate_query)
+    # print("After second truncate")
+    dbCommit(oao_personal_conn)
+    print("After repo table commit")
+    dbDisconnect(oao_personal_conn)
+    print("Success!")
+  },
+  error = function(err){
+    print("error")
+    dbRollback(oao_personal_conn)
+    dbExecute(oao_personal_conn, truncate_query)
+    dbDisconnect(oao_personal_conn)
+    
+  })
+  
+  
+)

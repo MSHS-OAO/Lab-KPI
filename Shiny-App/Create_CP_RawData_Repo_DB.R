@@ -108,8 +108,8 @@ raw_data_60days_db <- raw_data_60days %>%
          ) %>%
   mutate(across(where(is.logical), as.numeric)) %>%
   mutate(MSMRN = ifelse(is.na(MSMRN), "NoMRN", MSMRN),
-         ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", ORDER_ID)) %>%
-  filter(!is.na(RECEIVE_TIME))
+         ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", ORDER_ID)) #%>%
+  # filter(!is.na(RECEIVE_TIME))
 
 test_data <- raw_data_60days_db[500001:nrow(raw_data_60days_db), ]
 # test_data <- raw_data_60days_db
@@ -233,8 +233,8 @@ values <- glue(
 }
 
 
-# processed_data <- test_data
-processed_data <- raw_data_60days_db
+processed_data <- test_data
+# processed_data <- raw_data_60days_db
 
 # processed_data <- rbind(error_row, typical_row)
 
