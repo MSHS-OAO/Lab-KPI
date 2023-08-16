@@ -233,8 +233,8 @@ values <- glue(
 }
 
 
-processed_data <- test_data
-# processed_data <- raw_data_60days_db
+# processed_data <- test_data
+processed_data <- raw_data_60days_db
 
 # processed_data <- rbind(error_row, typical_row)
 
@@ -279,7 +279,7 @@ processed_data <- processed_data %>%
          function(x) {gsub("\'", "''", x)})) %>%
   mutate(across(where(is.character), replace_na, replace = '')) %>%
   mutate(across(everything(), gsub, pattern = "&",
-                replacement = " ' || chr(38) || ' "))
+                replacement = "'||chr(38)||'"))
 
 # processed_data <- processed_data[61001:61200, ]
 
@@ -575,9 +575,3 @@ system.time(
 
 
 
-# 
-# 
-# 
-# id_primary_keys_1 <- daily_repo_db %>%
-#   select(SITE, RESULT_DATE, TEST, DETAILED_SETTING, ADJ_PRIORITY) %>%
-#   distinct()
