@@ -108,10 +108,15 @@ raw_data_60days_db <- raw_data_60days %>%
          ) %>%
   mutate(across(where(is.logical), as.numeric)) %>%
   mutate(MSMRN = ifelse(is.na(MSMRN), "NoMRN", MSMRN),
-         ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", ORDER_ID)) #%>%
+         ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", ORDER_ID),
+         RECEIVE_RESULT_IN_TARGET = ifelse(is.na(RECEIVE_RESULT_IN_TARGET), FALSE,
+                                           RECEIVE_RESULT_IN_TARGET),  
+         COLLECT_RESULT_IN_TARGET = ifelse(is.na(COLLECT_RESULT_IN_TARGET), FALSE,
+                                           COLLECT_RESULT_IN_TARGET),
+         MISSING_COLLECT = ifelse(is.na(MISSING_COLLECT), FALSE, MISSING_COLLECT)) #%>%
   # filter(!is.na(RECEIVE_TIME))
 
-test_data <- raw_data_60days_db[500001:nrow(raw_data_60days_db), ]
+# test_data <- raw_data_60days_db[1:100000, ]
 # test_data <- raw_data_60days_db
 
 get_values_raw_cp_data <- function(x, table_name){
@@ -233,8 +238,8 @@ values <- glue(
 }
 
 
-processed_data <- test_data
-# processed_data <- raw_data_60days_db
+# processed_data <- test_data
+processed_data <- raw_data_60days_db
 
 # processed_data <- rbind(error_row, typical_row)
 
@@ -280,6 +285,11 @@ processed_data <- processed_data %>%
   mutate(across(where(is.character), replace_na, replace = '')) %>%
   mutate(across(everything(), gsub, pattern = "&",
                 replacement = "'||chr(38)||'"))
+
+processed_data <- processed_data %>%
+  filter(RESULT_DATE >= Sys.Date() - 60)
+
+processed_data <- processed_data[350001:nrow(processed_data), ]
 
 # processed_data <- processed_data[61001:61200, ]
 
@@ -519,21 +529,21 @@ system.time(
     dbExecute(oao_personal_conn, truncate_query)
     print("After first truncate")
 
-    mclapply(split_queries_final, write_to_temp_table)
+    # mclapply(split_queries_final, write_to_temp_table)
     
-    # # 8.3 min
-    # registerDoParallel()
-    # 
-    # foreach(i = 1:length(split_queries_final),
-    #         .packages = c("DBI", "odbc"))%dopar%{
-    #           oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
-    #           dbBegin(oao_personal_conn)
-    #           dbExecute(oao_personal_conn, split_queries_final[[i]])
-    #           dbCommit(oao_personal_conn)
-    # 
-    #         }
-    # 
-    # registerDoSEQ()
+    # 8.3 min
+    registerDoParallel()
+
+    foreach(i = 1:length(split_queries_final),
+            .packages = c("DBI", "odbc"))%dopar%{
+              oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+              dbBegin(oao_personal_conn)
+              dbExecute(oao_personal_conn, split_queries_final[[i]])
+              dbCommit(oao_personal_conn)
+
+            }
+
+    registerDoSEQ()
     
     # dbCommit(oao_personal_conn)
     
