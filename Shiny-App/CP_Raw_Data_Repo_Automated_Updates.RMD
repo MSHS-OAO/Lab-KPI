@@ -1,3 +1,10 @@
+---
+title: "Lab Dashboard - Raw Data Repository Updates"
+output:
+  html_document
+---
+
+```{r Load libraries and clear environment}
 # Code for identifying missing dates of data and updating repositories -----
 
 # Load packages ---------------
@@ -28,6 +35,9 @@ library(parallel)
 
 #Clear existing history
 rm(list = ls())
+```
+
+```{r Find root path}
 
 # Define root path ---------------
 # Function to determine path to share drive on R Workbench or R Studio
@@ -59,9 +69,9 @@ user_directory <- paste0(define_root_path(),
                          "HSPI-PM/",
                          "Operations Analytics and Optimization/Projects/",
                          "Service Lines/Lab Kpi/Data")
+```
 
-today <- Sys.Date()
-
+```{r Connect to OAO Cloud database and import reference data.}
 # OAO Cloud Database schema
 oao_cloud_db <- "OAO Cloud DB Kate"
 
@@ -108,9 +118,14 @@ cp_sun_icu <- tbl(oao_personal_conn, "CP_SUN_ICU") %>%
 
 ## Disconnect -----------
 dbDisconnect(oao_personal_conn)
+```
 
+```{r Connect to database repository tables and find missing dates and files}
 # Raw Data 60 Days ---------
 ## Query raw data repo -------
+
+today <- Sys.Date()
+
 last_60_days <- data.frame(DATE = 
                          seq.Date(from = today - 60, to = today - 1, by = 1)
 )
@@ -215,6 +230,9 @@ if (length(missing_sun_files) > 0) {
   sun_raw_reports <- NULL
   print("No new Sunquest reports found.")
 }
+```
+
+```{r Custom function for preprocessing SCC reports}
 
 # Custom function for preprocessing SCC data ---------------------------------
 preprocess_scc <- function(raw_scc)  {
@@ -447,6 +465,9 @@ preprocess_scc <- function(raw_scc)  {
   return(scc_processed)
   
 }
+```
+
+```{r Custom function for preprocessing Sunquest reports}
 
 # Custom function for preprocessing Sunquest data -----------------
 preprocess_sun <- function(raw_sun) {
@@ -683,6 +704,9 @@ preprocess_sun <- function(raw_sun) {
   
   return(sun_processed)
 }
+```
+
+```{r Process SCC and Sunquest reports}
 
 # Process missing SCC and Sunquest files found on shared drive ------
 test_new_scc_function <- lapply(
@@ -700,7 +724,9 @@ test_new_sun_function <- lapply(
 if(length(test_new_sun_function) > 0) {
   names(test_new_sun_function) <- paste0("Sunquest_File_", c(1:length(test_new_sun_function)))
 }
+```
 
+```{r Database writing queries and functions}
 # Database writing functions ---------------
 
 ## Get values function -----------------
@@ -945,23 +971,15 @@ merge_to_raw_data_repo_query <- function(temp_table, repo_table) {
                 );'
   )
 }
+```
 
-## Write to temp table function (not currently used) ----------
-write_to_temp_table <- function(x) {
-  oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
-  dbBegin(oao_personal_conn)
-  dbExecute(oao_personal_conn, x)
-  dbCommit(oao_personal_conn)
-  # dbDisconnect(oao_personal_conn)
-  
-}
-
+```{r Add new SCC data to database tables}
 # Update raw data tables --------
 
 ## Add SCC test level data to database ---------
 
 if(length(missing_scc_files) > 0) {
-  print("Beging adding SCC data to raw data repository.")
+  print("Begin adding SCC data to raw data repository.")
   
   system.time(
     lapply(
@@ -1096,7 +1114,9 @@ if(length(missing_scc_files) > 0) {
 } else {
   print("No SCC data found to add.")
 }
+```
 
+```{r Add new Sunquest data to database tables}
 ## Add Sunquest test level data to database ---------
 if(length(missing_sun_files) > 0) {
   print("Begin adding Sunquest data to raw data repository.")
@@ -1235,4 +1255,5 @@ if(length(missing_sun_files) > 0) {
 } else {
   print("No Sunquest data found to add.")
 }
+```
 
