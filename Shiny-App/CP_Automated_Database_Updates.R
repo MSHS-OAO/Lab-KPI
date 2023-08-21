@@ -149,20 +149,26 @@ sun_raw_data_repo_dates <-tbl(oao_personal_conn, raw_data_repo_table) %>%
 
 dbDisconnect(oao_personal_conn)
 
+scc_folder <- paste0(user_directory,
+                        "/SCC CP Reports")
+
 scc_missing_data <- last_60_days %>%
   mutate(MissingInDB = !(DATE %in% scc_raw_data_repo_dates$RESULT_DATE)) %>%
   filter(MissingInDB) %>%
   select(DATE) %>%
   mutate(REPORT_DATE = DATE + 1)
 
-scc_folder <- paste0(user_directory,
-                        "/SCC CP Reports")
+if (nrow(scc_missing_data) > 0){
+  missing_scc_files <- list.files(scc_folder,
+                                  pattern = paste0(
+                                    "^(Doc).+(",
+                                    paste0(scc_missing_data$REPORT_DATE, collapse = "|"),
+                                    ").xlsx$"))
+} else {
+  missing_scc_files <- NULL
+}
 
-missing_scc_files <- list.files(scc_folder,
-                                pattern = paste0(
-                                  "^(Doc).+(",
-                                  paste0(scc_missing_data$REPORT_DATE, collapse = "|"),
-                                  ").xlsx$"))
+sun_folder <- paste0(user_directory, "/SUN CP Reports")
 
 sun_missing_data <- last_60_days %>%
   mutate(MissingInDB = !(DATE %in% sun_raw_data_repo_dates$RESULT_DATE)) %>%
@@ -170,13 +176,15 @@ sun_missing_data <- last_60_days %>%
   select(DATE) %>%
   mutate(REPORT_DATE = DATE + 1)
 
-sun_folder <- paste0(user_directory, "/SUN CP Reports")
-
-missing_sun_files <- list.files(sun_folder,
-                                pattern = paste0(
-                                  "^(KPI_Daily_TAT_Report_Updated )",
-                                  paste0(sun_missing_data$REPORT_DATE, collapse = "|"),
-                                  ".xls$"))
+if (nrow(sun_missing_data) > 0) {
+  missing_sun_files <- list.files(sun_folder,
+                                  pattern = paste0(
+                                    "^(KPI_Daily_TAT_Report_Updated )",
+                                    paste0(sun_missing_data$REPORT_DATE, collapse = "|"),
+                                    ".xls$"))
+} else {
+  missing_sun_files <- NULL
+}
 
 if (length(missing_scc_files) > 0) {
   scc_raw_reports <- lapply(
@@ -186,6 +194,7 @@ if (length(missing_scc_files) > 0) {
   )
 } else {
   scc_raw_reports <- NULL
+  # print("No new SCC reports found.")
 }
 
 if (length(missing_sun_files) > 0) {
@@ -204,6 +213,7 @@ if (length(missing_sun_files) > 0) {
   )
 } else {
   sun_raw_reports <- NULL
+  print("No new Sunquest reports found.")
 }
 
 # Custom function for preprocessing SCC data ---------------------------------
@@ -950,101 +960,99 @@ write_to_temp_table <- function(x) {
 
 ## Add SCC test level data to database ---------
 
-print("Beging adding SCC data to raw data repository.")
-
-system.time(
-  lapply(
-    X = seq_along(test_new_scc_function),
-    
-    FUN = function(n) {
-      temp_table <- raw_data_temp_table
-      repo_table <- raw_data_repo_table
+if(length(missing_scc_files) > 0) {
+  print("Beging adding SCC data to raw data repository.")
+  
+  system.time(
+    lapply(
+      X = seq_along(test_new_scc_function),
       
-      scc_test_level_data <- test_new_scc_function[[n]] %>%
-        mutate(LOC_CODE = as.character(LOC_CODE),
-               LOC_NAME = as.character(LOC_NAME),
-               ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", as.character(ORDER_ID)),
-               REQUEST_MD = as.character(REQUEST_MD),
-               MSMRN = ifelse(is.na(MSMRN), "NoMRN", as.character(MSMRN)),
-               WORK_SHIFT = as.character(WORK_SHIFT),
-               TEST_NAME = as.character(TEST_NAME),
-               TEST = as.character(TEST),
-               DIVISION = as.character(DIVISION),
-               ORDER_PRIORITY = as.character(ORDER_PRIORITY),
-               SITE = as.character(SITE),
-               ICU = as.numeric(ICU),
-               LOC_TYPE = as.character(LOC_TYPE),
-               SETTING = as.character(SETTING),
-               SETTING_ROLL_UP = as.character(SETTING_ROLL_UP),
-               DETAILED_SETTING = as.character(DETAILED_SETTING),
-               DASHBOARD_SETTING = as.character(DASHBOARD_SETTING),
-               ADJ_PRIORITY = as.character(ADJ_PRIORITY),
-               DASHBOARD_PRIORITY = as.character(DASHBOARD_PRIORITY),
-               ORDER_TIME = format(ORDER_TIME, "%Y-%m-%d %H:%M:%S"),
-               COLLECT_TIME = format(COLLECT_TIME, "%Y-%m-%d %H:%M:%S"),
-               RECEIVE_TIME = format(RECEIVE_TIME, "%Y-%m-%d %H:%M:%S"),
-               RESULT_TIME = format(RESULT_TIME, "%Y-%m-%d %H:%M:%S"),
-               RESULT_DATE = format(RESULT_DATE, "%Y-%m-%d"),
-               COLLECT_TO_RECEIVE_TAT = as.numeric(COLLECT_TO_RECEIVE_TAT),
-               RECEIVE_TO_RESULT_TAT = as.numeric(RECEIVE_TO_RESULT_TAT),
-               COLLECT_TO_RESULT_TAT = as.numeric(COLLECT_TO_RESULT_TAT),
-               ADD_ON_FINAL = as.character(ADD_ON_FINAL),
-               MISSING_COLLECT = as.numeric(MISSING_COLLECT),
-               RECEIVE_RESULT_TARGET = as.numeric(RECEIVE_RESULT_TARGET),
-               COLLECT_RESULT_TARGET = as.numeric(COLLECT_RESULT_TARGET),
-               RECEIVE_RESULT_IN_TARGET = as.numeric(RECEIVE_RESULT_IN_TARGET),
-               COLLECT_RESULT_IN_TARGET = as.numeric(COLLECT_RESULT_IN_TARGET),
-               RECEIVE_TIME_TAT_INCL = as.numeric(RECEIVE_TIME_TAT_INCL),
-               COLLECT_TIME_TAT_INCL = as.numeric(COLLECT_TIME_TAT_INCL)
-        ) %>%
-        mutate(across(everything(), as.character)) %>%
-        mutate(across(everything(), gsub, pattern = "\'", replacement = "''")) %>%
-                      # function(x) {gsub("\'", "''", x)})) %>%
-        mutate(across(everything(), replace_na, replace = '')) %>%
-        mutate(across(everything(), gsub, pattern = "&",
-                      replacement = "'||chr(38)||'"))
-      
-      inserts <- lapply(
-        mclapply(
-          mclapply(split(scc_test_level_data , 
-                         1:nrow(scc_test_level_data)),
-                   as.list), 
-          as.character),
-        FUN = get_values_raw_cp_data, temp_table)
-
-      values <- glue_collapse(inserts, sep = "\n\n")
-      
-      # # Combine into statements from get_values() function and combine with insert statements
-      # all_data <- glue('INSERT ALL {values} SELECT 1 from DUAL;')
-      all_data <- all_data_glue(x = values)
-
-      # Truncate query for temporary table -------------
-      truncate_query <- glue('TRUNCATE TABLE "{temp_table}";')
-
-      ## Merge query for repo table -----------
-      # glue() query to merge data from temporary table to repository table
-      query <- merge_to_raw_data_repo_query(temp_table = temp_table,
-                                            repo_table = repo_table)
-
-
-      chunk_length <- 200
-
-      split_insert_queries <- split(inserts,
-                                    ceiling(seq_along(inserts) / chunk_length))
-
-      split_queries_final <- list()
-
-      for (i in 1:length(split_insert_queries)) {
-        row <- glue_collapse(split_insert_queries[[i]], sep = "\n\n")
-        sql <- glue('INSERT ALL {row} SELECT 1 FROM DUAL;')
-        split_queries_final <- append(split_queries_final, sql)
-      }
-
-      oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
-      dbBegin(oao_personal_conn)
-
-      print(paste("Database writing for", names(test_new_scc_function)[[n]]))
-
+      FUN = function(n) {
+        temp_table <- raw_data_temp_table
+        repo_table <- raw_data_repo_table
+        
+        scc_test_level_data <- test_new_scc_function[[n]] %>%
+          mutate(LOC_CODE = as.character(LOC_CODE),
+                 LOC_NAME = as.character(LOC_NAME),
+                 ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", as.character(ORDER_ID)),
+                 REQUEST_MD = as.character(REQUEST_MD),
+                 MSMRN = ifelse(is.na(MSMRN), "NoMRN", as.character(MSMRN)),
+                 WORK_SHIFT = as.character(WORK_SHIFT),
+                 TEST_NAME = as.character(TEST_NAME),
+                 TEST = as.character(TEST),
+                 DIVISION = as.character(DIVISION),
+                 ORDER_PRIORITY = as.character(ORDER_PRIORITY),
+                 SITE = as.character(SITE),
+                 ICU = as.numeric(ICU),
+                 LOC_TYPE = as.character(LOC_TYPE),
+                 SETTING = as.character(SETTING),
+                 SETTING_ROLL_UP = as.character(SETTING_ROLL_UP),
+                 DETAILED_SETTING = as.character(DETAILED_SETTING),
+                 DASHBOARD_SETTING = as.character(DASHBOARD_SETTING),
+                 ADJ_PRIORITY = as.character(ADJ_PRIORITY),
+                 DASHBOARD_PRIORITY = as.character(DASHBOARD_PRIORITY),
+                 ORDER_TIME = format(ORDER_TIME, "%Y-%m-%d %H:%M:%S"),
+                 COLLECT_TIME = format(COLLECT_TIME, "%Y-%m-%d %H:%M:%S"),
+                 RECEIVE_TIME = format(RECEIVE_TIME, "%Y-%m-%d %H:%M:%S"),
+                 RESULT_TIME = format(RESULT_TIME, "%Y-%m-%d %H:%M:%S"),
+                 RESULT_DATE = format(RESULT_DATE, "%Y-%m-%d"),
+                 COLLECT_TO_RECEIVE_TAT = as.numeric(COLLECT_TO_RECEIVE_TAT),
+                 RECEIVE_TO_RESULT_TAT = as.numeric(RECEIVE_TO_RESULT_TAT),
+                 COLLECT_TO_RESULT_TAT = as.numeric(COLLECT_TO_RESULT_TAT),
+                 ADD_ON_FINAL = as.character(ADD_ON_FINAL),
+                 MISSING_COLLECT = as.numeric(MISSING_COLLECT),
+                 RECEIVE_RESULT_TARGET = as.numeric(RECEIVE_RESULT_TARGET),
+                 COLLECT_RESULT_TARGET = as.numeric(COLLECT_RESULT_TARGET),
+                 RECEIVE_RESULT_IN_TARGET = as.numeric(RECEIVE_RESULT_IN_TARGET),
+                 COLLECT_RESULT_IN_TARGET = as.numeric(COLLECT_RESULT_IN_TARGET),
+                 RECEIVE_TIME_TAT_INCL = as.numeric(RECEIVE_TIME_TAT_INCL),
+                 COLLECT_TIME_TAT_INCL = as.numeric(COLLECT_TIME_TAT_INCL)
+                 ) %>%
+          mutate(across(everything(), as.character)) %>%
+          mutate(across(everything(), gsub, pattern = "\'", replacement = "''")) %>%
+          mutate(across(everything(), replace_na, replace = '')) %>%
+          mutate(across(everything(), gsub, pattern = "&",
+                        replacement = "'||chr(38)||'"))
+        
+        inserts <- lapply(
+          mclapply(
+            mclapply(split(scc_test_level_data, 
+                           1:nrow(scc_test_level_data)),
+                     as.list), 
+            as.character),
+          FUN = get_values_raw_cp_data, temp_table)
+        
+        values <- glue_collapse(inserts, sep = "\n\n")
+        
+        # # Combine into statements from get_values() function and combine with insert statements
+        # all_data <- glue('INSERT ALL {values} SELECT 1 from DUAL;')
+        all_data <- all_data_glue(x = values)
+        
+        # Truncate query for temporary table -------------
+        truncate_query <- glue('TRUNCATE TABLE "{temp_table}";')
+        
+        ## Merge query for repo table -----------
+        # glue() query to merge data from temporary table to repository table
+        query <- merge_to_raw_data_repo_query(temp_table = temp_table,
+                                              repo_table = repo_table)
+        
+        chunk_length <- 200
+        
+        split_insert_queries <- split(inserts,
+                                      ceiling(seq_along(inserts) / chunk_length))
+        split_queries_final <- list()
+        
+        for (i in 1:length(split_insert_queries)) {
+          row <- glue_collapse(split_insert_queries[[i]], sep = "\n\n")
+          sql <- glue('INSERT ALL {row} SELECT 1 FROM DUAL;')
+          split_queries_final <- append(split_queries_final, sql)
+          }
+        
+        oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+        dbBegin(oao_personal_conn)
+        
+        print(paste("Database writing for", names(test_new_scc_function)[[n]]))
+        
         tryCatch({
           print("Before first truncate")
           dbExecute(oao_personal_conn, truncate_query)
@@ -1080,152 +1088,151 @@ system.time(
           dbRollback(oao_personal_conn)
           dbExecute(oao_personal_conn, truncate_query)
           dbDisconnect(oao_personal_conn)
-
-        })
-
-    }
-  )
-)
+        } # End error
+        ) # End trycatch
+      } # End function in lapply
+    ) # End lapply
+  ) # End system.time
+} else {
+  print("No SCC data found to add.")
+}
 
 ## Add Sunquest test level data to database ---------
-
-print("Begin adding Sunquest data to raw data repository.")
-
-system.time(
-  lapply(
-    X = seq_along(test_new_sun_function),
-    
-    FUN = function(n) {
-      temp_table <- raw_data_temp_table
-      repo_table <- raw_data_repo_table
+if(length(missing_sun_files) > 0) {
+  print("Begin adding Sunquest data to raw data repository.")
+  
+  system.time(
+    lapply(
+      X = seq_along(test_new_sun_function),
       
-      sun_test_level_data <- test_new_sun_function[[n]] %>%
-        mutate(LOC_CODE = as.character(LOC_CODE),
-               LOC_NAME = as.character(LOC_NAME),
-               ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", as.character(ORDER_ID)),
-               REQUEST_MD = as.character(REQUEST_MD),
-               MSMRN = ifelse(is.na(MSMRN), "NoMRN", as.character(MSMRN)),
-               WORK_SHIFT = as.character(WORK_SHIFT),
-               TEST_NAME = as.character(TEST_NAME),
-               TEST = as.character(TEST),
-               DIVISION = as.character(DIVISION),
-               ORDER_PRIORITY = as.character(ORDER_PRIORITY),
-               SITE = as.character(SITE),
-               ICU = as.numeric(ICU),
-               LOC_TYPE = as.character(LOC_TYPE),
-               SETTING = as.character(SETTING),
-               SETTING_ROLL_UP = as.character(SETTING_ROLL_UP),
-               DETAILED_SETTING = as.character(DETAILED_SETTING),
-               DASHBOARD_SETTING = as.character(DASHBOARD_SETTING),
-               ADJ_PRIORITY = as.character(ADJ_PRIORITY),
-               DASHBOARD_PRIORITY = as.character(DASHBOARD_PRIORITY),
-               ORDER_TIME = format(ORDER_TIME, "%Y-%m-%d %H:%M:%S"),
-               COLLECT_TIME = format(COLLECT_TIME, "%Y-%m-%d %H:%M:%S"),
-               RECEIVE_TIME = format(RECEIVE_TIME, "%Y-%m-%d %H:%M:%S"),
-               RESULT_TIME = format(RESULT_TIME, "%Y-%m-%d %H:%M:%S"),
-               RESULT_DATE = format(RESULT_DATE, "%Y-%m-%d"),
-               COLLECT_TO_RECEIVE_TAT = as.numeric(COLLECT_TO_RECEIVE_TAT),
-               RECEIVE_TO_RESULT_TAT = as.numeric(RECEIVE_TO_RESULT_TAT),
-               COLLECT_TO_RESULT_TAT = as.numeric(COLLECT_TO_RESULT_TAT),
-               ADD_ON_FINAL = as.character(ADD_ON_FINAL),
-               MISSING_COLLECT = as.numeric(MISSING_COLLECT),
-               RECEIVE_RESULT_TARGET = as.numeric(RECEIVE_RESULT_TARGET),
-               COLLECT_RESULT_TARGET = as.numeric(COLLECT_RESULT_TARGET),
-               RECEIVE_RESULT_IN_TARGET = as.numeric(RECEIVE_RESULT_IN_TARGET),
-               COLLECT_RESULT_IN_TARGET = as.numeric(COLLECT_RESULT_IN_TARGET),
-               RECEIVE_TIME_TAT_INCL = as.numeric(RECEIVE_TIME_TAT_INCL),
-               COLLECT_TIME_TAT_INCL = as.numeric(COLLECT_TIME_TAT_INCL)
-        ) %>%
-        mutate(across(everything(), as.character)) %>%
-        mutate(across(everything(), gsub, pattern = "\'", replacement = "''")) %>%
-        # function(x) {gsub("\'", "''", x)})) %>%
-        mutate(across(everything(), replace_na, replace = '')) %>%
-        mutate(across(everything(), gsub, pattern = "&",
-                      replacement = "'||chr(38)||'"))
-      
-      inserts <- lapply(
-        mclapply(
-          mclapply(split(sun_test_level_data , 
-                         1:nrow(sun_test_level_data)),
-                   as.list), 
-          as.character),
-        FUN = get_values_raw_cp_data, temp_table)
-      
-      values <- glue_collapse(inserts, sep = "\n\n")
-      
-      # # Combine into statements from get_values() function and combine with insert statements
-      # all_data <- glue('INSERT ALL {values} SELECT 1 from DUAL;')
-      all_data <- all_data_glue(x = values)
-      
-      # Truncate query for temporary table -------------
-      truncate_query <- glue('TRUNCATE TABLE "{temp_table}";')
-      
-      ## Merge query for repo table -----------
-      # glue() query to merge data from temporary table to repository table
-      query <- merge_to_raw_data_repo_query(temp_table = temp_table,
-                                            repo_table = repo_table)
-      
-      
-      chunk_length <- 200
-      
-      split_insert_queries <- split(inserts,
-                                    ceiling(seq_along(inserts) / chunk_length))
-      
-      split_queries_final <- list()
-      
-      for (i in 1:length(split_insert_queries)) {
-        row <- glue_collapse(split_insert_queries[[i]], sep = "\n\n")
-        sql <- glue('INSERT ALL {row} SELECT 1 FROM DUAL;')
-        split_queries_final <- append(split_queries_final, sql)
-      }
-      
-      oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
-      dbBegin(oao_personal_conn)
-      
-      print(paste("Database writing for", names(test_new_sun_function)[[n]]))
-      
-      tryCatch({
-        print("Before first truncate")
-        dbExecute(oao_personal_conn, truncate_query)
-        print("After first truncate")
+      FUN = function(n) {
+        temp_table <- raw_data_temp_table
+        repo_table <- raw_data_repo_table
         
-        # mclapply(split_queries_final, write_to_temp_table)
+        sun_test_level_data <- test_new_sun_function[[n]] %>%
+          mutate(LOC_CODE = as.character(LOC_CODE),
+                 LOC_NAME = as.character(LOC_NAME),
+                 ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", as.character(ORDER_ID)),
+                 REQUEST_MD = as.character(REQUEST_MD),
+                 MSMRN = ifelse(is.na(MSMRN), "NoMRN", as.character(MSMRN)),
+                 WORK_SHIFT = as.character(WORK_SHIFT),
+                 TEST_NAME = as.character(TEST_NAME),
+                 TEST = as.character(TEST),
+                 DIVISION = as.character(DIVISION),
+                 ORDER_PRIORITY = as.character(ORDER_PRIORITY),
+                 SITE = as.character(SITE),
+                 ICU = as.numeric(ICU),
+                 LOC_TYPE = as.character(LOC_TYPE),
+                 SETTING = as.character(SETTING),
+                 SETTING_ROLL_UP = as.character(SETTING_ROLL_UP),
+                 DETAILED_SETTING = as.character(DETAILED_SETTING),
+                 DASHBOARD_SETTING = as.character(DASHBOARD_SETTING),
+                 ADJ_PRIORITY = as.character(ADJ_PRIORITY),
+                 DASHBOARD_PRIORITY = as.character(DASHBOARD_PRIORITY),
+                 ORDER_TIME = format(ORDER_TIME, "%Y-%m-%d %H:%M:%S"),
+                 COLLECT_TIME = format(COLLECT_TIME, "%Y-%m-%d %H:%M:%S"),
+                 RECEIVE_TIME = format(RECEIVE_TIME, "%Y-%m-%d %H:%M:%S"),
+                 RESULT_TIME = format(RESULT_TIME, "%Y-%m-%d %H:%M:%S"),
+                 RESULT_DATE = format(RESULT_DATE, "%Y-%m-%d"),
+                 COLLECT_TO_RECEIVE_TAT = as.numeric(COLLECT_TO_RECEIVE_TAT),
+                 RECEIVE_TO_RESULT_TAT = as.numeric(RECEIVE_TO_RESULT_TAT),
+                 COLLECT_TO_RESULT_TAT = as.numeric(COLLECT_TO_RESULT_TAT),
+                 ADD_ON_FINAL = as.character(ADD_ON_FINAL),
+                 MISSING_COLLECT = as.numeric(MISSING_COLLECT),
+                 RECEIVE_RESULT_TARGET = as.numeric(RECEIVE_RESULT_TARGET),
+                 COLLECT_RESULT_TARGET = as.numeric(COLLECT_RESULT_TARGET),
+                 RECEIVE_RESULT_IN_TARGET = as.numeric(RECEIVE_RESULT_IN_TARGET),
+                 COLLECT_RESULT_IN_TARGET = as.numeric(COLLECT_RESULT_IN_TARGET),
+                 RECEIVE_TIME_TAT_INCL = as.numeric(RECEIVE_TIME_TAT_INCL),
+                 COLLECT_TIME_TAT_INCL = as.numeric(COLLECT_TIME_TAT_INCL)
+                 ) %>%
+          mutate(across(everything(), as.character)) %>%
+          mutate(across(everything(), gsub, pattern = "\'", replacement = "''")) %>%
+          mutate(across(everything(), replace_na, replace = '')) %>%
+          mutate(across(everything(), gsub, pattern = "&",
+                        replacement = "'||chr(38)||'"))
         
-        registerDoParallel()
+        inserts <- lapply(
+          mclapply(
+            mclapply(split(sun_test_level_data , 
+                           1:nrow(sun_test_level_data)),
+                     as.list), 
+            as.character),
+          FUN = get_values_raw_cp_data, temp_table)
         
-        foreach(i = 1:length(split_queries_final),
-                .packages = c("DBI", "odbc"))%dopar%{
-                  oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
-                  dbBegin(oao_personal_conn)
-                  dbExecute(oao_personal_conn, split_queries_final[[i]])
-                  dbCommit(oao_personal_conn)
+        values <- glue_collapse(inserts, sep = "\n\n")
+        
+        # # Combine into statements from get_values() function and combine with insert statements
+        # all_data <- glue('INSERT ALL {values} SELECT 1 from DUAL;')
+        all_data <- all_data_glue(x = values)
+        
+        # Truncate query for temporary table -------------
+        truncate_query <- glue('TRUNCATE TABLE "{temp_table}";')
+        
+        ## Merge query for repo table -----------
+        # glue() query to merge data from temporary table to repository table
+        query <- merge_to_raw_data_repo_query(temp_table = temp_table,
+                                              repo_table = repo_table)
+      
+        chunk_length <- 200
+        
+        split_insert_queries <- split(inserts,
+                                      ceiling(seq_along(inserts) / chunk_length))
+        
+        split_queries_final <- list()
+        
+        for (i in 1:length(split_insert_queries)) {
+          row <- glue_collapse(split_insert_queries[[i]], sep = "\n\n")
+          sql <- glue('INSERT ALL {row} SELECT 1 FROM DUAL;')
+          split_queries_final <- append(split_queries_final, sql)
+          }
+        
+        oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+        dbBegin(oao_personal_conn)
+        
+        print(paste("Database writing for", names(test_new_sun_function)[[n]]))
+        
+        tryCatch({
+          print("Before first truncate")
+          dbExecute(oao_personal_conn, truncate_query)
+          print("After first truncate")
+          
+          # mclapply(split_queries_final, write_to_temp_table)
+          
+          registerDoParallel()
+          
+          foreach(i = 1:length(split_queries_final),
+                  .packages = c("DBI", "odbc"))%dopar%{
+                    oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+                    dbBegin(oao_personal_conn)
+                    dbExecute(oao_personal_conn, split_queries_final[[i]])
+                    dbCommit(oao_personal_conn)
                   
                 }
-        
-        registerDoSEQ()
-        
-        print("After all rows added to temporary table")
-        dbExecute(oao_personal_conn, query)
-        print("After merge into repo table")
-        dbExecute(oao_personal_conn, truncate_query)
-        print("After second truncate")
-        dbCommit(oao_personal_conn)
-        print("After repo table commit")
-        dbDisconnect(oao_personal_conn)
-        print("Success!")
-      },
-      error = function(err){
-        print("error")
-        dbRollback(oao_personal_conn)
-        dbExecute(oao_personal_conn, truncate_query)
-        dbDisconnect(oao_personal_conn)
-        
-      })
-      
-    }
-  )
-)
-
-
-
+          
+          registerDoSEQ()
+          
+          print("After all rows added to temporary table")
+          dbExecute(oao_personal_conn, query)
+          print("After merge into repo table")
+          dbExecute(oao_personal_conn, truncate_query)
+          print("After second truncate")
+          dbCommit(oao_personal_conn)
+          print("After repo table commit")
+          dbDisconnect(oao_personal_conn)
+          print("Success!")
+          },
+          error = function(err){
+            print("error")
+            dbRollback(oao_personal_conn)
+            dbExecute(oao_personal_conn, truncate_query)
+            dbDisconnect(oao_personal_conn)
+          } # End error
+        ) # End try catch
+      } # End custom function in lapply
+    ) # End lapply
+  ) # End sys.time
+} else {
+  print("No Sunquest data found to add.")
+}
 
