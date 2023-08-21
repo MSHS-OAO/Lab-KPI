@@ -71,6 +71,8 @@ user_directory <- paste0(define_root_path(),
                          "HSPI-PM/",
                          "Operations Analytics and Optimization/Projects/",
                          "Service Lines/Lab Kpi/Data")
+
+
 ```
 
 ## Reference data
@@ -140,13 +142,13 @@ raw_data_repo_table <- "CP_RAW_DATA_60DAYS"
 # raw_data_repo_table <- "TEST_OUTPUT_MESSAGES"
 
 # Keep only last 60 days of data
-# remove_dates_query <- glue(
-#   "DELETE FROM {raw_data_repo_table} where
-#     (RESULT_DATE < TO_DATE('{min(last_60_days$DATE)}', 'YYYY-MM-DD'));")
-
 remove_dates_query <- glue(
   "DELETE FROM {raw_data_repo_table} where
-  (RESULT_DATE > (TO_DATE('{today}', 'YYYY-MM-DD') - 4));")
+    (RESULT_DATE < TO_DATE('{min(last_60_days$DATE)}', 'YYYY-MM-DD'));")
+
+# remove_dates_query <- glue(
+#   "DELETE FROM {raw_data_repo_table} where
+#   (RESULT_DATE > (TO_DATE('{today}', 'YYYY-MM-DD') - 4));")
 
 oao_personal_conn <- dbConnect(odbc(), oao_cloud_db)
 
