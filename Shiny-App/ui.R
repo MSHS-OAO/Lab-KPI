@@ -304,79 +304,79 @@ ui <-
                           )
                         )
                ),
-               # Data Submissions ----
-               tabPanel("Data Submission",
-                        tabsetPanel(
-                          tabPanel("Clinical Pathology Efficiency Indicators",
-                                   fluidPage(
-                                     fluidRow(h4("SCC"),
-                                              fileInput("scc",
-                                                        label = "Submit SCC file"
-                                                        )
-                                              ),
-                                     fluidRow(h4("Sunquest"),
-                                              fileInput("sunquest",
-                                                        label = "Submit Sunquest file"
-                                                        )
-                                              ),
-                                     fluidRow(actionButton(
-                                       inputId = "submit_cp_eff_data",
-                                       label = "Submit",
-                                       class = "btn-primary"
-                                     )
-                                     )
-                                   )
-                          ),
-                          tabPanel("Anatomic Pathology Efficiency Indicators",
-                                   fluidPage(
-                                     fluidRow(h4("Report Date"),
-                                              dateInput("ap_report_date",
-                                                        label = "Select the date the reports are generated:",
-                                                        value = Sys.Date(),
-                                                        max = Sys.Date(),
-                                                        min = Sys.Date() -7)
-                                     ),
-                                     fluidRow(h4("Epic Cytology"),
-                                              fileInput("epic_cyto",
-                                                        label = "Submit Epic Cytology file"
-                                                        )
-                                              ),
-                                     fluidRow(h4("AP & Cytology Signed Cases"),
-                                              fileInput("ap_cyto_signed",
-                                                        label = "Submit AP & Cytology signed cases file"
-                                                        )
-                                              ),
-                                     fluidRow(h4("Cytology Backlog"),
-                                              fileInput("cyto_backlog",
-                                                        label = "Submit Cytology backlog file"
-                                                        )
-                                              ),
-                                     fluidRow(actionButton(
-                                       inputId = "submit_ap_eff_data",
-                                       label = "Submit",
-                                       class = "btn-primary"
-                                     )
-                                     )
-                                   )
-                          ),
-                          tabPanel("Ops & Quality Indicators",
-                                   fluidPage(
-                                     fluidRow(h4("Ops & Quality Indicators"),
-                                              fileInput("ops_qlty",
-                                                        label = "Submit form responses for Ops & Quality Indicators"
-                                                        )
-                                              ),
-                                     fluidRow(
-                                       actionButton(
-                                         inputId = "submit_ops_qlty_data",
-                                         label = "Submit",
-                                         class = "btn-primary"
-                                       )
-                                     )
-                                   )
-                          )
-                        )
-               ),
+               # # Data Submissions ----
+               # tabPanel("Data Submission",
+               #          tabsetPanel(
+               #            tabPanel("Clinical Pathology Efficiency Indicators",
+               #                     fluidPage(
+               #                       fluidRow(h4("SCC"),
+               #                                fileInput("scc",
+               #                                          label = "Submit SCC file"
+               #                                          )
+               #                                ),
+               #                       fluidRow(h4("Sunquest"),
+               #                                fileInput("sunquest",
+               #                                          label = "Submit Sunquest file"
+               #                                          )
+               #                                ),
+               #                       fluidRow(actionButton(
+               #                         inputId = "submit_cp_eff_data",
+               #                         label = "Submit",
+               #                         class = "btn-primary"
+               #                       )
+               #                       )
+               #                     )
+               #            ),
+               #            tabPanel("Anatomic Pathology Efficiency Indicators",
+               #                     fluidPage(
+               #                       fluidRow(h4("Report Date"),
+               #                                dateInput("ap_report_date",
+               #                                          label = "Select the date the reports are generated:",
+               #                                          value = Sys.Date(),
+               #                                          max = Sys.Date(),
+               #                                          min = Sys.Date() -7)
+               #                       ),
+               #                       fluidRow(h4("Epic Cytology"),
+               #                                fileInput("epic_cyto",
+               #                                          label = "Submit Epic Cytology file"
+               #                                          )
+               #                                ),
+               #                       fluidRow(h4("AP & Cytology Signed Cases"),
+               #                                fileInput("ap_cyto_signed",
+               #                                          label = "Submit AP & Cytology signed cases file"
+               #                                          )
+               #                                ),
+               #                       fluidRow(h4("Cytology Backlog"),
+               #                                fileInput("cyto_backlog",
+               #                                          label = "Submit Cytology backlog file"
+               #                                          )
+               #                                ),
+               #                       fluidRow(actionButton(
+               #                         inputId = "submit_ap_eff_data",
+               #                         label = "Submit",
+               #                         class = "btn-primary"
+               #                       )
+               #                       )
+               #                     )
+               #            ),
+               #            tabPanel("Ops & Quality Indicators",
+               #                     fluidPage(
+               #                       fluidRow(h4("Ops & Quality Indicators"),
+               #                                fileInput("ops_qlty",
+               #                                          label = "Submit form responses for Ops & Quality Indicators"
+               #                                          )
+               #                                ),
+               #                       fluidRow(
+               #                         actionButton(
+               #                           inputId = "submit_ops_qlty_data",
+               #                           label = "Submit",
+               #                           class = "btn-primary"
+               #                         )
+               #                       )
+               #                     )
+               #            )
+               #          )
+               # ),
                tabPanel("Assumptions & Methodology")
     )
 
