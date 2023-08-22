@@ -96,68 +96,106 @@ define_root_path <- function(){
   return(output)
 }
 
-user_directory <- paste0(define_root_path(),
-                         "HSPI-PM/",
-                         "Operations Analytics and Optimization/Projects/",
-                         "Service Lines/Lab Kpi/Data")
+# user_directory <- paste0(define_root_path(),
+#                          "HSPI-PM/",
+#                          "Operations Analytics and Optimization/Projects/",
+#                          "Service Lines/Lab Kpi/Data")
+# 
+# daily_repo <- readRDS(
+#   paste0(define_root_path(),
+#          "HSPI-PM/",
+#          "Operations Analytics and Optimization/Projects/",
+#          "Service Lines/Lab Kpi/Data/",
+#          "CP Repositories/DailyRepo/",
+#          "Daily Repo 12-01-20 to 05-21-23 as of 05-22-23.RDS")
+# )
 
-daily_repo <- readRDS(
-  paste0(define_root_path(),
-         "HSPI-PM/",
-         "Operations Analytics and Optimization/Projects/",
-         "Service Lines/Lab Kpi/Data/",
-         "CP Repositories/DailyRepo/",
-         "Daily Repo 12-01-20 to 05-21-23 as of 05-22-23.RDS")
-)
+# # AP Summary Import ----
+# ap_summary <- readRDS(paste0(user_directory,
+#                              "/Shiny App Repo/APDailySummary",
+#                              "/APRepo180Days.rds"))
+# 
+# # AP Backlog Import 
+# backlog_daily_repo <- readRDS(paste0(user_directory,
+#                                      "/Shiny App Repo/APDailySummary",
+#                                      "/BacklogRepo180Days.rds"))
 
-# AP Summary Import ----
-ap_summary <- readRDS(paste0(user_directory,
-                             "/Shiny App Repo/APDailySummary",
-                             "/APRepo180Days.rds"))
+# CP Reference Tables -------------------
+oao_cloud_db <- "OAO Cloud DB Kate"
 
-# AP Backlog Import 
-backlog_daily_repo <- readRDS(paste0(user_directory,
-                                     "/Shiny App Repo/APDailySummary",
-                                     "/BacklogRepo180Days.rds"))
+## Begin connection -------
+oao_personal_conn <- dbConnect(odbc(), oao_cloud_db)
 
-# Import analysis reference data
-reference_file <- paste0(user_directory,
-                         "/Code Reference/",
-                         "Analysis Reference 2022-06-21.xlsx")
+## MSHS Sites -----------
+cp_mshs_sites <- tbl(oao_personal_conn, "CP_SITE_NAMES") %>%
+  collect() %>%
+  rename(Site = SITE)
 
-# CP and Micro --------------------------------
-scc_test_code <- read_excel(reference_file, sheet = "SCC_TestCodes")
-sun_test_code <- read_excel(reference_file, sheet = "SUN_TestCodes")
+## Test Codes -----------
+
+cp_scc_test_codes <- tbl(oao_personal_conn, "CP_SCC_TEST_CODES") %>%
+  collect()
+
+cp_sun_test_codes <- tbl(oao_personal_conn, "CP_SUN_TEST_CODES") %>%
+  collect()
+
+## TAT Targets ---------
+cp_tat_targets <- tbl(oao_personal_conn, "CP_TAT_TARGETS") %>%
+  collect() %>%
+  mutate(Concate = ifelse(
+    PRIORITY == "All" & PT_SETTING == "All", paste(TEST, DIVISION),
+    ifelse(PRIORITY != "All" & PT_SETTING == "All",
+           paste(TEST, DIVISION, PRIORITY),
+           paste(TEST, DIVISION, PRIORITY, PT_SETTING))))
+
+## Patient Setting and ICU -----------
+cp_scc_setting <- tbl(oao_personal_conn, "CP_SCC_CLINIC_TYPE") %>%
+  collect()
+
+cp_sun_setting <- tbl(oao_personal_conn, "CP_SUN_LOC_TYPE") %>%
+  collect()
+
+cp_scc_icu <- tbl(oao_personal_conn, "CP_SCC_ICU") %>%
+  collect() %>%
+  mutate(SiteCodeName = paste(SITE, WARD, WARD_NAME))
+
+cp_sun_icu <- tbl(oao_personal_conn, "CP_SUN_ICU") %>%
+  collect() %>%
+  mutate(SiteCodeName = paste(SITE, LOC_CODE, LOC_NAME))
+
+## Disconnect -----------
+dbDisconnect(oao_personal_conn)
+
 
 # Create data frame of CP tests and divisions
-cp_test_divisions <- 
+cp_test_divisions <-
   unique(
-    rbind(unique(scc_test_code[, c("Test", "Division")]),
-          unique(sun_test_code[, c("Test", "Division")])))
+    rbind(unique(cp_scc_test_codes[, c("TEST", "DIVISION")]),
+          unique(cp_sun_test_codes[, c("TEST", "DIVISION")])))
 
-tat_targets <- read_excel(reference_file, sheet = "Turnaround Targets")
+# tat_targets <- read_excel(reference_file, sheet = "Turnaround Targets")
 #
 # Add a column concatenating test, priority, and setting for matching later
-tat_targets <- tat_targets %>%
-  mutate(Concate = ifelse(
-    Priority == "All" & `PtSetting` == "All", paste(Test, Division),
-    ifelse(Priority != "All" & `PtSetting` == "All",
-           paste(Test, Division, Priority),
-           paste(Test, Division, Priority, `PtSetting`))))
-
-scc_icu <- read_excel(reference_file, sheet = "SCC_ICU")
-sun_icu <- read_excel(reference_file, sheet = "SUN_ICU")
-
-scc_icu <- scc_icu %>%
-  mutate(SiteCodeName = paste(Site, Ward, Ward_Name))
-
-sun_icu <- sun_icu %>%
-  mutate(SiteCodeName = paste(Site, LocCode, LocName))
-
-scc_setting <- read_excel(reference_file, sheet = "SCC_ClinicType")
-sun_setting <- read_excel(reference_file, sheet = "SUN_LocType")
-
-mshs_site <- read_excel(reference_file, sheet = "SiteNames")
+# # tat_targets <- tat_targets %>%
+# #   mutate(Concate = ifelse(
+# #     Priority == "All" & `PtSetting` == "All", paste(Test, Division),
+# #     ifelse(Priority != "All" & `PtSetting` == "All",
+# #            paste(Test, Division, Priority),
+# #            paste(Test, Division, Priority, `PtSetting`))))
+# 
+# scc_icu <- read_excel(reference_file, sheet = "SCC_ICU")
+# sun_icu <- read_excel(reference_file, sheet = "SUN_ICU")
+# 
+# scc_icu <- scc_icu %>%
+#   mutate(SiteCodeName = paste(Site, Ward, Ward_Name))
+# 
+# sun_icu <- sun_icu %>%
+#   mutate(SiteCodeName = paste(Site, LocCode, LocName))
+# 
+# scc_setting <- read_excel(reference_file, sheet = "SCC_ClinicType")
+# sun_setting <- read_excel(reference_file, sheet = "SUN_LocType")
+# 
+# mshs_site <- read_excel(reference_file, sheet = "SiteNames")
 
 ###code to be moved to the CP code
 #scc_wday <- scc_weekday
@@ -216,70 +254,34 @@ ops_indicators_facility_df <- data.frame(
 # volume
 # Create template data frames for combinations of tests, priority and settings
 # that will be used in TAT tables and volume lookback tables
-test_name_division <- unique(cp_test_divisions[, c("Division", "Test")])
+tat_base_template <-
+  expand.grid(
+    "Test" = test_names,
+    "Site" = all_sites,
+    "DashboardPriority" = dashboard_priority_order,
+    "DashboardSetting" = dashboard_pt_setting,
+    KEEP.OUT.ATTRS = FALSE,
+    stringsAsFactors = FALSE
+  ) %>%
+  arrange(Test, Site) %>%
+  left_join(cp_test_divisions, by = c("Test" = "TEST"))
 
-test_names <- cp_test_divisions$Test
-
-# Create data frame of test and site combinations
-rep_test_site <- sort(rep(test_names, length(all_sites)))
-
-rep_sites <- rep(all_sites, length(test_names))
-
-test_site_comb <- data.frame("Test" = rep_test_site,
-                             "Site" = rep_sites,
-                             stringsAsFactors = FALSE)
-
-# Create data frame of test and priority combinations
-rep_test_priority <- sort(rep(test_names, length(dashboard_priority_order)))
-
-rep_priority <- rep(dashboard_priority_order, length(test_names))
-
-test_priority_comb <- data.frame("Test" = rep_test_priority,
-                                 "DashboardPriority" = rep_priority,
-                                 stringsAsFactors = FALSE)
-
-# Create data frame of test and setting combinations for TAT tables
-rep_test_setting_tat <- sort(rep(test_names, length(dashboard_pt_setting)))
-
-rep_setting_tat <- rep(dashboard_pt_setting, length(test_names))
-
-test_setting_comb_tat <- data.frame("Test" = rep_test_setting_tat,
-                                    "DashboardSetting" = rep_setting_tat,
-                                    stringsAsFactors = FALSE)
-
-# Create data frame of test and setting combinations for volume lookback tables
-rep_test_setting_vol <- sort(rep(test_names, length(pt_setting_order)))
-
-rep_setting_vol <- rep(pt_setting_order, length(test_names))
-
-test_setting_comb_vol <- data.frame("Test" = rep_test_setting_vol,
-                                    "PtSetting" = rep_setting_vol,
-                                    stringsAsFactors = FALSE)
-
-# Combine data frames to create data frame with all combinations of tests,
-# sites, priority, and settings for both TAT tables and lookback tables
-test_site_prty <- left_join(test_site_comb,
-                            test_priority_comb,
-                            by = c("Test" = "Test"))
-
-test_site_prty_setting_tat <- left_join(test_site_prty,
-                                        test_setting_comb_tat,
-                                        by = c("Test" = "Test"))
-
-test_site_prty_setting_tat <- left_join(test_site_prty_setting_tat,
-                                        cp_test_divisions,
-                                        by = c("Test" = "Test"))
-
-test_site_prty_setting_vol <- left_join(test_site_prty,
-                                        test_setting_comb_vol,
-                                        by = c("Test" = "Test"))
-
-test_site_prty_setting_vol <- left_join(test_site_prty_setting_vol,
-                                        cp_test_divisions,
-                                        by = c("Test" = "Test"))
+vol_base_template <- 
+  expand.grid(
+    "Test" = test_names,
+    "Site" = all_sites,
+    "DashboardPriority" = dashboard_priority_order,
+    "PtSetting" = pt_setting_order,
+    KEEP.OUT.ATTRS = FALSE,
+    stringsAsFactors = FALSE
+  ) %>%
+  arrange(Test, Site) %>%
+  left_join(cp_test_divisions, by = c("Test" = "TEST")) %>%
+  arrange(Test, Site, DashboardPriority, PtSetting)
 
 # Select applicable test, priority, setting combinations based on lab operations
-tat_dashboard_templ <- test_site_prty_setting_tat %>%
+tat_dashboard_templ <- tat_base_template %>%
+  rename(Division = DIVISION) %>%
   mutate(
     # Update Division for RTC to Infusion
     Division = ifelse(Site %in% c("RTC"), "Infusion", Division),
@@ -311,7 +313,8 @@ tat_dashboard_templ <- test_site_prty_setting_tat %>%
            !(DashboardPriority %in% c("All")))), "Excl", "Incl")) %>%
   filter(Incl == "Incl")
 
-vol_dashboard_templ <- test_site_prty_setting_vol %>%
+vol_dashboard_templ <- vol_base_template %>%
+  rename(Division = DIVISION) %>%
   mutate(
     # Update Division for RTC to Infusion
     Division = ifelse(Site %in% c("RTC"), "Infusion", Division),
