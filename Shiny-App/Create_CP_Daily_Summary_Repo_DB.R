@@ -61,9 +61,8 @@ user_directory <- paste0(define_root_path(),
 daily_summary_repo <- readRDS(
   paste0(user_directory,
          "/CP Repositories/DailyRepo",
-         "/Daily Repo 12-01-20 to 08-06-23 as of 08-07-23.RDS")
+         "/Daily Repo 12-01-20 to 08-20-23 as of 08-22-23.RDS")
 )
-
 
 daily_repo_db <- daily_summary_repo %>%
   select(-WeekStart, -WeekEnd, -WeekOf,
@@ -196,12 +195,12 @@ get_values_daily_summary <- function(x, table_name){
   return(values)
 }
 
-temp_table_name <- "CP_DAILY_REPO_TEMP"
-repo_table_name <- "CP_DAILY_REPO"
+daily_summary_temp_table <- "CP_DAILY_REPO_TEMP"
+daily_summary_repo_table <- "CP_DAILY_REPO"
 
 # TABLE_NAME <- "CP_DAILY_REPO"
 
-test_data <- daily_repo_db[1:900, ]
+# test_data <- daily_repo_db[1:10000, ]
 
 # processed_input_data <- test_data
 processed_input_data <- daily_repo_db
@@ -255,7 +254,7 @@ system.time(
                      1:nrow(processed_input_data)),
                as.list),
       as.character),
-    FUN = get_values_daily_summary, temp_table_name)
+    FUN = get_values_daily_summary, daily_summary_temp_table)
 )
 
 values <- glue_collapse(inserts,sep = "\n\n")
@@ -266,8 +265,8 @@ all_data <- glue('INSERT ALL
                  SELECT 1 from DUAL;')
 
 # glue() query to merge data from temporary table to repository table
-query <- glue('MERGE INTO "{repo_table_name}" RT
-                    USING "{temp_table_name}" SOURCE_TABLE
+query <- glue('MERGE INTO "{daily_summary_repo_table}" RT
+                    USING "{daily_summary_temp_table}" SOURCE_TABLE
                     ON (RT."SITE" = SOURCE_TABLE."SITE" AND
                         RT."RESULT_DATE" = SOURCE_TABLE."RESULT_DATE" AND
                         RT."TEST" = SOURCE_TABLE."TEST" AND
@@ -355,7 +354,7 @@ query <- glue('MERGE INTO "{repo_table_name}" RT
                     );')
 
 # Glue query for truncating temporary table
-truncate_query <- glue('TRUNCATE TABLE "{temp_table_name}";')
+truncate_query <- glue('TRUNCATE TABLE "{daily_summary_temp_table}";')
 
 chunk_length <- 200
 
