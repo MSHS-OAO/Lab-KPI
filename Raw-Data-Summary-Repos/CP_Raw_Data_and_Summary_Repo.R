@@ -284,6 +284,11 @@ preprocess_scc <- function(raw_scc)  {
              ifelse(!is.na(x) & str_detect(x, "\\*.*\\*"),
                     str_replace(x, "\\*.*\\*", ""), x))
   
+  raw_scc <- raw_scc %>%
+    mutate(across(where(is.character), gsub,
+                  pattern = "\\*.*\\*",
+                  replacement = ""))
+  
   raw_scc[c("ORDERING_DATE",
             "COLLECTION_DATE",
             "RECEIVE_DATE",
@@ -520,6 +525,11 @@ preprocess_daily_sun <- function(raw_sun) {
                      "ResultDateTime")],
            function(x) ifelse(!is.na(x) & str_detect(x, "\\*.*\\*")  == TRUE,
                               str_replace(x, "\\*.*\\*", ""), x))
+  
+  raw_sun <- raw_sun %>%
+    mutate(across(where(is.character), gsub,
+                  pattern = "\\*.*\\*",
+                  replacement = ""))
   
   raw_sun[c("OrderDateTime",
             "CollectDateTime",
