@@ -1,6 +1,3 @@
-library(shiny)
-library(shinyWidgets)
-library(shinydashboard)
 
 
 ui <- 
@@ -39,6 +36,7 @@ ui <-
   #     }"
   #   ),
     navbarPage("MSHS Lab KPI Dashboard",
+               fluid = TRUE,
                tabPanel("Efficiency Indicators",
                         tabsetPanel(
                           tabPanel("Chemistry",
@@ -57,6 +55,10 @@ ui <-
                                             "Green: </span>",
                                             ">=95%",
                                             "</h5>")
+                                   ),
+                                   fluidRow(
+                                     dateInput("chem_tat_date", "Resulted Lab Date:",
+                                               value = chemistry_default_date)
                                    ),
                                    fluidRow(
                                      tableOutput("chemistry_kpi")

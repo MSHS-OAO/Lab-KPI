@@ -487,27 +487,30 @@ summarize_cp_tat <- function(x, lab_division) {
   } else {
     # Subset data to be included based on lab division, whether or not TAT
     # meets inclusion criteria, and site location
-    lab_div_df <- x %>%
-      filter(Division == lab_division)
-    #
-    # Summarize data based on test, site, priority, setting, and TAT targets.
-    lab_summary <- lab_div_df %>%
-      group_by(Test,
-               Site,
-               DashboardPriority,
-               DashboardSetting,
-               ReceiveResultTarget,
-               CollectResultTarget) %>%
-      summarize(ResultedVolume = sum(TotalResulted),
-                ResultedVol_ReceiveTAT = sum(ReceiveTime_VolIncl),
-                ResultedVol_CollectTAT = sum(CollectTime_VolIncl),
-                ReceiveResultInTarget = sum(TotalReceiveResultInTarget),
-                CollectResultInTarget = sum(TotalCollectResultInTarget),
+    lab_summary <- x %>%
+      filter(DIVISION == lab_division) %>%
+      group_by(TEST,
+               SITE,
+               DASHBOARD_PRIORITY,
+               DASHBOARD_SETTING,
+               RECEIVE_RESULT_TARGET,
+               COLLECT_RESULT_TARGET) %>%
+      summarize(ResultedVolume = sum(TOTAL_RESULTED),
+                ResultedVol_ReceiveTAT = sum(RECEIVE_TIME_VOL_INCL),
+                ResultedVol_CollectTAT = sum(COLLECT_TIME_VOL_INCL),
+                ReceiveResultInTarget = sum(TOTAL_RECEIVE_RESULT_IN_TARGET),
+                CollectResultInTarget = sum(TOTAL_COLLECT_RESULT_IN_TARGET),
                 ReceiveResultPercent = round(
                   ReceiveResultInTarget / ResultedVol_ReceiveTAT, digits = 3),
                 CollectResultPercent = round(
                   CollectResultInTarget / ResultedVol_CollectTAT, digits = 3),
                 .groups = "keep") %>%
+      rename(Test = TEST,
+             Site = SITE,
+             DashboardPriority = DASHBOARD_PRIORITY,
+             DashboardSetting = DASHBOARD_SETTING,
+             ReceiveResultTarget = RECEIVE_RESULT_TARGET,
+             CollectResultTarget = COLLECT_RESULT_TARGET) %>%
       ungroup()
     #
     # Subset template data frame for this division
@@ -561,17 +564,17 @@ summarize_cp_tat <- function(x, lab_division) {
           ifelse(!is.na(ReceiveResultTarget), ReceiveResultTarget,
                  # Try to match on scenario 1
                  ifelse(
-                   !is.na(match(Concate3, tat_targets$Concate)),
-                   tat_targets$ReceiveToResultTarget[
-                     match(Concate3, tat_targets$Concate)],
+                   !is.na(match(Concate3, cp_tat_targets$Concate)),
+                   cp_tat_targets$RECEIVE_TO_RESULT_TARGET[
+                     match(Concate3, cp_tat_targets$Concate)],
                    # Try to match on scenario 2
                    ifelse(
-                     !is.na(match(Concate2, tat_targets$Concate)),
-                     tat_targets$ReceiveToResultTarget[
-                       match(Concate2, tat_targets$Concate)],
+                     !is.na(match(Concate2, cp_tat_targets$Concate)),
+                     cp_tat_targets$RECEIVE_TO_RESULT_TARGET[
+                       match(Concate2, cp_tat_targets$Concate)],
                      # Try to match on scenario 3
-                     tat_targets$ReceiveToResultTarget[
-                       match(Concate1, tat_targets$Concate)]))),
+                     cp_tat_targets$RECEIVE_TO_RESULT_TARGET[
+                       match(Concate1, cp_tat_targets$Concate)]))),
         #
         # Determine Collect to Result TAT target based on above logic/scenarios
         # Determine Receive to Result TAT target based on above logic/scenarios
@@ -580,17 +583,17 @@ summarize_cp_tat <- function(x, lab_division) {
           ifelse(!is.na(CollectResultTarget), CollectResultTarget,
                  # Try to match on scenario 1
                  ifelse(
-                   !is.na(match(Concate3, tat_targets$Concate)),
-                   tat_targets$CollectToResultTarget[
-                     match(Concate3, tat_targets$Concate)],
+                   !is.na(match(Concate3, cp_tat_targets$Concate)),
+                   cp_tat_targets$COLLECT_TO_RESULT_TARGET[
+                     match(Concate3, cp_tat_targets$Concate)],
                    # Try to match on scenario 2
                    ifelse(
-                     !is.na(match(Concate2, tat_targets$Concate)),
-                     tat_targets$CollectToResultTarget[
-                       match(Concate2, tat_targets$Concate)],
+                     !is.na(match(Concate2, cp_tat_targets$Concate)),
+                     cp_tat_targets$COLLECT_TO_RESULT_TARGET[
+                       match(Concate2, cp_tat_targets$Concate)],
                      # Try to match on scenario 3
-                     tat_targets$CollectToResultTarget[
-                       match(Concate1, tat_targets$Concate)]))),
+                     cp_tat_targets$COLLECT_TO_RESULT_TARGET[
+                       match(Concate1, cp_tat_targets$Concate)]))),
         #
         # Format target TAT for tables from numbers to "<=X min"
         ReceiveResultTarget = paste0("<=", ReceiveResultTarget, " min"),
@@ -704,13 +707,14 @@ summarize_cp_tat <- function(x, lab_division) {
     }
   }
   #
-  # Save outputs in a list
-  lab_sub_output <- list(lab_div_df,
-                         lab_summary,
-                         lab_dashboard_melt,
-                         lab_dashboard_cast)
-  #
-  lab_sub_output
+  # # Save outputs in a list
+  # lab_sub_output <- list(lab_div_df,
+  #                        lab_summary,
+  #                        lab_dashboard_melt,
+  #                        lab_dashboard_cast)
+  # #
+  # lab_sub_output
+  return(lab_dashboard_cast)
 }
 
 # Custom function for creating kables for each CP lab division ----------------

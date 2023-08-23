@@ -9,10 +9,10 @@ server <- function(input, output, session) {
   # Header based on date
   output$chemistry_tat_header <- renderUI({
     
-    input$submit_cp_eff_data
+    input$chem_tat_date
     
     h4(paste0("Chemistry KPI (Labs Resulted on ",
-              format(cp_resulted_date, "%a %m/%d/%y"),
+              format(input$chem_tat_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -22,16 +22,29 @@ server <- function(input, output, session) {
   # KPI TAT Table
   output$chemistry_kpi <- function() {
     
-    input$submit_cp_eff_data
+    input$chem_tat_date
     
-    chem_sub_output <- summarize_cp_tat(x = cp_submitted_daily_summary,
+    chem_result_date <- input$chem_tat_date
+    
+    oao_conn <- dbConnect(odbc(), oao_cloud_db)
+    
+    cp_daily_repo <- tbl(oao_conn, "CP_DAILY_REPO") %>%
+      filter(RESULT_DATE == to_date(chem_result_date, 'YYYY-MM-DD')) %>%
+      # filter(RESULT_DATE == to_date(chemistry_default_date, 'YYYY-MM-DD')) %>%
+      collect()
+    
+    dbDisconnect(oao_conn)
+    
+      
+    chem_sub_output <- summarize_cp_tat(x = cp_daily_repo,
                                         lab_division = "Chemistry")
-    chem_subset <- chem_sub_output[[1]]
-    chem_summary <- chem_sub_output[[2]]
-    chem_dashboard_melt <- chem_sub_output[[3]]
-    chem_dashboard_cast <- chem_sub_output[[4]]
-    
-    kable_cp_tat(x = chem_dashboard_cast)
+    # chem_subset <- chem_sub_output[[1]]
+    # chem_summary <- chem_sub_output[[2]]
+    # chem_dashboard_melt <- chem_sub_output[[3]]
+    # chem_dashboard_cast <- chem_sub_output[[4]]
+    # 
+    # kable_cp_tat(x = chem_dashboard_cast)
+    kable_cp_tat(x = chem_sub_output)
     
   }
   
@@ -701,306 +714,306 @@ server <- function(input, output, session) {
   }
   )
   
-  # Observe event for Ops & Quality Indicators -------
-  observeEvent(input$submit_ops_qlty_data, {
-    button_name <- "submit_ops_qlty_data"
-    shinyjs::disable(button_name)
-    
-    flag <- 0
-    
-    ops_qlty_file <- input$ops_qlty
-    
-    
-    if(is.null(ops_qlty_file))
-    {
-      showModal(modalDialog(
-        title = "Error",
-        "Please submit the latest Operations and Quality Indicators file.",
-        easyClose = TRUE,
-        footer = NULL
-      ))
-    } else {
-      
-      tryCatch({
-        
-        # Read in SCC file
-        ops_qlty_filename <- ops_qlty_file$datapath
-        ops_qlty_data_raw <- read_excel(ops_qlty_filename)
-        
-        flag <- 1
-        
-      },
-      
-      error = function(err){
-        showModal(modalDialog(
-          title = "Read Error",
-          paste0("There seems to be an issue reading this file."),
-          easyClose = TRUE,
-          footer = modalButton("Dismiss")
-        ))
-        shinyjs::enable(button_name)
-      }
-      )
-      
-    }
-    
-    if (flag == 1) {
-      
-      # Try processing the data
-      
-      
-      tryCatch({
-        # Process Sunquest data
-        sun_processed <- preprocess_sun(sun_data_raw)[[1]]
-        sun_date <- preprocess_sun(sun_data_raw)[[2]]
-        
-        flag <- 4
-      },
-      error = function(err){
-        showModal(modalDialog(
-          title = "Processing Error",
-          paste0("There seems to be an issue processing this Sunquest file.",
-                 " Please check that the correct file was selected."),
-          easyClose = TRUE,
-          footer = modalButton("Dismiss")
-        ))
-        shinyjs::enable(button_name)
-      }
-      )
-      
-    }
-    
-
-    
-    
-    
-  }
-  
-  )
-  # Observe event for AP Processing  -------
-  observeEvent(input$submit_ap_eff_data, {
-    button_name <- "submit_ap_eff_data"
-    shinyjs::disable(button_name)
-    
-    flag <- 0
-    
-    report_date <- input$ap_report_date
-    epic_cyto_file <- input$epic_cyto
-    ap_cyto_signed_file <- input$ap_cyto_signed
-    cyto_backlog_file <- input$cyto_backlog
-    resulted_date <<- as.Date(report_date-1)
-    print(typeof(resulted_date))
-    print(resulted_date)
-    
-    if(is.null(report_date)){
-      showModal(modalDialog(
-        title = "Error",
-        "Please select report date",
-        easyClose = TRUE,
-        footer = NULL
-      ))
-    }
-    
-    if(is.null(epic_cyto_file) | is.null(ap_cyto_signed_file) | is.null(cyto_backlog_file) )
-    {
-      showModal(modalDialog(
-        title = "Error",
-        "Please submit all the three latest AP files.",
-        easyClose = TRUE,
-        footer = NULL
-      ))
-    } else {
-      
-      tryCatch({
-        
-        # Read in epic cyto file
-        epic_cyto_filename <- epic_cyto_file$datapath
-        epic_cyto_data_raw <- read_excel(epic_cyto_filename)
-        
-      },
-      
-      error = function(err){
-        showModal(modalDialog(
-          title = "Read Error",
-          paste0("There seems to be an issue reading Epic Cytology file."),
-          easyClose = TRUE,
-          footer = modalButton("Dismiss")
-        ))
-        shinyjs::enable(button_name)
-      }
-      )
-      
-      tryCatch({
-        
-        # Read in signed cases report
-        ap_cyto_signed_filename <- ap_cyto_signed_file$datapath
-        ap_cyto_signed_data_raw <- read_excel(ap_cyto_signed_filename,skip = 1, 1)
-        ap_cyto_signed_data_raw <- ap_cyto_signed_data_raw %>% 
-          filter(row_number() <= n()-1)
-        
-      },
-      
-      error = function(err){
-        showModal(modalDialog(
-          title = "Read Error",
-          paste0("There seems to be an issue reading AP & Cytology Signed Cases file."),
-          easyClose = TRUE,
-          footer = modalButton("Dismiss")
-        ))
-        shinyjs::enable(button_name)
-      }
-      )
-      
-      tryCatch({
-        
-        # Read in epic cyto file
-        cyto_backlog_filename <- cyto_backlog_file$datapath
-        cyto_backlog_data_raw <- read_excel(cyto_backlog_filename,skip = 1, 1)
-        
-        
-      },
-      
-      error = function(err){
-        showModal(modalDialog(
-          title = "Read Error",
-          paste0("There seems to be an issue reading Cytology Backlog file."),
-          easyClose = TRUE,
-          footer = modalButton("Dismiss")
-        ))
-        shinyjs::enable(button_name)
-      }
-      )
-      
-      
-      flag <- 1
-      
-    }
-    
-    if (flag == 1) {
-      
-      # Try processing the data
-      
-      
-      tryCatch({
-        # Process Epic Cytology and AP Signed cases data
-        summarized_data_cyto <- cyto_prep(epic_cyto_data_raw,ap_cyto_signed_data_raw,resulted_date)
-        View(summarized_data_cyto)
-        print(1)
-        # Process  AP Signed cases data
-        summarized_data_patho <- patho_prep(ap_cyto_signed_data_raw,resulted_date)
-        View(summarized_data_patho)
-        print(2)
-        # Process  backlog data
-        processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw)
-        View(processed_backlog_data)
-        
-
-        flag <- 2
-      },
-      error = function(err){
-        showModal(modalDialog(
-          title = "Processing Error",
-          paste0("There seems to be an issue processing this Epic Cytology/ AP Signed Cases Report/ Backlog file.",
-                 "Please check that the correct file was selected."),
-          easyClose = TRUE,
-          footer = modalButton("Dismiss")
-        ))
-        shinyjs::enable(button_name)
-      }
-      )
-      
-    }
-    
-    if (flag == 2) {
-      
-      # save the data
-      
-      tryCatch({
-        if(!is.null(summarized_data_cyto)){
-          remove_dupl_dates_test_level <- anti_join(ap_summary,
-                                                    summarized_data_cyto)
-          
-          ap_summary <- rbind(remove_dupl_dates_test_level, summarized_data_cyto)
-          
-          ap_summary <- ap_summary %>%
-            arrange(SITE, REPORT_DATE)
-          
-          saveRDS(ap_summary,
-                  paste0(user_directory,
-                         "/Shiny App Repo/APDailySummary",
-                         "/APRepo60Days.rds"))
-          print("CYTO")
-          
-        }
-        
-        
-        if(!is.null(summarized_data_patho)){
-          remove_dupl_dates_test_level <- anti_join(ap_summary,
-                                                    summarized_data_patho)
-          
-          ap_summary <- rbind(remove_dupl_dates_test_level, summarized_data_patho)
-          
-          ap_summary <- ap_summary %>%
-            arrange(SITE, REPORT_DATE)
-          
-          saveRDS(ap_summary,
-                  paste0(user_directory,
-                         "/Shiny App Repo/APDailySummary",
-                         "/APRepo60Days.rds"))
-          print("PATHO")
-        }
-        
-        if(!is.null(processed_backlog_data)){
-          remove_dupl_dates_test_level <- anti_join(backlog_daily_repo,
-                                                    processed_backlog_data,
-                                                    by = "Report_Date")
-          
-          backlog_daily_repo <- rbind(remove_dupl_dates_test_level, processed_backlog_data)
-          
-          backlog_daily_repo <- backlog_daily_repo %>%
-            arrange(Facility, Report_Date)
-          
-          saveRDS(backlog_daily_repo,
-                  paste0(user_directory,
-                         "/Shiny App Repo/APDailySummary",
-                         "/BacklogRepo60Days.rds"))
-          
-        }
-      
-        
-        flag <- 3
-      },
-      error = function(err){
-        showModal(modalDialog(
-          title = "Processing Error",
-          paste0("There seems to be an issue storing the data.",
-                 "Please submit again."),
-          easyClose = TRUE,
-          footer = modalButton("Dismiss")
-        ))
-        shinyjs::enable(button_name)
-      }
-      )
-      
-    }
-    
-    if (flag == 3) {
-      showModal(modalDialog(
-        title = "Success",
-        paste0("The data has been submitted successfully!"),
-        easyClose = TRUE,
-        footer = modalButton("Dismiss")
-      ))
-      shinyjs::enable(button_name)
-    }
-    
-    
-    
-  }
-  
-  )
-  
-  
+  # # Observe event for Ops & Quality Indicators -------
+  # observeEvent(input$submit_ops_qlty_data, {
+  #   button_name <- "submit_ops_qlty_data"
+  #   shinyjs::disable(button_name)
+  #   
+  #   flag <- 0
+  #   
+  #   ops_qlty_file <- input$ops_qlty
+  #   
+  #   
+  #   if(is.null(ops_qlty_file))
+  #   {
+  #     showModal(modalDialog(
+  #       title = "Error",
+  #       "Please submit the latest Operations and Quality Indicators file.",
+  #       easyClose = TRUE,
+  #       footer = NULL
+  #     ))
+  #   } else {
+  #     
+  #     tryCatch({
+  #       
+  #       # Read in SCC file
+  #       ops_qlty_filename <- ops_qlty_file$datapath
+  #       ops_qlty_data_raw <- read_excel(ops_qlty_filename)
+  #       
+  #       flag <- 1
+  #       
+  #     },
+  #     
+  #     error = function(err){
+  #       showModal(modalDialog(
+  #         title = "Read Error",
+  #         paste0("There seems to be an issue reading this file."),
+  #         easyClose = TRUE,
+  #         footer = modalButton("Dismiss")
+  #       ))
+  #       shinyjs::enable(button_name)
+  #     }
+  #     )
+  #     
+  #   }
+  #   
+  #   if (flag == 1) {
+  #     
+  #     # Try processing the data
+  #     
+  #     
+  #     tryCatch({
+  #       # Process Sunquest data
+  #       sun_processed <- preprocess_sun(sun_data_raw)[[1]]
+  #       sun_date <- preprocess_sun(sun_data_raw)[[2]]
+  #       
+  #       flag <- 4
+  #     },
+  #     error = function(err){
+  #       showModal(modalDialog(
+  #         title = "Processing Error",
+  #         paste0("There seems to be an issue processing this Sunquest file.",
+  #                " Please check that the correct file was selected."),
+  #         easyClose = TRUE,
+  #         footer = modalButton("Dismiss")
+  #       ))
+  #       shinyjs::enable(button_name)
+  #     }
+  #     )
+  #     
+  #   }
+  #   
+  # 
+  #   
+  #   
+  #   
+  # }
+  # 
+  # )
+  # # Observe event for AP Processing  -------
+  # observeEvent(input$submit_ap_eff_data, {
+  #   button_name <- "submit_ap_eff_data"
+  #   shinyjs::disable(button_name)
+  #   
+  #   flag <- 0
+  #   
+  #   report_date <- input$ap_report_date
+  #   epic_cyto_file <- input$epic_cyto
+  #   ap_cyto_signed_file <- input$ap_cyto_signed
+  #   cyto_backlog_file <- input$cyto_backlog
+  #   resulted_date <<- as.Date(report_date-1)
+  #   print(typeof(resulted_date))
+  #   print(resulted_date)
+  #   
+  #   if(is.null(report_date)){
+  #     showModal(modalDialog(
+  #       title = "Error",
+  #       "Please select report date",
+  #       easyClose = TRUE,
+  #       footer = NULL
+  #     ))
+  #   }
+  #   
+  #   if(is.null(epic_cyto_file) | is.null(ap_cyto_signed_file) | is.null(cyto_backlog_file) )
+  #   {
+  #     showModal(modalDialog(
+  #       title = "Error",
+  #       "Please submit all the three latest AP files.",
+  #       easyClose = TRUE,
+  #       footer = NULL
+  #     ))
+  #   } else {
+  #     
+  #     tryCatch({
+  #       
+  #       # Read in epic cyto file
+  #       epic_cyto_filename <- epic_cyto_file$datapath
+  #       epic_cyto_data_raw <- read_excel(epic_cyto_filename)
+  #       
+  #     },
+  #     
+  #     error = function(err){
+  #       showModal(modalDialog(
+  #         title = "Read Error",
+  #         paste0("There seems to be an issue reading Epic Cytology file."),
+  #         easyClose = TRUE,
+  #         footer = modalButton("Dismiss")
+  #       ))
+  #       shinyjs::enable(button_name)
+  #     }
+  #     )
+  #     
+  #     tryCatch({
+  #       
+  #       # Read in signed cases report
+  #       ap_cyto_signed_filename <- ap_cyto_signed_file$datapath
+  #       ap_cyto_signed_data_raw <- read_excel(ap_cyto_signed_filename,skip = 1, 1)
+  #       ap_cyto_signed_data_raw <- ap_cyto_signed_data_raw %>% 
+  #         filter(row_number() <= n()-1)
+  #       
+  #     },
+  #     
+  #     error = function(err){
+  #       showModal(modalDialog(
+  #         title = "Read Error",
+  #         paste0("There seems to be an issue reading AP & Cytology Signed Cases file."),
+  #         easyClose = TRUE,
+  #         footer = modalButton("Dismiss")
+  #       ))
+  #       shinyjs::enable(button_name)
+  #     }
+  #     )
+  #     
+  #     tryCatch({
+  #       
+  #       # Read in epic cyto file
+  #       cyto_backlog_filename <- cyto_backlog_file$datapath
+  #       cyto_backlog_data_raw <- read_excel(cyto_backlog_filename,skip = 1, 1)
+  #       
+  #       
+  #     },
+  #     
+  #     error = function(err){
+  #       showModal(modalDialog(
+  #         title = "Read Error",
+  #         paste0("There seems to be an issue reading Cytology Backlog file."),
+  #         easyClose = TRUE,
+  #         footer = modalButton("Dismiss")
+  #       ))
+  #       shinyjs::enable(button_name)
+  #     }
+  #     )
+  #     
+  #     
+  #     flag <- 1
+  #     
+  #   }
+  #   
+  #   if (flag == 1) {
+  #     
+  #     # Try processing the data
+  #     
+  #     
+  #     tryCatch({
+  #       # Process Epic Cytology and AP Signed cases data
+  #       summarized_data_cyto <- cyto_prep(epic_cyto_data_raw,ap_cyto_signed_data_raw,resulted_date)
+  #       View(summarized_data_cyto)
+  #       print(1)
+  #       # Process  AP Signed cases data
+  #       summarized_data_patho <- patho_prep(ap_cyto_signed_data_raw,resulted_date)
+  #       View(summarized_data_patho)
+  #       print(2)
+  #       # Process  backlog data
+  #       processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw)
+  #       View(processed_backlog_data)
+  #       
+  # 
+  #       flag <- 2
+  #     },
+  #     error = function(err){
+  #       showModal(modalDialog(
+  #         title = "Processing Error",
+  #         paste0("There seems to be an issue processing this Epic Cytology/ AP Signed Cases Report/ Backlog file.",
+  #                "Please check that the correct file was selected."),
+  #         easyClose = TRUE,
+  #         footer = modalButton("Dismiss")
+  #       ))
+  #       shinyjs::enable(button_name)
+  #     }
+  #     )
+  #     
+  #   }
+  #   
+  #   if (flag == 2) {
+  #     
+  #     # save the data
+  #     
+  #     tryCatch({
+  #       if(!is.null(summarized_data_cyto)){
+  #         remove_dupl_dates_test_level <- anti_join(ap_summary,
+  #                                                   summarized_data_cyto)
+  #         
+  #         ap_summary <- rbind(remove_dupl_dates_test_level, summarized_data_cyto)
+  #         
+  #         ap_summary <- ap_summary %>%
+  #           arrange(SITE, REPORT_DATE)
+  #         
+  #         saveRDS(ap_summary,
+  #                 paste0(user_directory,
+  #                        "/Shiny App Repo/APDailySummary",
+  #                        "/APRepo60Days.rds"))
+  #         print("CYTO")
+  #         
+  #       }
+  #       
+  #       
+  #       if(!is.null(summarized_data_patho)){
+  #         remove_dupl_dates_test_level <- anti_join(ap_summary,
+  #                                                   summarized_data_patho)
+  #         
+  #         ap_summary <- rbind(remove_dupl_dates_test_level, summarized_data_patho)
+  #         
+  #         ap_summary <- ap_summary %>%
+  #           arrange(SITE, REPORT_DATE)
+  #         
+  #         saveRDS(ap_summary,
+  #                 paste0(user_directory,
+  #                        "/Shiny App Repo/APDailySummary",
+  #                        "/APRepo60Days.rds"))
+  #         print("PATHO")
+  #       }
+  #       
+  #       if(!is.null(processed_backlog_data)){
+  #         remove_dupl_dates_test_level <- anti_join(backlog_daily_repo,
+  #                                                   processed_backlog_data,
+  #                                                   by = "Report_Date")
+  #         
+  #         backlog_daily_repo <- rbind(remove_dupl_dates_test_level, processed_backlog_data)
+  #         
+  #         backlog_daily_repo <- backlog_daily_repo %>%
+  #           arrange(Facility, Report_Date)
+  #         
+  #         saveRDS(backlog_daily_repo,
+  #                 paste0(user_directory,
+  #                        "/Shiny App Repo/APDailySummary",
+  #                        "/BacklogRepo60Days.rds"))
+  #         
+  #       }
+  #     
+  #       
+  #       flag <- 3
+  #     },
+  #     error = function(err){
+  #       showModal(modalDialog(
+  #         title = "Processing Error",
+  #         paste0("There seems to be an issue storing the data.",
+  #                "Please submit again."),
+  #         easyClose = TRUE,
+  #         footer = modalButton("Dismiss")
+  #       ))
+  #       shinyjs::enable(button_name)
+  #     }
+  #     )
+  #     
+  #   }
+  #   
+  #   if (flag == 3) {
+  #     showModal(modalDialog(
+  #       title = "Success",
+  #       paste0("The data has been submitted successfully!"),
+  #       easyClose = TRUE,
+  #       footer = modalButton("Dismiss")
+  #     ))
+  #     shinyjs::enable(button_name)
+  #   }
+  #   
+  #   
+  #   
+  # }
+  # 
+  # )
+  # 
+  # 
 }
 
 

@@ -39,6 +39,17 @@ library(writexl)
 library(gsubfn)
 library(tidyr)
 library(here)
+library(odbc)
+library(dbplyr)
+library(DBI)
+library(glue)
+library(foreach)
+library(doParallel)
+library(parallel)
+library(shiny)
+library(shinyWidgets)
+library(shinydashboard)
+
 #Clear existing history
 rm(list = ls())
 #-------------------------------holiday/weekend-------------------------------#
