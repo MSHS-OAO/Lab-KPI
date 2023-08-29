@@ -31,20 +31,16 @@ server <- function(input, output, session) {
     cp_daily_repo <- tbl(oao_conn, "CP_DAILY_REPO") %>%
       filter(RESULT_DATE == to_date(chem_result_date, 'YYYY-MM-DD')) %>%
       # filter(RESULT_DATE == to_date(chemistry_default_date, 'YYYY-MM-DD')) %>%
+      filter(DIVISION == "Chemistry") %>%
       collect()
     
     dbDisconnect(oao_conn)
     
       
-    chem_sub_output <- summarize_cp_tat(x = cp_daily_repo,
+    chem_tat_output <- summarize_cp_tat(x = cp_daily_repo,
                                         lab_division = "Chemistry")
-    # chem_subset <- chem_sub_output[[1]]
-    # chem_summary <- chem_sub_output[[2]]
-    # chem_dashboard_melt <- chem_sub_output[[3]]
-    # chem_dashboard_cast <- chem_sub_output[[4]]
-    # 
-    # kable_cp_tat(x = chem_dashboard_cast)
-    kable_cp_tat(x = chem_sub_output)
+
+    kable_cp_tat(x = chem_tat_output[[2]])
     
   }
   
@@ -52,10 +48,10 @@ server <- function(input, output, session) {
   # Header based on date
   output$hematology_tat_header <- renderUI({
     
-    input$submit_cp_eff_data
+    input$hematology_tat_date
     
     h4(paste0("Hematology KPI (Labs Resulted on ",
-              format(cp_resulted_date, "%a %m/%d/%y"),
+              format(input$hematology_tat_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -65,16 +61,27 @@ server <- function(input, output, session) {
   # KPI TAT Table
   output$hematology_kpi <- function() {
     
-    input$submit_cp_eff_data
+    input$hematology_tat_date
     
-    hem_sub_output <- summarize_cp_tat(x = cp_submitted_daily_summary,
-                                       lab_division = "Hematology")
-    hem_subset <- hem_sub_output[[1]]
-    hem_summary <- hem_sub_output[[2]]
-    hem_dashboard_melt <- hem_sub_output[[3]]
-    hem_dashboard_cast <- hem_sub_output[[4]]
+    hematology_result_date <- input$hematology_tat_date
     
-    kable_cp_tat(x = hem_dashboard_cast)
+    oao_conn <- dbConnect(odbc(), oao_cloud_db)
+    
+    cp_daily_repo <- tbl(oao_conn, "CP_DAILY_REPO") %>%
+      filter(RESULT_DATE == to_date(hematology_result_date, 'YYYY-MM-DD')) %>%
+      # filter(RESULT_DATE == to_date(hematology_default_date, 'YYYY-MM-DD')) %>%
+      filter(DIVISION == "Hematology") %>%
+      collect()
+    
+    dbDisconnect(oao_conn)
+    
+    
+    hematology_tat_output <- summarize_cp_tat(x = cp_daily_repo,
+                                        lab_division = "Hematology")
+    
+    kable_cp_tat(x = hematology_tat_output[[2]])
+    
+    
     
   }
   
@@ -82,10 +89,10 @@ server <- function(input, output, session) {
   # Header based on date
   output$micro_tat_header <- renderUI({
     
-    input$submit_cp_eff_data
+    input$micro_tat_date
     
     h4(paste0("Microbiology RRL KPI (Labs Resulted on ",
-              format(cp_resulted_date, "%a %m/%d/%y"),
+              format(input$micro_tat_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -95,115 +102,101 @@ server <- function(input, output, session) {
   # KPI TAT Tables
   output$micro_kpi <- function() {
     
-    input$submit_cp_eff_data
+    input$micro_tat_date
     
-    micro_sub_output <- summarize_cp_tat(x = cp_submitted_daily_summary,
+    micro_result_date <- input$micro_tat_date
+    
+    oao_conn <- dbConnect(odbc(), oao_cloud_db)
+    
+    cp_daily_repo <- tbl(oao_conn, "CP_DAILY_REPO") %>%
+      filter(RESULT_DATE == to_date(micro_result_date, 'YYYY-MM-DD')) %>%
+      # filter(RESULT_DATE == to_date(micro_default_date, 'YYYY-MM-DD')) %>%
+      filter(DIVISION == "Microbiology RRL") %>%
+      collect()
+    
+    dbDisconnect(oao_conn)
+    
+    micro_tat_output <- summarize_cp_tat(x = cp_daily_repo,
                                          lab_division = "Microbiology RRL")
     
-    micro_subset <- micro_sub_output[[1]]
-    micro_summary <- micro_sub_output[[2]]
-    micro_dashboard_melt <- micro_sub_output[[3]]
-    micro_dashboard_cast <- micro_sub_output[[4]]
+    micro_summary <- micro_tat_output[[1]]
+    micro_dashboard_cast <- micro_tat_output[[2]]
     
     # Create volume table for Microbiology RRL that mimics TAT table layout
     if (is.null(micro_summary)) {
       micro_tat_vol_cast <- NULL
       } else {
-        micro_volume_melt <- melt(micro_summary,
-                                  id.var = c("Test",
-                                             "Site",
-                                             "DashboardPriority",
-                                             "TestAndPriority",
-                                             "DashboardSetting",
-                                             "ReceiveResultTarget",
-                                             "CollectResultTarget"),
-                                  measure.vars = "ResultedVolume")
+        
         # Ensure all Microbiology RRL test, site, and priority combinations are included
         micro_vol_templ <- tat_dashboard_templ %>%
           filter(Division == "Microbiology RRL") %>%
           mutate(Incl = NULL,
                  Division = NULL)
         
-        micro_volume_melt <- left_join(
-          micro_vol_templ,
-          micro_volume_melt,
-          by = c("Test" = "Test",
-                 "Site" = "Site",
-                 "DashboardPriority" = "DashboardPriority",
-                 "DashboardSetting" = "DashboardSetting"))
+        micro_vol_df <- micro_summary %>%
+          mutate(Metric = "ResultedVolume") %>%
+          rename(Value = ResultedVolume) %>%
+          select(-Division, -ResultedVol_ReceiveTAT, -ResultedVol_CollectTAT,
+                 -ReceiveResultInTarget, -CollectResultInTarget,
+                 -ReceiveResultPercent, -CollectResultPercent) %>%
+          left_join(micro_vol_templ,
+                    by = c("Test" = "Test",
+                           "Site" = "Site",
+                           "DashboardPriority" = "DashboardPriority",
+                           "DashboardSetting" = "DashboardSetting")) %>%
+          mutate(Value = replace_na(Value, 0),
+                 ReceiveResultTarget = "ResultedVolume",
+                 CollectResultTarget = "",
+                 #
+                 # Set test, site, priority, and setting as factors
+                 Test = droplevels(factor(Test, levels = test_names,
+                                          ordered = TRUE)),
+                 Site = droplevels(factor(Site, levels = all_sites,
+                                          ordered = TRUE)),
+                 DashboardPriority = droplevels(
+                   factor(DashboardPriority,
+                          levels = dashboard_priority_order,
+                          ordered = TRUE)),
+                 DashboardSetting = droplevels(
+                   factor(DashboardSetting,
+                          levels = dashboard_pt_setting,
+                          ordered = TRUE))) %>%
+          arrange(Test, DashboardPriority, DashboardSetting, Site) %>%
+          pivot_wider(names_from = c(Metric, Site),
+                      names_sep = "_",
+                      values_from = Value) %>%
+          relocate(TestAndPriority, .after = DashboardPriority) %>%
+          relocate(ReceiveResultTarget, .after = TestAndPriority) %>%
+          relocate(CollectResultTarget, .after = last_col())
+          
+        # 
+        # micro_volume_melt <- melt(micro_summary,
+        #                           id.var = c("Test",
+        #                                      "Site",
+        #                                      "DashboardPriority",
+        #                                      "TestAndPriority",
+        #                                      "DashboardSetting",
+        #                                      "ReceiveResultTarget",
+        #                                      "CollectResultTarget"),
+        #                           measure.vars = "ResultedVolume")
+        # 
+        # micro_volume_cast <- dcast(micro_volume_melt,
+        #                            Test + DashboardPriority + TestAndPriority +
+        #                              DashboardSetting + ReceiveResultTarget +
+        #                              CollectResultTarget ~
+        #                              variable + Site,
+        #                            value.var = "value")
+        original_length <- ncol(micro_vol_df)
         
-        # Replace NA with 0 and format site, tests, priority, and settings as factors
-        micro_volume_melt <- micro_volume_melt %>%
-          mutate(
-            #
-            # Replace NA with 0
-            value = ifelse(is.na(value), 0, value),
-            #
-            # Set test, site, priority, and setting as factors
-            Test = droplevels(factor(Test, levels = test_names, ordered = TRUE)),
-            Site = droplevels(factor(Site, levels = all_sites, ordered = TRUE)),
-            DashboardPriority = droplevels(factor(DashboardPriority,
-                                                  levels = dashboard_priority_order,
-                                                  ordered = TRUE)),
-            DashboardSetting = droplevels(factor(DashboardSetting,
-                                                 levels = dashboard_pt_setting,
-                                                 ordered = TRUE)))
+        missing_cols <- colnames(micro_dashboard_cast)[
+          seq(original_length + 1, ncol(micro_dashboard_cast))]
         
-        micro_volume_cast <- dcast(micro_volume_melt,
-                                   Test + DashboardPriority + TestAndPriority +
-                                     DashboardSetting + ReceiveResultTarget +
-                                     CollectResultTarget ~
-                                     variable + Site,
-                                   value.var = "value")
+        micro_vol_df[missing_cols] <- ""
         
-        original_length <- ncol(micro_volume_cast)
+        colnames(micro_vol_df) <- colnames(micro_dashboard_cast)
         
-        micro_volume_cast <- micro_volume_cast %>%
-          mutate(
-            #
-            # Replace TAT targets with "Resulted Volume"
-            ReceiveResultTarget = "Resulted Volume",
-            CollectResultTarget = "Resulted Volume",
-            #
-            # Duplicate dashboard setting column
-            DashboardSetting2 = DashboardSetting,
-            #
-            # Duplicate resulted volume columns
-            ResultedVolume_MSH2 = ResultedVolume_MSH,
-            ResultedVolume_MSQ2 = ResultedVolume_MSQ,
-            ResultedVolume_MSBI2 = ResultedVolume_MSBI,
-            ResultedVolume_MSB2 = ResultedVolume_MSB,
-            ResultedVolume_MSW2 = ResultedVolume_MSW,
-            ResultedVolume_MSM2 = ResultedVolume_MSM,
-            ResultedVolume_MSSN2 = ResultedVolume_MSSN) %>%
-          select(Test,
-                 DashboardPriority,
-                 TestAndPriority,
-                 ReceiveResultTarget,
-                 DashboardSetting,
-                 ResultedVolume_MSH,
-                 ResultedVolume_MSQ,
-                 ResultedVolume_MSBI,
-                 ResultedVolume_MSB,
-                 ResultedVolume_MSW,
-                 ResultedVolume_MSM,
-                 ResultedVolume_MSSN,
-                 CollectResultTarget,
-                 DashboardSetting2,
-                 ResultedVolume_MSH2,
-                 ResultedVolume_MSQ2,
-                 ResultedVolume_MSBI2,
-                 ResultedVolume_MSB2,
-                 ResultedVolume_MSW2,
-                 ResultedVolume_MSM2,
-                 ResultedVolume_MSSN2)
-        
-        # Rename columns to match TAT table for binding
-        colnames(micro_volume_cast) <- colnames(micro_dashboard_cast)
-        
-        micro_volume_cast[, c(original_length:ncol(micro_volume_cast))] <- ""
-        
-        micro_tat_vol_cast <- rbind(micro_dashboard_cast, micro_volume_cast)
+       
+        micro_tat_vol_cast <- rbind(micro_dashboard_cast, micro_vol_df)
         
         micro_tat_vol_cast <- micro_tat_vol_cast %>%
           arrange(Test, ReceiveResultTarget)
@@ -216,10 +209,10 @@ server <- function(input, output, session) {
   # Header based on date
   output$infusion_tat_header <- renderUI({
     
-    input$submit_cp_eff_data
+    input$infusion_tat_date
     
     h4(paste0("Infusion KPI (Labs Resulted on ",
-              format(cp_resulted_date, "%a %m/%d/%y"),
+              format(input$infusion_tat_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -229,16 +222,25 @@ server <- function(input, output, session) {
   # KPI TAT Table
   output$infusion_kpi <- function() {
     
-    input$submit_cp_eff_data
+    input$infusion_tat_date
     
-    inf_sub_output <- summarize_cp_tat(x = cp_submitted_daily_summary,
-                                       lab_division = "Infusion")
-    inf_subset <- inf_sub_output[[1]]
-    inf_summary <- inf_sub_output[[2]]
-    inf_dashboard_melt <- inf_sub_output[[3]]
-    inf_dashboard_cast <- inf_sub_output[[4]]
+    infusion_result_date <- input$infusion_tat_date
     
-    kable_cp_tat(x = inf_dashboard_cast)
+    oao_conn <- dbConnect(odbc(), oao_cloud_db)
+    
+    cp_daily_repo <- tbl(oao_conn, "CP_DAILY_REPO") %>%
+      filter(RESULT_DATE == to_date(infusion_result_date, 'YYYY-MM-DD')) %>%
+      # filter(RESULT_DATE == to_date(infusion_default_date, 'YYYY-MM-DD')) %>%
+      filter(DIVISION == "Infusion") %>%
+      collect()
+    
+    dbDisconnect(oao_conn)
+    
+    
+    infusion_tat_output <- summarize_cp_tat(x = cp_daily_repo,
+                                            lab_division = "Infusion")
+    
+    kable_cp_tat(x = infusion_tat_output[[2]])
     
   }
   
@@ -246,11 +248,11 @@ server <- function(input, output, session) {
   # Header based on date
   output$missing_collect_tat_header <- renderUI({
     
-    input$submit_cp_eff_data
+    input$missing_collect_date
     
     h4(paste0("Missing Collection Times and Add On Order Volume ",
               "(Labs Resulted on ",
-              format(cp_resulted_date, "%a %m/%d/%y"),
+              format(input$missing_collect_date, "%a %m/%d/%y"),
               ")"
               )
        )
@@ -260,17 +262,39 @@ server <- function(input, output, session) {
   # KPI Tables
   output$missing_collections <- function() {
     
-    input$submit_cp_eff_data
+    input$missing_collect_date
     
-    kable_missing_collections(x = cp_submitted_daily_summary)
+    missing_collect_result_date <- input$missing_collect_date
+    
+    oao_conn <- dbConnect(odbc(), oao_cloud_db)
+    
+    cp_daily_repo <- tbl(oao_conn, "CP_DAILY_REPO") %>%
+      filter(RESULT_DATE == to_date(missing_collect_result_date, 'YYYY-MM-DD')) %>%
+      # filter(RESULT_DATE == to_date(missing_collect_default_date, 'YYYY-MM-DD')) %>%
+      collect()
+    
+    dbDisconnect(oao_conn)
+    
+    kable_missing_collections(x = cp_daily_repo)
     
   }
   
   output$add_on_volume <- function() {
     
-    input$submit_cp_eff_data
+    input$missing_collect_date
     
-    kable_add_on_volume(x = cp_submitted_daily_summary)
+    missing_collect_result_date <- input$missing_collect_date
+    
+    oao_conn <- dbConnect(odbc(), oao_cloud_db)
+    
+    cp_daily_repo <- tbl(oao_conn, "CP_DAILY_REPO") %>%
+      filter(RESULT_DATE == to_date(missing_collect_result_date, 'YYYY-MM-DD')) %>%
+      # filter(RESULT_DATE == to_date(missing_collect_default_date, 'YYYY-MM-DD')) %>%
+      collect()
+    
+    dbDisconnect(oao_conn)
+    
+    kable_add_on_volume(x = cp_daily_repo)
     
   }
   
@@ -312,11 +336,11 @@ server <- function(input, output, session) {
   # Header based on date
   output$chemistry_vol_header <- renderUI({
     
-    input$submit_cp_eff_data
+    input$chem_vol_date
     
     h4(paste0("Chemistry Resulted Lab Volume ",
               "(Labs Resulted on ",
-              format(cp_resulted_date, "%a %m/%d/%y"),
+              format(input$chem_vol_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -326,7 +350,11 @@ server <- function(input, output, session) {
   # KPI Volume Table
   output$chem_volume <- function() {
     
-    input$submit_cp_eff_data
+    input$chem_vol_date
+    
+    chem_vol_result_date <- input$chem_vol_date
+    
+    
     
     chem_vol_table <- summarize_cp_vol(x = cp_submitted_daily_summary,
                                        lab_division = "Chemistry")

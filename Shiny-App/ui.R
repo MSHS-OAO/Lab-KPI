@@ -39,6 +39,7 @@ ui <-
                fluid = TRUE,
                tabPanel("Efficiency Indicators",
                         tabsetPanel(
+                          # Chemistry Efficiency Indicators --------
                           tabPanel("Chemistry",
                                    uiOutput("chemistry_tat_header"),
                                    tags$style("#chemistry_tat_header
@@ -64,6 +65,7 @@ ui <-
                                      tableOutput("chemistry_kpi")
                                    )
                           ),
+                          # Hematology Efficiency Indicators --------
                           tabPanel("Hematology",
                                    uiOutput("hematology_tat_header"),
                                    tags$style("#hematology_tat_header
@@ -82,9 +84,14 @@ ui <-
                                             "</h5>")
                                    ),
                                    fluidRow(
+                                     dateInput("hematology_tat_date", "Resulted Lab Date:",
+                                               value = hematology_default_date)
+                                   ),
+                                   fluidRow(
                                      tableOutput("hematology_kpi")
                                    )
                           ),
+                          # Microbiology Efficiency Indicators --------
                           tabPanel("Microbiology RRL",
                                    uiOutput("micro_tat_header"),
                                    tags$style("#micro_tat_header
@@ -103,9 +110,14 @@ ui <-
                                             "</h5>")
                                    ),
                                    fluidRow(
+                                     dateInput("micro_tat_date", "Resulted Lab Date:",
+                                               value = micro_default_date)
+                                   ),
+                                   fluidRow(
                                      tableOutput("micro_kpi")
                                      )
                                    ),
+                          # Infusion Efficiency Indicators --------
                           tabPanel("Infusion",
                                    uiOutput("infusion_tat_header"),
                                    tags$style("#infusion_tat_header
@@ -124,9 +136,14 @@ ui <-
                                             "</h5>")
                                    ),
                                    fluidRow(
+                                     dateInput("infusion_tat_date", "Resulted Lab Date:",
+                                               value = infusion_default_date)
+                                   ),
+                                   fluidRow(
                                      tableOutput("infusion_kpi")
                                      )
                                    ),
+                          # Clinical Pathology Missing Collections and Add Ons --------
                           tabPanel("Missing Collections & Add Ons",
                                    uiOutput("missing_collect_tat_header"),
                                    tags$style("#missing_collect_tat_header
@@ -143,6 +160,9 @@ ui <-
                                             "Green: </span>",
                                             "<=5%",
                                             "</h5>")
+                                   ),fluidRow(
+                                     dateInput("missing_collect_date", "Resulted Lab Date:",
+                                               value = missing_collect_default_date)
                                    ),
                                    fluidRow(
                                      tableOutput("missing_collections"),
@@ -218,6 +238,7 @@ ui <-
                                    )
                         )
                ),
+               # Ops & Quality Indicators --------
                tabPanel("Ops & Quality Indicators",
                         tabsetPanel(
                           tabPanel("Operational Indicators",
@@ -238,12 +259,17 @@ ui <-
                           ),
                         ),
                ),
+               # Clinical Pathology Volume Lookback --------
                tabPanel("24 Hour Volume Lookback",
                         tabsetPanel(
                           tabPanel("Chemistry",
                                    uiOutput("chemistry_vol_header"),
                                    tags$style("#chemistry_vol_header
                                               {font-style: italic}"),
+                                   fluidRow(
+                                     dateInput("chem_vol_date", "Resulted Lab Date:",
+                                               value = chemistry_default_date)
+                                   ),
                                    fluidRow(
                                      tableOutput("chem_volume")
                                    )
@@ -253,6 +279,10 @@ ui <-
                                    tags$style("#hematology_vol_header
                                               {font-style: italic}"),
                                    fluidRow(
+                                     dateInput("hematology_vol_date", "Resulted Lab Date:",
+                                               value = hematology_default_date)
+                                   ),
+                                   fluidRow(
                                      tableOutput("hem_volume")
                                    )
                           ),
@@ -260,6 +290,10 @@ ui <-
                                    uiOutput("infusion_vol_header"),
                                    tags$style("#infusion_vol_header
                                               {font-style: italic}"),
+                                   fluidRow(
+                                     dateInput("infusion_vol_date", "Resulted Lab Date:",
+                                               value = infusion_default_date)
+                                   ),
                                    fluidRow(
                                      tableOutput("inf_volume")
                                    )

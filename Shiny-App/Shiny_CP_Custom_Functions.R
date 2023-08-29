@@ -488,7 +488,7 @@ summarize_cp_tat <- function(x, lab_division) {
     # Subset data to be included based on lab division, whether or not TAT
     # meets inclusion criteria, and site location
     lab_summary <- x %>%
-      filter(DIVISION == lab_division) %>%
+      # filter(DIVISION == lab_division) %>%
       group_by(TEST,
                SITE,
                DASHBOARD_PRIORITY,
@@ -708,13 +708,11 @@ summarize_cp_tat <- function(x, lab_division) {
   }
   #
   # # Save outputs in a list
-  # lab_sub_output <- list(lab_div_df,
-  #                        lab_summary,
-  #                        lab_dashboard_melt,
-  #                        lab_dashboard_cast)
+  lab_sub_output <- list(lab_summary,
+                         lab_dashboard_cast)
   # #
-  # lab_sub_output
-  return(lab_dashboard_cast)
+  return(lab_sub_output)
+  # return(lab_dashboard_cast)
 }
 
 # Custom function for creating kables for each CP lab division ----------------
@@ -778,7 +776,7 @@ summarize_cp_vol <- function(x, lab_division) {
   } else {
     # Subset data to be included based on lab division and site location
     lab_div_vol_df <- x %>%
-      filter(Division == lab_division) %>%
+      # filter(Division == lab_division) %>%
       group_by(Site,
                Test,
                DashboardPriority,
@@ -887,13 +885,14 @@ kable_missing_collections <- function(x) {
   } else {
     # Filter data for city sites and summarize
     missing_collect <- x %>%
-      group_by(Site) %>%
-      summarize(ResultedVolume = sum(TotalResulted),
-                MissingCollection = sum(TotalMissingCollections, na.rm = TRUE),
+      group_by(SITE) %>%
+      summarize(ResultedVolume = sum(TOTAL_RESULTED),
+                MissingCollection = sum(TOTAL_MISSING_COLLECTIONS, na.rm = TRUE),
                 Percent = formattable::percent(MissingCollection / ResultedVolume,
                                   digits = 0),
                 .groups = "keep") %>%
       ungroup() %>%
+      rename(Site = SITE) %>%
       mutate(
         # Apply conditional formatting based on percentage of labs with missing
         # collections
@@ -959,12 +958,18 @@ kable_add_on_volume <- function(x) {
   } else {
     # Filter data for city sites and summarize
     add_on_volume <- x %>%
-      group_by(Test, Site) %>%
-      summarize(AddOnVolume = sum(TotalAddOnOrder, na.rm = TRUE),
+      group_by(TEST, SITE) %>%
+      summarize(AddOnVolume = sum(TOTAL_ADD_ON_ORDER, na.rm = TRUE),
                 .groups = "keep") %>%
-      ungroup()
+      ungroup() %>%
+      rename(Test = TEST,
+             Site = SITE)
     
-    add_on_volume <- left_join(test_site_comb, add_on_volume,
+    test_site_templ <- tat_dashboard_templ %>%
+      select(Test, Site) %>%
+      distinct()
+
+    add_on_volume <- left_join(test_site_templ, add_on_volume,
                                by = c("Site" = "Site",
                                       "Test" = "Test"))
     

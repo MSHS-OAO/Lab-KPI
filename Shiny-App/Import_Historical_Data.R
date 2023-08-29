@@ -43,6 +43,12 @@ infusion_default_date <- tbl(oao_conn, "CP_DAILY_REPO") %>%
 
 infusion_default_date <- as.Date(infusion_default_date$RESULT_DATE)
 
+missing_collect_default_date <- tbl(oao_conn, "CP_DAILY_REPO") %>%
+  summarize(RESULT_DATE = max(RESULT_DATE)) %>%
+  collect()
+
+missing_collect_default_date <- as.Date(missing_collect_default_date$RESULT_DATE)
+
 dbDisconnect(oao_conn)
 
 # 
