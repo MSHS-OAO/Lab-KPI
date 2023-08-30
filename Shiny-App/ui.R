@@ -41,129 +41,120 @@ ui <-
                         tabsetPanel(
                           # Chemistry Efficiency Indicators --------
                           tabPanel("Chemistry",
+                                   fluidRow(
+                                     column(width = 3,
+                                            dateInput("chem_tat_date",
+                                                      "Resulted Lab Date:",
+                                                      value = chemistry_default_date,
+                                                      max = chemistry_default_date)
+                                     )
+                                   ),
                                    uiOutput("chemistry_tat_header"),
                                    tags$style("#chemistry_tat_header
                                               {font-style: italic}"),
-                                   HTML(
-                                     paste0("<h5>Status Definitions: ",
-                                            "<span style = 'color:red'>",
-                                            "Red: </span>",
-                                            "<80%, ",
-                                            "<span style = 'color:orange'>",
-                                            "Yellow: </span>",
-                                            ">=80% & <95%, ",
-                                            "<span style = 'color:green'>",
-                                            "Green: </span>",
-                                            ">=95%",
-                                            "</h5>")
-                                   ),
-                                   fluidRow(
-                                     dateInput("chem_tat_date", "Resulted Lab Date:",
-                                               value = chemistry_default_date)
-                                   ),
+                                   p("Status Definitions:",
+                                     span("Red: ", style = "color:red"),
+                                     "<80%,",
+                                     span("Yellow: ", style = "color:orange"),
+                                     ">=80% & <95%",
+                                     span("Green: ", style = "color:green"),
+                                     ">=95%"),
                                    fluidRow(
                                      tableOutput("chemistry_kpi")
                                    )
                           ),
                           # Hematology Efficiency Indicators --------
                           tabPanel("Hematology",
+                                   fluidRow(
+                                     column(width = 3,
+                                            dateInput("hematology_tat_date",
+                                                      "Resulted Lab Date:",
+                                                      value = hematology_default_date,
+                                                      max = hematology_default_date)
+                                     )
+                                   ),
                                    uiOutput("hematology_tat_header"),
                                    tags$style("#hematology_tat_header
                                               {font-style: italic}"),
-                                   HTML(
-                                     paste0("<h5>Status Definitions: ",
-                                            "<span style = 'color:red'>",
-                                            "Red: </span>",
-                                            "<80%, ",
-                                            "<span style = 'color:orange'>",
-                                            "Yellow: </span>",
-                                            ">=80% & <95%, ",
-                                            "<span style = 'color:green'>",
-                                            "Green: </span>",
-                                            ">=95%",
-                                            "</h5>")
-                                   ),
-                                   fluidRow(
-                                     dateInput("hematology_tat_date", "Resulted Lab Date:",
-                                               value = hematology_default_date)
-                                   ),
+                                   p("Status Definitions:",
+                                     span("Red: ", style = "color:red"),
+                                     "<80%,",
+                                     span("Yellow: ", style = "color:orange"),
+                                     ">=80% & <95%",
+                                     span("Green: ", style = "color:green"),
+                                     ">=95%"),
                                    fluidRow(
                                      tableOutput("hematology_kpi")
                                    )
                           ),
                           # Microbiology Efficiency Indicators --------
                           tabPanel("Microbiology RRL",
+                                   fluidRow(
+                                     column(width = 3,
+                                            dateInput("micro_tat_date",
+                                                      "Resulted Lab Date:",
+                                                      value = micro_default_date,
+                                                      max = micro_default_date)
+                                     )
+                                   ),
                                    uiOutput("micro_tat_header"),
                                    tags$style("#micro_tat_header
                                               {font-style: italic}"),
-                                   HTML(
-                                     paste0("<h5>Status Definitions: ",
-                                            "<span style = 'color:red'>",
-                                            "Red: </span>",
-                                            "<90%, ",
-                                            "<span style = 'color:orange'>",
-                                            "Yellow: </span>",
-                                            ">=90% & <100%, ",
-                                            "<span style = 'color:green'>",
-                                            "Green: </span>",
-                                            "=100%",
-                                            "</h5>")
-                                   ),
-                                   fluidRow(
-                                     dateInput("micro_tat_date", "Resulted Lab Date:",
-                                               value = micro_default_date)
-                                   ),
+                                   p("Status Definitions:",
+                                     span("Red: ", style = "color:red"),
+                                     "<90%,",
+                                     span("Yellow: ", style = "color:orange"),
+                                     ">=90% & <100%",
+                                     span("Green: ", style = "color:green"),
+                                     ">=100%"),
                                    fluidRow(
                                      tableOutput("micro_kpi")
                                      )
                                    ),
                           # Infusion Efficiency Indicators --------
                           tabPanel("Infusion",
+                                   fluidRow(
+                                     column(width = 3,
+                                            dateInput("infusion_tat_date",
+                                                      "Resulted Lab Date:",
+                                                      value = infusion_default_date,
+                                                      max = infusion_default_date)
+                                     )
+                                   ),
                                    uiOutput("infusion_tat_header"),
                                    tags$style("#infusion_tat_header
                                               {font-style: italic}"),
-                                   HTML(
-                                     paste0("<h5>Status Definitions: ",
-                                            "<span style = 'color:red'>",
-                                            "Red: </span>",
-                                            "<80%, ",
-                                            "<span style = 'color:orange'>",
-                                            "Yellow: </span>",
-                                            ">=80% & <90%, ",
-                                            "<span style = 'color:green'>",
-                                            "Green: </span>",
-                                            ">=90%",
-                                            "</h5>")
-                                   ),
-                                   fluidRow(
-                                     dateInput("infusion_tat_date", "Resulted Lab Date:",
-                                               value = infusion_default_date)
-                                   ),
+                                   p("Status Definitions:",
+                                     span("Red: ", style = "color:red"),
+                                     "<80%,",
+                                     span("Yellow: ", style = "color:orange"),
+                                     ">=80% & <90%",
+                                     span("Green: ", style = "color:green"),
+                                     ">=90%"),
                                    fluidRow(
                                      tableOutput("infusion_kpi")
                                      )
                                    ),
                           # Clinical Pathology Missing Collections and Add Ons --------
                           tabPanel("Missing Collections & Add Ons",
+                                   fluidRow(
+                                     column(width = 3,
+                                            dateInput("missing_collect_date",
+                                                      "Resulted Lab Date:",
+                                                      value = missing_collect_default_date,
+                                                      max = missing_collect_default_date)
+                                     )
+                                   ),
                                    uiOutput("missing_collect_tat_header"),
                                    tags$style("#missing_collect_tat_header
                                               {font-style: italic}"),
-                                   HTML(
-                                     paste0("<h5>Status Definitions: ",
-                                            "<span style = 'color:red'>",
-                                            "Red: </span>",
-                                            ">15%, ",
-                                            "<span style = 'color:orange'>",
-                                            "Yellow: </span>",
-                                            "<=15% & >5%, ",
-                                            "<span style = 'color:green'>",
-                                            "Green: </span>",
-                                            "<=5%",
-                                            "</h5>")
-                                   ),fluidRow(
-                                     dateInput("missing_collect_date", "Resulted Lab Date:",
-                                               value = missing_collect_default_date)
-                                   ),
+                                   p("Status Definitions:",
+                                     span("Red: ", style = "color:red"),
+                                     ">15%,",
+                                     span("Yellow: ", style = "color:orange"),
+                                     "<=15% & >5%",
+                                     span("Green: ", style = "color:green"),
+                                     "<=5%"),
                                    fluidRow(
                                      tableOutput("missing_collections"),
                                      tableOutput("add_on_volume")
@@ -263,37 +254,49 @@ ui <-
                tabPanel("24 Hour Volume Lookback",
                         tabsetPanel(
                           tabPanel("Chemistry",
+                                   fluidRow(
+                                     column(width = 3,
+                                            dateInput("chem_vol_date",
+                                                      "Resulted Lab Date:",
+                                                      value = chemistry_default_date,
+                                                      max = chemistry_default_date)
+                                     )
+                                   ),
                                    uiOutput("chemistry_vol_header"),
                                    tags$style("#chemistry_vol_header
                                               {font-style: italic}"),
-                                   fluidRow(
-                                     dateInput("chem_vol_date", "Resulted Lab Date:",
-                                               value = chemistry_default_date)
-                                   ),
                                    fluidRow(
                                      tableOutput("chem_volume")
                                    )
                           ),
                           tabPanel("Hematology",
+                                   fluidRow(
+                                     column(width = 3,
+                                            dateInput("hematology_vol_date",
+                                                      "Resulted Lab Date:",
+                                                      value = hematology_default_date,
+                                                      max = hematology_default_date)
+                                     )
+                                   ),
                                    uiOutput("hematology_vol_header"),
                                    tags$style("#hematology_vol_header
                                               {font-style: italic}"),
-                                   fluidRow(
-                                     dateInput("hematology_vol_date", "Resulted Lab Date:",
-                                               value = hematology_default_date)
-                                   ),
                                    fluidRow(
                                      tableOutput("hem_volume")
                                    )
                           ),
                           tabPanel("Infusion",
+                                   fluidRow(
+                                     column(width = 3,
+                                            dateInput("infusion_vol_date",
+                                                      "Resulted Lab Date:",
+                                                      value = infusion_default_date,
+                                                      max = infusion_default_date)
+                                     )
+                                   ),
                                    uiOutput("infusion_vol_header"),
                                    tags$style("#infusion_vol_header
                                               {font-style: italic}"),
-                                   fluidRow(
-                                     dateInput("infusion_vol_date", "Resulted Lab Date:",
-                                               value = infusion_default_date)
-                                   ),
                                    fluidRow(
                                      tableOutput("inf_volume")
                                    )
@@ -394,25 +397,7 @@ ui <-
                #                       )
                #                       )
                #                     )
-               #            ),
-               #            tabPanel("Ops & Quality Indicators",
-               #                     fluidPage(
-               #                       fluidRow(h4("Ops & Quality Indicators"),
-               #                                fileInput("ops_qlty",
-               #                                          label = "Submit form responses for Ops & Quality Indicators"
-               #                                          )
-               #                                ),
-               #                       fluidRow(
-               #                         actionButton(
-               #                           inputId = "submit_ops_qlty_data",
-               #                           label = "Submit",
-               #                           class = "btn-primary"
-               #                         )
-               #                       )
-               #                     )
                #            )
-               #          )
-               # ),
                tabPanel("Assumptions & Methodology")
     )
 

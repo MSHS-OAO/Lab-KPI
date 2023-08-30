@@ -18,7 +18,7 @@ server <- function(input, output, session) {
     )
   }
   )
-  
+
   # KPI TAT Table
   output$chemistry_kpi <- function() {
     
@@ -354,9 +354,17 @@ server <- function(input, output, session) {
     
     chem_vol_result_date <- input$chem_vol_date
     
+    oao_conn <- dbConnect(odbc(), oao_cloud_db)
     
+    cp_daily_repo <- tbl(oao_conn, "CP_DAILY_REPO") %>%
+      filter(RESULT_DATE == to_date(chem_vol_result_date, 'YYYY-MM-DD')) %>%
+      # filter(RESULT_DATE == to_date(chemistry_default_date, 'YYYY-MM-DD')) %>%
+      filter(DIVISION == "Chemistry") %>%
+      collect()
     
-    chem_vol_table <- summarize_cp_vol(x = cp_submitted_daily_summary,
+    dbDisconnect(oao_conn)
+    
+    chem_vol_table <- summarize_cp_vol(x = cp_daily_repo,
                                        lab_division = "Chemistry")
     
     kable_cp_vol(chem_vol_table)
@@ -367,11 +375,11 @@ server <- function(input, output, session) {
   # Header based on date
   output$hematology_vol_header <- renderUI({
     
-    input$submit_cp_eff_data
+    input$hematology_vol_date
     
     h4(paste0("Hematology Resulted Lab Volume ",
               "(Labs Resulted on ",
-              format(cp_resulted_date, "%a %m/%d/%y"),
+              format(input$hematology_vol_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -381,9 +389,21 @@ server <- function(input, output, session) {
   # KPI Volume Table
   output$hem_volume <- function() {
     
-    input$submit_cp_eff_data
+    input$hematology_vol_date
     
-    hem_vol_table <- summarize_cp_vol(x = cp_submitted_daily_summary,
+    hematology_vol_result_date <- input$hematology_vol_date
+    
+    oao_conn <- dbConnect(odbc(), oao_cloud_db)
+    
+    cp_daily_repo <- tbl(oao_conn, "CP_DAILY_REPO") %>%
+      filter(RESULT_DATE == to_date(hematology_vol_result_date, 'YYYY-MM-DD')) %>%
+      # filter(RESULT_DATE == to_date(hematology_default_date, 'YYYY-MM-DD')) %>%
+      filter(DIVISION == "Hematology") %>%
+      collect()
+    
+    dbDisconnect(oao_conn)
+    
+    hem_vol_table <- summarize_cp_vol(x = cp_daily_repo,
                                       lab_division = "Hematology")
     
     kable_cp_vol(hem_vol_table)
@@ -394,11 +414,11 @@ server <- function(input, output, session) {
   # Header based on date
   output$infusion_vol_header <- renderUI({
     
-    input$submit_cp_eff_data
+    input$infusion_vol_date
     
     h4(paste0("Infusion Resulted Lab Volume ",
               "(Labs Resulted on ",
-              format(cp_resulted_date, "%a %m/%d/%y"),
+              format(input$infusion_vol_date, "%a %m/%d/%y"),
               ")"
     )
     )
@@ -408,9 +428,21 @@ server <- function(input, output, session) {
   # KPI Volume Table
   output$inf_volume <- function() {
     
-    input$submit_cp_eff_data
+    input$infusion_vol_date
     
-    inf_vol_table <- summarize_cp_vol(x = cp_submitted_daily_summary,
+    infusion_vol_result_date <- input$infusion_vol_date
+    
+    oao_conn <- dbConnect(odbc(), oao_cloud_db)
+    
+    cp_daily_repo <- tbl(oao_conn, "CP_DAILY_REPO") %>%
+      filter(RESULT_DATE == to_date(infusion_vol_result_date, 'YYYY-MM-DD')) %>%
+      # filter(RESULT_DATE == to_date(infusion_default_date, 'YYYY-MM-DD')) %>%
+      filter(DIVISION == "Infusion") %>%
+      collect()
+    
+    dbDisconnect(oao_conn)
+    
+    inf_vol_table <- summarize_cp_vol(x = cp_daily_repo,
                                       lab_division = "Infusion")
     
     kable_cp_vol(inf_vol_table)

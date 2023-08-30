@@ -777,17 +777,21 @@ summarize_cp_vol <- function(x, lab_division) {
     # Subset data to be included based on lab division and site location
     lab_div_vol_df <- x %>%
       # filter(Division == lab_division) %>%
-      group_by(Site,
-               Test,
-               DashboardPriority,
-               DetailedSetting) %>%
-      summarize(ResultedLabs = sum(TotalResulted),
-                .groups = "keep")
+      group_by(SITE,
+               TEST,
+               DASHBOARD_PRIORITY,
+               DETAILED_SETTING) %>%
+      summarize(ResultedLabs = sum(TOTAL_RESULTED),
+                .groups = "keep") %>%
+      rename(Site = SITE,
+             Test = TEST,
+             DashboardPriority = DASHBOARD_PRIORITY,
+             DetailedSetting = DETAILED_SETTING)
     #
     # Subset volume dataframe template for this division
     lab_div_vol_templ <- vol_dashboard_templ %>%
       filter(Division == lab_division) %>%
-      mutate(Incl = NULL)
+      select(-Incl)
     #
     # Combine two dataframes to ensure all combinations are accounts for
     lab_div_vol_df <- left_join(lab_div_vol_templ, lab_div_vol_df,
@@ -834,7 +838,7 @@ kable_cp_vol <- function(x) {
   if (is.null(x) || nrow(x) == 0) {
     asis_output(
       paste("<i>",
-            "Not data available.",
+            "No data available.",
             "</i>")
     )
   } else {
@@ -850,7 +854,8 @@ kable_cp_vol <- function(x) {
           col.names = kable_cp_vol_cols) %>%
       kable_styling(bootstrap_options = "hover",
                     position = "center",
-                    font_size = 11) %>%
+                    font_size = 11,
+                    full_width = FALSE) %>%
       column_spec(column = c(1, length(kable_cp_vol_cols)),
                   border_right = "thin solid lightgray") %>%
       add_header_above(c(" " = 1,
