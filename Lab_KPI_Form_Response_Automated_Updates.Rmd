@@ -1,0 +1,445 @@
+---
+title: "Lab_KPI_Form_Response_Automation"
+output: html_document
+date: "2023-08-30"
+---
+---
+title: "Lab Dashboard - Raw Data Repository Updates"
+output:
+  html_document
+---
+
+## Load libraries
+```{r Load libraries and clear environment}
+# Code for identifying missing dates of data and updating repositories -----
+
+# Load packages ---------------
+library(timeDate)
+library(readxl)
+library(bizdays)
+library(dplyr)
+library(lubridate)
+library(reshape2)
+library(knitr)
+# library(gdtools)
+# library(kableExtra)
+library(kableExtra,  "~/R/x86_64-pc-linux-gnu-library/4.2")
+library(formattable)
+library(rmarkdown)
+library(stringr)
+library(writexl)
+library(gsubfn)
+library(tidyr)
+library(here)
+library(odbc)
+library(dbplyr)
+library(DBI)
+library(glue)
+library(foreach)
+library(doParallel)
+library(parallel)
+
+#Clear existing history
+rm(list = ls())
+```
+
+## Root path
+```{r Find root path}
+
+# Define root path ---------------
+# Function to determine path to share drive on R Workbench or R Studio
+define_root_path <- function(){
+  #Check if directory is from R Workbench; starts with '/home'
+  if(grepl("^/home", dirname(getwd()))){
+    #Check if mapped Sharedrvie starts at folder Presidents or deans
+    ifelse(list.files("/SharedDrive/") == "Presidents",
+           #Define prefix of path to share drive with R Workbench format
+           output <- "/SharedDrive/Presidents/", 
+           output <- "/SharedDrive/deans/Presidents/")
+  }#Check if directory is from R Studio; starts with an uppercase letter than ':'
+  else if(grepl("^[[:upper:]]+:", dirname(getwd()))){
+    #Determine which drive is mapped to Sharedrive (x)
+    for(i in LETTERS){
+      if(any(grepl("deans|Presidents", list.files(paste0(i, "://"))))){x <- i}
+    }
+    #Check if mapped Sharedrvie starts at folder Presidents or deans
+    ifelse(list.files(paste0(x, "://")) == "Presidents",
+           #Define prefix of path to share drive with R Studio format
+           output <- paste0(x, ":/Presidents/"),
+           output <- paste0(x, ":/deans/Presidents/"))
+    
+  }
+  return(output)
+}
+
+user_directory <- paste0(define_root_path(),
+                         "HSPI-PM/",
+                         "Operations Analytics and Optimization/Projects/",
+                         "Service Lines/Lab Kpi/Data")
+
+
+```
+
+## Reference data
+```{r Connect to OAO Cloud database}
+# OAO Cloud Database schema
+oao_cloud_db <- "OAO Cloud DB Kate"
+
+```
+
+## 60 days data
+```{r Connect to database repository tables and find missing dates and files}
+# Raw Data 60 Days ---------
+## Query raw data repo -------
+
+today <- Sys.Date()
+
+last_60_days <- data.frame(DATE = 
+                         seq.Date(from = today - 60, to = today - 1, by = 1)
+)
+
+## Table names -----------
+kpi_form_temp_table <- "LAB_KPI_FORM_RESPONSES_TEMP"
+kpi_form_repo_table <- "LAB_KPI_FORM_RESPONSES"
+
+# Keep only last 60 days of data
+remove_dates_query <- glue(
+  "DELETE FROM {kpi_form_repo_table} where
+    (COMPLETION_TIME < TO_DATE('{min(last_60_days$DATE)}', 'YYYY-MM-DD'));")
+
+oao_personal_conn <- dbConnect(odbc(), oao_cloud_db)
+
+# Remove data more than 60 days ago from repository
+dbBegin(oao_personal_conn)
+dbExecute(oao_personal_conn, remove_dates_query)
+dbCommit(oao_personal_conn)
+
+kpi_form_repo_dates <-tbl(oao_personal_conn, kpi_form_repo_table) %>%
+  select(COMPLETION_TIME) %>%
+  distinct() %>%
+  collect() %>%
+  mutate(COMPLETION_DATE = as.Date(COMPLETION_TIME)) %>%
+  distinct() %>%
+  arrange(COMPLETION_DATE)
+
+dbDisconnect(oao_personal_conn)
+
+kpi_form_folder <- paste0(user_directory,
+                          "/Lab KPI Form")
+
+kpi_form_missing_data <- last_60_days %>%
+  mutate(MissingInDB = !(DATE %in% kpi_form_repo_dates$COMPLETION_DATE)) %>%
+  filter(MissingInDB) %>%
+  select(DATE)
+
+if (nrow(kpi_form_missing_data) > 0){
+  kpi_form_files <- list.files(kpi_form_folder,
+                               pattern = paste0(
+                                 "^(Lab KPI Quality Indicator Form).?",
+                                    paste0(kpi_form_missing_data$DATE, collapse = "|"),
+                                    ".xlsx$"))
+} else {
+  kpi_form_files <- NULL
+}
+
+
+
+if (length(kpi_form_files) > 0) {
+  kpi_form_raw_resp <- lapply(
+    kpi_form_files, function(x) read_excel(
+      path = paste0(kpi_form_folder, "/", x)
+    )
+  )
+} else {
+  kpi_form_raw_resp <- NULL
+  # print("No new SCC reports found.")
+}
+
+```
+
+## Process KPI Form responses
+```{r Process raw files}
+preprocess_lab_kpi_resp <- function(x) {
+  
+  x <- x %>%
+    select(-ID) 
+  
+  colnames(x) <- c("START_TIME", "COMPLETION_TIME", "EMAIL", "NAME", "FACILITY",
+                   "LAB_CORP_CONSUMABLES", "VENDOR_SERVICES", "ENVIRONMENT",
+                   "EQUIPMENT_ISSUES", "IT_ISSUES", "SERVICE_CHANGES",
+                   "ACUTE_VOLUME_INCREASE", "STAFFING_ISSUES", "COMMENTS",
+                   "NEVER_EVENTS", "NEVER_EVENTS_COMMENTS", "GOOD_CATCH",
+                   "LIS_STAFFING_ISSUES", "LIS_UNPLANNED_SERVICE_CHANGES",
+                   "LIS_PREPLANNED_DOWNTIME")
+  
+  return(x)
+  
+}
+
+kpi_form_responses <- lapply(X = kpi_form_raw_resp, FUN = preprocess_lab_kpi_resp)
+
+```
+
+## Database queries
+```{r Database writing queries and functions}
+# Database writing functions ---------------
+
+## Get values function -----------------
+get_values_kpi_form <- function(x, table_name){
+  
+  start_time <- x[1]
+  completion_time <- x[2]
+  email <- x[3]
+  name <- x[4]
+  facility <- x[5]
+  lab_corp_consumables <- x[6]
+  vendor_services <- x[7]
+  environment <- x[8]
+  equipment_issues <- x[9]
+  it_issues <- x[10]
+  service_changes <- x[11]
+  acute_volume_increases <- x[12]
+  staffing_issues <- x[13]
+  comments <- x[14]
+  never_events <- x[15]
+  never_events_comments <- x[16]
+  good_catch <- x[17]
+  lis_staffing <- x[18]
+  lis_unplanned_service_change <- x[19]
+  lis_preplanned_downtime <- x[20]
+  
+  values <- glue(
+    "INTO \"{table_name}\" 
+    (START_TIME,
+    COMPLETION_TIME,
+    EMAIL,
+    NAME,
+    FACILITY,
+    LAB_CORP_CONSUMABLES,
+    VENDOR_SERVICES,
+    ENVIRONMENT,
+    EQUIPMENT_ISSUES,
+    IT_ISSUES,
+    SERVICE_CHANGES,
+    ACUTE_VOLUME_INCREASES,
+    STAFFING_ISSUES,
+    COMMENTS,
+    NEVER_EVENTS,
+    NEVER_EVENTS_COMMENTS,
+    GOOD_CATCH,
+    LIS_STAFFING,
+    LIS_UNPLANNED_SERVICE_CHANGE,
+    LIS_PREPLANNED_DOWNTIME)
+    
+    VALUES (
+    TO_TIMESTAMP('{start_time}', 'YYYY-MM-DD HH24:MI:SS'),
+    TO_TIMESTAMP('{completion_time}', 'YYYY-MM-DD HH24:MI:SS'),
+    '{email}',
+    '{name}',
+    '{facility}',
+    '{lab_corp_consumables}',
+    '{vendor_services}',
+    '{environment}',
+    '{equipment_issues}',
+    '{it_issues}',
+    '{service_changes}',
+    '{acute_volume_increases}',
+    '{staffing_issues}',
+    '{comments}',
+    '{never_events}',
+    '{never_events_comments}',
+    '{good_catch}',
+    '{lis_staffing}',
+    '{lis_unplanned_service_change}',
+    '{lis_preplanned_downtime}')"
+  )
+  return(values)
+}
+
+## Insert all into temporary table ---------
+all_data_glue <- function(x) {
+  all_data <- glue('INSERT ALL
+                   {x}
+                   SELECT 1 from DUAL;')
+}
+
+## Merge into repository table --------
+merge_to_kpi_form_repo_query <- function(temp_table, repo_table) {
+  glue(
+    'MERGE INTO "{repo_table}" RT
+    USING "{temp_table}" SOURCE_TABLE
+    ON (RT."START_TIME" = SOURCE_TABLE."START_TIME" AND
+      RT."COMPLETION_TIME" = SOURCE_TABLE."COMPLETION_TIME" AND
+      RT."FACILITY" = SOURCE_TABLE."FACILITY")
+      WHEN MATCHED THEN
+      UPDATE SET RT."EMAIL" = SOURCE_TABLE."EMAIL",
+                 RT."NAME" = SOURCE_TABLE."NAME",
+                 RT."LAB_CORP_CONSUMABLES" = SOURCE_TABLE."LAB_CORP_CONSUMABLES",
+                 RT."VENDOR_SERVICES" = SOURCE_TABLE."VENDOR_SERVICES",
+                 RT."ENVIRONMENT" = SOURCE_TABLE."ENVIRONMENT",
+                 RT."EQUIPMENT_ISSUES" = SOURCE_TABLE."EQUIPMENT_ISSUES",
+                 RT."IT_ISSUES" = SOURCE_TABLE."IT_ISSUES",
+                 RT."SERVICE_CHANGES" = SOURCE_TABLE."SERVICE_CHANGES",
+                 RT."ACUTE_VOLUME_INCREASES" = SOURCE_TABLE."ACUTE_VOLUME_INCREASES",
+                 RT."STAFFING_ISSUES" = SOURCE_TABLE."STAFFING_ISSUES",
+                 RT."COMMENTS" = SOURCE_TABLE."COMMENTS",
+                 RT."NEVER_EVENTS" = SOURCE_TABLE."NEVER_EVENTS",
+                 RT."NEVER_EVENTS_COMMENTS" = SOURCE_TABLE."NEVER_EVENTS_COMMENTS",
+                 RT."GOOD_CATCH" = SOURCE_TABLE."GOOD_CATCH",
+                 RT."LIS_STAFFING" = SOURCE_TABLE."LIS_STAFFING",
+                 RT."LIS_UNPLANNED_SERVICE_CHANGE" = SOURCE_TABLE."LIS_UNPLANNED_SERVICE_CHANGE",
+                 RT."LIS_PREPLANNED_DOWNTIME" = SOURCE_TABLE."LIS_PREPLANNED_DOWNTIME"
+        WHEN NOT MATCHED THEN
+        INSERT(RT."START_TIME",
+               RT."COMPLETION_TIME",
+               RT."EMAIL",
+               RT."NAME",
+               RT."FACILITY",
+               RT."LAB_CORP_CONSUMABLES",
+               RT."VENDOR_SERVICES",
+               RT."ENVIRONMENT",
+               RT."EQUIPMENT_ISSUES",
+               RT."IT_ISSUES",
+               RT."SERVICE_CHANGES",
+               RT."ACUTE_VOLUME_INCREASES",
+               RT."STAFFING_ISSUES",
+               RT."COMMENTS",
+               RT."NEVER_EVENTS",
+               RT."NEVER_EVENTS_COMMENTS",
+               RT."GOOD_CATCH",
+               RT."LIS_STAFFING",
+               RT."LIS_UNPLANNED_SERVICE_CHANGE",
+               RT."LIS_PREPLANNED_DOWNTIME"
+               )
+         VALUES(SOURCE_TABLE."START_TIME",
+                SOURCE_TABLE."COMPLETION_TIME",
+                SOURCE_TABLE."EMAIL",
+                SOURCE_TABLE."NAME",
+                SOURCE_TABLE."FACILITY",
+                SOURCE_TABLE."LAB_CORP_CONSUMABLES",
+                SOURCE_TABLE."VENDOR_SERVICES",
+                SOURCE_TABLE."ENVIRONMENT",
+                SOURCE_TABLE."EQUIPMENT_ISSUES",
+                SOURCE_TABLE."IT_ISSUES",
+                SOURCE_TABLE."SERVICE_CHANGES",
+                SOURCE_TABLE."ACUTE_VOLUME_INCREASES",
+                SOURCE_TABLE."STAFFING_ISSUES",
+                SOURCE_TABLE."COMMENTS",
+                SOURCE_TABLE."NEVER_EVENTS",
+                SOURCE_TABLE."NEVER_EVENTS_COMMENTS",
+                SOURCE_TABLE."GOOD_CATCH",
+                SOURCE_TABLE."LIS_STAFFING",
+                SOURCE_TABLE."LIS_UNPLANNED_SERVICE_CHANGE",
+                SOURCE_TABLE."LIS_PREPLANNED_DOWNTIME"
+                );'
+  )
+}
+```
+
+## Add SCC data to OAO database tables
+```{r Add new SCC data to database tables}
+# Update Lab KPI Form Tables --------
+
+## Add SCC test level data to database ---------
+
+if(length(kpi_form_files) > 0) {
+    print("Begin adding Lab KPI Form responses to repository.")
+
+    lapply(
+      X = seq_along(kpi_form_raw_resp),
+      
+      FUN = function(n) {
+        temp_table <- kpi_form_temp_table
+        repo_table <- kpi_form_repo_table
+        
+        ops_qlty_indicators <- kpi_form_responses[[n]] %>%
+          mutate(START_TIME = format(START_TIME, "%Y-%m-%d %H:%M:%S"),
+                 COMPLETION_TIME = format(COMPLETION_TIME, "%Y-%m-%d %H:%M:%S"),
+                 EMAIL = as.character(EMAIL),
+                 NAME = as.character(NAME),
+                 FACILITY = as.character(FACILITY),
+                 LAB_CORP_CONSUMABLES = as.character(LAB_CORP_CONSUMABLES),
+                 VENDOR_SERVICES = as.character(VENDOR_SERVICES),
+                 ENVIRONMENT = as.character(ENVIRONMENT),
+                 EQUIPMENT_ISSUES = as.character(EQUIPMENT_ISSUES),
+                 IT_ISSUES = as.character(IT_ISSUES),
+                 SERVICE_CHANGES = as.character(SERVICE_CHANGES),
+                 ACUTE_VOLUME_INCREASE = as.character(ACUTE_VOLUME_INCREASE),
+                 STAFFING_ISSUES = as.character(STAFFING_ISSUES),
+                 COMMENTS = as.character(COMMENTS),
+                 NEVER_EVENTS = as.character(NEVER_EVENTS),
+                 NEVER_EVENTS_COMMENTS = as.character(NEVER_EVENTS_COMMENTS),
+                 GOOD_CATCH = as.character(GOOD_CATCH),
+                 LIS_STAFFING_ISSUES = as.character(LIS_STAFFING_ISSUES),
+                 LIS_UNPLANNED_SERVICE_CHANGES = as.character(LIS_UNPLANNED_SERVICE_CHANGES),
+                 LIS_PREPLANNED_DOWNTIME = as.character(LIS_PREPLANNED_DOWNTIME)
+                 ) %>%
+          mutate(across(everything(), as.character)) %>%
+          mutate(across(everything(), gsub, pattern = "\'", replacement = "''")) %>%
+          mutate(across(everything(), replace_na, replace = '')) %>%
+          mutate(across(everything(), gsub, pattern = "&",
+                        replacement = "'||chr(38)||'"))
+        
+        inserts <- lapply(
+          lapply(
+            lapply(split(ops_qlty_indicators , 
+                     1:nrow(ops_qlty_indicators)),
+                   as.list), 
+            as.character),
+          FUN = get_values_kpi_form, temp_table)
+        
+        values <- glue_collapse(inserts, sep = "\n\n")
+        
+        # # Combine into statements from get_values() function and combine with insert statements
+        # all_data <- glue('INSERT ALL {values} SELECT 1 from DUAL;')
+        all_data <- all_data_glue(x = values)
+        
+        # Truncate query for temporary table -------------
+        truncate_query <- glue('TRUNCATE TABLE "{temp_table}";')
+        
+        ## Merge query for repo table -----------
+        # glue() query to merge data from temporary table to repository table
+        query <- merge_to_kpi_form_repo_query(temp_table = temp_table,
+                                              repo_table = repo_table)
+        
+        oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+        dbBegin(oao_personal_conn)
+
+        # print(paste("Database writing for", names(test_new_scc_function)[[n]]))
+        
+        tryCatch({
+          print("Before first truncate")
+          dbExecute(oao_personal_conn, truncate_query)
+          print("After first truncate")
+          dbExecute(oao_personal_conn, all_data)
+          print("After all rows added to temporary table")
+          dbExecute(oao_personal_conn, query)
+          print("After merge into repo table")
+          dbExecute(oao_personal_conn, truncate_query)
+          print("After second truncate")
+          dbCommit(oao_personal_conn)
+          print("After repo table commit")
+          dbDisconnect(oao_personal_conn)
+          print(paste0("Success! Lab KPI Form ", n, " added to database!"))
+          # scc_status_table <- rbind(scc_status_table,
+          #                           paste0("File ", missing_scc_files[n],
+          #                                  " successfully added to database!"))
+        },
+        error = function(err){
+          # print("error")
+          dbRollback(oao_personal_conn)
+          dbExecute(oao_personal_conn, truncate_query)
+          dbDisconnect(oao_personal_conn)
+          print(paste0("Error! Code experienced an error adding SCC File ", n, " to database!"))
+          # scc_status_table <- rbind(scc_status_table,
+          #                           paste0("Check ", missing_scc_files[n]))
+        } # End error
+        ) # End trycatch
+      } # End function in lapply
+    ) # End lapply
+
+} else {
+  print("No SCC data found to add.")
+}
+ # End system.time
+```
