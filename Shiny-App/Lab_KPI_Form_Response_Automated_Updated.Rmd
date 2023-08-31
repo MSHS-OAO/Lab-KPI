@@ -391,7 +391,7 @@ lab_kpi_form_status_table <- if(length(kpi_form_files) > 0) {
           dbRollback(oao_personal_conn)
           dbExecute(oao_personal_conn, truncate_query)
           dbDisconnect(oao_personal_conn)
-          print(paste0("Error! Code experienced an error adding SCC File ", n, " to database!"))
+          print(paste0("Error! Code experienced an error adding Lab KPI Form ", n, " to database!"))
           lab_kpi_form_status_table <- rbind(lab_kpi_form_status_table,
                                              paste0("Check ", kpi_form_files[n]))
         } # End error
