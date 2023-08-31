@@ -7,6 +7,9 @@ output:
 ## Global options
 ```{r Global options}
 knitr::opts_chunk$set(echo = FALSE, error = TRUE, warning = FALSE, message = FALSE)
+
+# Clear any existing history
+rm(list = ls())
 ```
 
 ## Load libraries
@@ -38,44 +41,43 @@ library(glue)
 library(foreach)
 library(doParallel)
 library(parallel)
-
-#Clear existing history
-rm(list = ls())
 ```
 
 ## Root path
 ```{r Find root path}
 
-# Define root path ---------------
-# Function to determine path to share drive on R Workbench or R Studio
-define_root_path <- function(){
-  #Check if directory is from R Workbench; starts with '/home'
-  if(grepl("^/home", dirname(getwd()))){
-    #Check if mapped Sharedrvie starts at folder Presidents or deans
-    ifelse(list.files("/SharedDrive/") == "Presidents",
-           #Define prefix of path to share drive with R Workbench format
-           output <- "/SharedDrive/Presidents/", 
-           output <- "/SharedDrive/deans/Presidents/")
-  }#Check if directory is from R Studio; starts with an uppercase letter than ':'
-  else if(grepl("^[[:upper:]]+:", dirname(getwd()))){
-    #Determine which drive is mapped to Sharedrive (x)
-    for(i in LETTERS){
-      if(any(grepl("deans|Presidents", list.files(paste0(i, "://"))))){x <- i}
-    }
-    #Check if mapped Sharedrvie starts at folder Presidents or deans
-    ifelse(list.files(paste0(x, "://")) == "Presidents",
-           #Define prefix of path to share drive with R Studio format
-           output <- paste0(x, ":/Presidents/"),
-           output <- paste0(x, ":/deans/Presidents/"))
-    
-  }
-  return(output)
-}
+# # Define root path ---------------
+# # Function to determine path to share drive on R Workbench or R Studio
+# define_root_path <- function(){
+#   #Check if directory is from R Workbench; starts with '/home'
+#   if(grepl("^/home", dirname(getwd()))){
+#     #Check if mapped Sharedrvie starts at folder Presidents or deans
+#     ifelse(list.files("/SharedDrive/") == "Presidents",
+#            #Define prefix of path to share drive with R Workbench format
+#            output <- "/SharedDrive/Presidents/", 
+#            output <- "/SharedDrive/deans/Presidents/")
+#   }#Check if directory is from R Studio; starts with an uppercase letter than ':'
+#   else if(grepl("^[[:upper:]]+:", dirname(getwd()))){
+#     #Determine which drive is mapped to Sharedrive (x)
+#     for(i in LETTERS){
+#       if(any(grepl("deans|Presidents", list.files(paste0(i, "://"))))){x <- i}
+#     }
+#     #Check if mapped Sharedrvie starts at folder Presidents or deans
+#     ifelse(list.files(paste0(x, "://")) == "Presidents",
+#            #Define prefix of path to share drive with R Studio format
+#            output <- paste0(x, ":/Presidents/"),
+#            output <- paste0(x, ":/deans/Presidents/"))
+#     
+#   }
+#   return(output)
+# }
+# 
+# user_directory <- paste0(define_root_path(),
+#                          "HSPI-PM/",
+#                          "Operations Analytics and Optimization/Projects/",
+#                          "Service Lines/Lab Kpi/Data")
 
-user_directory <- paste0(define_root_path(),
-                         "HSPI-PM/",
-                         "Operations Analytics and Optimization/Projects/",
-                         "Service Lines/Lab Kpi/Data")
+user_directory <- "/Pathology"
 
 
 ```
@@ -151,6 +153,9 @@ remove_dates_query <- glue(
   "DELETE FROM {raw_data_repo_table} where
     (RESULT_DATE < TO_DATE('{min(last_60_days$DATE)}', 'YYYY-MM-DD'));")
 
+count_rows_query <- glue(
+  "SELECT COUNT(*) AS NUM_ROWS FROM {raw_data_repo_table};")
+
 # remove_dates_query <- glue(
 #   "DELETE FROM {raw_data_repo_table} where
 #   (RESULT_DATE > (TO_DATE('{today}', 'YYYY-MM-DD') - 4));")
@@ -161,6 +166,8 @@ oao_personal_conn <- dbConnect(odbc(), oao_cloud_db)
 dbBegin(oao_personal_conn)
 dbExecute(oao_personal_conn, remove_dates_query)
 dbCommit(oao_personal_conn)
+
+current_num_rows <- dbGetQuery(oao_personal_conn, count_rows_query)$NUM_ROWS
 
 scc_raw_data_repo_dates <-tbl(oao_personal_conn, raw_data_repo_table) %>%
   filter(SITE %in% c("MSQ", "MSH")) %>%
@@ -225,7 +232,7 @@ if (length(missing_scc_files) > 0) {
   )
 } else {
   scc_raw_reports <- NULL
-  # print("No new SCC reports found.")
+  print("No new SCC reports found.")
 }
 
 if (length(missing_sun_files) > 0) {
@@ -257,21 +264,36 @@ source("SCC_Sunquest_Preprocessing_Functions.R")
 ```{r Process SCC and Sunquest reports}
 
 # Process missing SCC and Sunquest files found on shared drive ------
-test_new_scc_function <- lapply(
+processed_scc_data <- lapply(
   X = scc_raw_reports, FUN = preprocess_scc
 )
 
-if(length(test_new_scc_function) > 0) {
-  names(test_new_scc_function) <- paste0("SCC_File_", c(1:length(test_new_scc_function)))
+if(length(processed_scc_data) > 0) {
+  names(processed_scc_data) <- paste0("SCC_File_", c(1:length(processed_scc_data)))
+  
+  # Count rows to be added
+  new_scc_rows <- sum(sapply(X = processed_scc_data,
+                             FUN = nrow), na.rm = TRUE)
+} else {
+  new_scc_rows <- 0
 }
 
-test_new_sun_function <- lapply(
+processed_sun_data <- lapply(
   X = sun_raw_reports, FUN = preprocess_sun
 )
 
-if(length(test_new_sun_function) > 0) {
-  names(test_new_sun_function) <- paste0("Sunquest_File_", c(1:length(test_new_sun_function)))
+if(length(processed_sun_data) > 0) {
+  names(processed_sun_data) <- paste0("Sunquest_File_", c(1:length(processed_sun_data)))
+  
+  # Count rows to be added
+  new_sun_rows <- sum(sapply(X = processed_sun_data,
+                           FUN = nrow), na.rm = TRUE)
+} else {
+  new_sun_rows <- 0
 }
+
+# Expected number of rows in database table
+expected_rows <- current_num_rows + new_scc_rows + new_sun_rows
 ```
 
 ## Database queries
@@ -533,7 +555,7 @@ system.time(
     print("Begin adding SCC data to raw data repository.")
 
     lapply(
-      X = seq_along(test_new_scc_function),
+      X = seq_along(processed_scc_data),
       
       FUN = function(n) {
         temp_table <- raw_data_temp_table
@@ -541,7 +563,7 @@ system.time(
         
         scc_status_table <- NULL
         
-        scc_test_level_data <- test_new_scc_function[[n]] %>%
+        scc_test_level_data <- processed_scc_data[[n]] %>%
           mutate(LOC_CODE = as.character(LOC_CODE),
                  LOC_NAME = as.character(LOC_NAME),
                  ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", as.character(ORDER_ID)),
@@ -621,7 +643,7 @@ system.time(
         oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
         dbBegin(oao_personal_conn)
 
-        print(paste("Database writing for", names(test_new_scc_function)[[n]]))
+        print(paste("Database writing for", names(processed_scc_data)[[n]]))
         
         tryCatch({
           print("Before first truncate")
@@ -686,7 +708,7 @@ system.time(
       print("Begin adding Sunquest data to raw data repository.")
       
       lapply(
-        X = seq_along(test_new_sun_function),
+        X = seq_along(processed_sun_data),
         
         FUN = function(n) {
           temp_table <- raw_data_temp_table
@@ -694,7 +716,7 @@ system.time(
           
           sun_status_table <- NULL
           
-          sun_test_level_data <- test_new_sun_function[[n]] %>%
+          sun_test_level_data <- processed_sun_data[[n]] %>%
             mutate(LOC_CODE = as.character(LOC_CODE),
                    LOC_NAME = as.character(LOC_NAME),
                    ORDER_ID = ifelse(is.na(ORDER_ID), "NoOrderID", as.character(ORDER_ID)),
@@ -775,7 +797,7 @@ system.time(
           oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
           dbBegin(oao_personal_conn)
           
-          print(paste("Database writing for", names(test_new_sun_function)[[n]]))
+          print(paste("Database writing for", names(processed_sun_data)[[n]]))
           
           tryCatch({
             print("Before first truncate")
@@ -835,3 +857,22 @@ scc_status_table
 sun_status_table
 
 ```
+
+## Sanity check for number of rows
+```{r Check number of rows after adding new data}
+
+oao_personal_conn <- dbConnect(odbc(), "OAO Cloud DB Kate")
+dbBegin(oao_personal_conn)
+new_total_rows <- dbGetQuery(oao_personal_conn, count_rows_query)$NUM_ROWS
+dbDisconnect(oao_personal_conn)
+
+if(new_total_rows == expected_rows){
+  print("Total rows in repo table is equal to expected number of rows.")
+} else {
+  print("Total number of rows in repo table is not equal to the expected number of rows.")
+  print(paste("Current total number of rows:", new_total_rows))
+  print(paste("Expected total number of rows:", expected_rows))
+}
+```
+
+

@@ -3,14 +3,7 @@
 # Note: This can change once database structure is implemented
 
 # Clinical Pathology --------
-## Import data from OAO cloud database
-# cp_test_repo <- readRDS(paste0(user_directory,
-#                                "/Shiny App Repo/CPTestLevelData",
-#                                "/CPTestData60Days.rds"))
-# 
-# cp_daily_repo <- readRDS(paste0(user_directory,
-#                              "/Shiny App Repo/CPDailySummary",
-#                              "/CPDailySummary.rds"))
+## Find latest dates from OAO cloud database tables
 oao_cloud_db <- "OAO Cloud DB Kate"
 
 oao_conn <- dbConnect(odbc(), oao_cloud_db)
