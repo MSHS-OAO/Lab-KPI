@@ -4,6 +4,11 @@ output:
   html_document
 ---
 
+## Global options
+```{r Global options}
+knitr::opts_chunk$set(echo = FALSE, error = TRUE, warning = FALSE, message = FALSE)
+```
+
 ## Load libraries
 ```{r Load libraries and clear environment}
 # Code for identifying missing dates of data and updating repositories -----
