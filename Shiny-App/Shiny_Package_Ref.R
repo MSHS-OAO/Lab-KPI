@@ -54,7 +54,8 @@ library(shinydashboard)
 rm(list = ls())
 #-------------------------------holiday/weekend-------------------------------#
 # Get today and yesterday's date
-today <- as.Date("5/9/23", format("%m/%d/%y"))
+# today <- as.Date("5/9/23", format("%m/%d/%y"))
+today <- Sys.Date()
 
 #Determine if yesterday was a holiday/weekend
 #get yesterday's DOW

@@ -67,16 +67,17 @@ create.calendar("MSHS_working_days", mshs_holiday,
 bizdays.options$set(default.calendar = "MSHS_working_days")
 
 
-# Select file/folder path for easier file selection and navigation
-if ("Presidents" %in% list.files("J://")) {
-  user_directory <- paste0("J:/Presidents/HSPI-PM/",
-                           "Operations Analytics and Optimization/Projects/",
-                           "Service Lines/Lab Kpi/Data")
-} else {
-  user_directory <- paste0("J:/deans/Presidents/HSPI-PM/",
-                           "Operations Analytics and Optimization/Projects/",
-                           "Service Lines/Lab Kpi/Data")
-}
+# # Select file/folder path for easier file selection and navigation
+# if ("Presidents" %in% list.files("J://")) {
+#   user_directory <- paste0("J:/Presidents/HSPI-PM/",
+#                            "Operations Analytics and Optimization/Projects/",
+#                            "Service Lines/Lab Kpi/Data")
+# } else {
+#   user_directory <- paste0("J:/deans/Presidents/HSPI-PM/",
+#                            "Operations Analytics and Optimization/Projects/",
+#                            "Service Lines/Lab Kpi/Data")
+# }
+user_directory <- paste0("/Pathology/")
 
 # Import analysis reference data
 reference_file <- paste0(user_directory,
