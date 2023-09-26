@@ -8,23 +8,22 @@ cyto_prep <- function(epic_data, pp_data,resulted_date) {
     summarized_table <- NULL
     return(summarized_table)
   } else {
-    print(2)
-    
+
     # Preprocess Epic data
     # Select specimens that were finalized in Epic based on Lab Status
-    epic_data_final <- epic_data %>%
+    epic_data_finalized_results <- epic_data %>%
       filter(LAB_STATUS %in% c("Final result", "Edited Result - FINAL"))
     
     # Create dataframe of unique specimen ID for crosswalking with PowerPath data
     # cross-walking with PowerPath data
-    epic_data_spec <- epic_data_final %>%
+    epic_data_specimens <- epic_data_finalized_results %>%
       distinct(SPECIMEN_ID)
     
     # Update names for MSH and MSM
-    pp_data <- pp_data %>%
-      mutate(Facility = case_when(Facility == "MSS" ~ "MSH",
-                                  Facility == "STL"~ "SL",
-                                  TRUE ~ Facility))
+    # pp_data <- pp_data %>%
+    #   mutate(Facility = case_when(Facility == "MSS" ~ "MSH",
+    #                               Facility == "STL"~ "SL",
+    #                               TRUE ~ Facility))
     
     # Subset PowerPath data to keep Cyto Gyn and Cyto NonGyn and primary
     # specimens only
@@ -32,7 +31,7 @@ cyto_prep <- function(epic_data, pp_data,resulted_date) {
       filter(spec_sort_order == "A" &
                spec_group %in% c("CYTO NONGYN", "CYTO GYN"))
     
-    cyto_final <- merge(x = cyto_raw, y = epic_data_spec,
+    cyto_final <- merge(x = cyto_raw, y = epic_data_specimens,
                         by.x = "Case_no",
                         by.y = "SPECIMEN_ID")
     
@@ -45,9 +44,10 @@ cyto_prep <- function(epic_data, pp_data,resulted_date) {
     raw_data_ps <- raw_data_ps %>%
       mutate(Facility = case_when(Facility == "KH" ~ "MSB",
                                   Facility == "R" ~ "MSW",
-                                  Facility == "SL" ~ "MSM",
+                                  Facility == "STL" ~ "MSM",
                                   Facility == "BIMC" ~ "MSBI",
                                   Facility == "SNCH" ~ "MSSN",
+                                  Facility == "MSS" ~ "MSH",
                                   TRUE ~ Facility ))
     
     # Update MSB patient setting based on patient type column
@@ -59,6 +59,19 @@ cyto_prep <- function(epic_data, pp_data,resulted_date) {
     # Crosswalk TAT targets based on spec_group and patient setting
     raw_data_new <- merge(x = raw_data_ps, y = tat_targets_ap,
                           all.x = TRUE, by = c("spec_group", "Patient.Setting"))
+    
+    # raw_data_new <- raw_data_new %>%
+    #   mutate(Collection_Date = as.character(Collection_Date))
+    # 
+    # raw_data_new <- raw_data_new %>%
+    #   mutate(Collection_Date = as.Date(Collection_Date, "%Y-%m-%d %h:%M:%s'))
+    # 
+    # do global function or lapply for code from line 71 to 95 -- Meeting notes
+    
+    raw_data_new <- raw_data_new %>%
+      mutate(Collection_Date = ifelse(is.character(Collection_Date), as.Date(as.numeric(Collection_Date),
+                                                                             origin = "1899-12-30"), 
+                                      Collection_Date))
     
     # check if any of the dates were imported as characters
     if (is.character(raw_data_new$Collection_Date)) {

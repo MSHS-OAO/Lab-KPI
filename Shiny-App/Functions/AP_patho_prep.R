@@ -7,6 +7,7 @@ patho_prep <- function(raw_data,resulted_date) {
     return(summarized_table)
     } else {
     
+    # resulted_date <- as.Date(max(raw_data$signed_out_date), format("%m/%d/%y"))
     #------------Extract the All Breast and GI specs Data Only--------------#
     # Merge the inclusion/exclusion criteria with PowerPath data to determine
     # which GI cases to include in the analysis
@@ -15,7 +16,7 @@ patho_prep <- function(raw_data,resulted_date) {
     
     raw_data <- raw_data %>%
       mutate(Facility = case_when(Facility == "MSS" ~ "MSH",
-                                  Facility == "STL"~ "SL", #Rename to MSM
+                                  Facility == "STL"~ "MSM", #Rename to MSM
                                   TRUE ~ Facility),
              spec_group = case_when(spec_group == "BREAST" ~ "Breast", 
                                     TRUE ~ spec_group))
@@ -39,10 +40,10 @@ patho_prep <- function(raw_data,resulted_date) {
           # Exclude NYEE
           Facility != "NYEE")
     # Crosswalk Rev_ctr and patient setting for PowerPath data
-    raw_data_ps <- merge(x = sp_data, y = patient_setting, all.x = TRUE)
+    raw_data_patient_setting <- merge(x = sp_data, y = patient_setting, all.x = TRUE)
     
     # update sites/facilities
-    raw_data_ps <- raw_data_ps %>%
+    raw_data_patient_setting <- raw_data_patient_setting %>%
       mutate(Facility = case_when(Facility == "KH" ~ "MSB",
                                   Facility == "R" ~ "MSW",
                                   Facility == "SL" ~ "MSM",
@@ -52,31 +53,32 @@ patho_prep <- function(raw_data,resulted_date) {
     
     
     # Update MSB patient setting based on patient type column
-    raw_data_ps <- raw_data_ps %>%
+    raw_data_patient_setting <- raw_data_patient_setting %>%
       mutate(Patient.Setting = case_when(Rev_ctr == "MSBK" & (patient_type == "A" | patient_type == "O") ~ "Amb",
                                          Rev_ctr == "MSBK" &  patient_type == "IN" ~ "IP",
                                          TRUE ~ Patient.Setting))
     
     # Crosswalk TAT targets based on spec_group and patient setting
-    raw_data_new <- merge(x = raw_data_ps, y = tat_targets_ap,
+    patient_setting_with_targets <- merge(x = raw_data_patient_setting, y = tat_targets_ap,
                           all.x = TRUE, by = c("spec_group", "Patient.Setting"))
     
     # check if any of the dates were imported as characters
-    if (is.character(raw_data_new$Collection_Date)) {
-      raw_data_new <- raw_data_new %>%
+    # Do lapply for all the dates based on data type
+    if (is.character(patient_setting_with_targets$Collection_Date)) {
+      patient_setting_with_targets <- patient_setting_with_targets %>%
         mutate(Collection_Date = as.numeric(Collection_Date)) %>%
         mutate(Collection_Date = as.Date(Collection_Date,
                                          origin = "1899-12-30"))
     } else {
-      raw_data_new <- raw_data_new %>%
+      patient_setting_with_targets <- patient_setting_with_targets %>%
         mutate(Collection_Date = Collection_Date)
     }
     #Change all Dates into POSIXct format to start the calculations
-    raw_data_new[c("Case_created_date",
+    patient_setting_with_targets[c("Case_created_date",
                    "Collection_Date",
                    "Received_Date",
                    "signed_out_date")] <-
-      lapply(raw_data_new[c("Case_created_date",
+      lapply(patient_setting_with_targets[c("Case_created_date",
                             "Collection_Date",
                             "Received_Date",
                             "signed_out_date")],
@@ -85,7 +87,7 @@ patho_prep <- function(raw_data,resulted_date) {
     # Add columns for turnaround time calculations:
     # Collection to signed out (in calendar days) and
     # received to signed out (in business days)
-    raw_data_new <- raw_data_new %>%
+    patient_setting_with_targets <- patient_setting_with_targets %>%
       mutate(
         # Add column for collected to signed out turnaround time in calendar days
         Collection_to_signed_out =
@@ -120,7 +122,7 @@ patho_prep <- function(raw_data,resulted_date) {
     
     #summarize the data to be used for analysis and to be stored as historical
     #repo
-    summarized_table <- raw_data_new %>%
+    summarized_table <- patient_setting_with_targets %>%
       group_by(Spec_code,
                spec_group,
                Facility,

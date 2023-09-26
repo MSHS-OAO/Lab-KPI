@@ -1,16 +1,3 @@
-ap_summary_07_12 <- ap_summary %>%
-  filter(REPORT_DATE == as.Date("2023-07-12"))
-
-
-tab_data_pathology <- ap_summary_07_12 %>%
-  filter(TAB == "SURGICAL PATHOLOGY")
-
-
-tab_data_cytology <- ap_summary_07_12 %>%
-  filter(TAB == "CYTOLOGY")
-
-
-
 # For 24 Hour Volume Look Back Surgical Pathology/Cytology Tab ----
 get_stratified_volume <- function(summarized_data, division){
   

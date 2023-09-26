@@ -92,7 +92,7 @@ pre_processing_backlog <- function(cyto_backlog_raw) {
               backlog[backlog > Received.to.signed.out.target..Days.],
               na.rm = TRUE))),
         
-        cyto_acc_vol = as.numeric(sum(acc_date == acc_date_only,
+        cyto_acc_vol = as.numeric(sum(acc_date == acc_date_only,  # replace acc_date with resulted_date
                                       na.rm = TRUE))) %>%
       mutate(maximum = if_else(maximum %in% c("-Inf") ,"0",
                                maximum),

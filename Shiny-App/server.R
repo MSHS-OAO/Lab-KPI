@@ -785,14 +785,10 @@ server <- function(input, output, session) {
     
     flag <- 0
     
-    report_date <- input$ap_report_date
     epic_cyto_file <- input$epic_cyto
     ap_cyto_signed_file <- input$ap_cyto_signed
     cyto_backlog_file <- input$cyto_backlog
-    resulted_date <<- as.Date(report_date-1)
-    print(typeof(resulted_date))
-    print(resulted_date)
-    
+
     if(is.null(report_date)){
       showModal(modalDialog(
         title = "Error",
@@ -1003,9 +999,3 @@ server <- function(input, output, session) {
   
   
 }
-
-
-
- 
-
-

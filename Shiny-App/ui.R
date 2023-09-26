@@ -329,13 +329,6 @@ ui <-
                           ),
                           tabPanel("Anatomic Pathology Efficiency Indicators",
                                    fluidPage(
-                                     fluidRow(h4("Report Date"),
-                                              dateInput("ap_report_date",
-                                                        label = "Select the date the reports are generated:",
-                                                        value = Sys.Date(),
-                                                        max = Sys.Date(),
-                                                        min = Sys.Date() -7)
-                                     ),
                                      fluidRow(h4("Epic Cytology"),
                                               fileInput("epic_cyto",
                                                         label = "Submit Epic Cytology file"

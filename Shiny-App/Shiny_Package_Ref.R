@@ -113,12 +113,12 @@ daily_repo <- readRDS(
 # AP Summary Import ----
 ap_summary <- readRDS(paste0(user_directory,
                              "/Shiny App Repo/APDailySummary",
-                             "/APRepo60Days.rds"))
+                             "/APRepo180Days.rds"))
 
 # AP Backlog Import 
 backlog_daily_repo <- readRDS(paste0(user_directory,
                                      "/Shiny App Repo/APDailySummary",
-                                     "/BacklogRepo60Days.rds"))
+                                     "/BacklogRepo180Days.rds"))
 
 # Import analysis reference data
 reference_file <- paste0(user_directory,
@@ -539,3 +539,36 @@ table_ap_template_cytology_24 <- table_ap_template %>%
   select(-DIVISION,-TAB)
 
 
+# Creating Mapping Template for AP Display Backlog ----
+SPEC_GROUP <- c("CYTO GYN", "CYTO NONGYN")
+METRIC <- c("total_accessioned_volume",
+            "cyto_backlog",
+            "percentile_25th",
+            "percentile_50th",
+            "maximum")
+
+table_backlog_template <- expand.grid(SPEC_GROUP,METRIC)
+
+
+colnames(table_backlog_template) <- c("Spec_group",
+                                      "METRIC")
+sp_vol_column_names <- c("Case Type",
+                         "Setting",
+                         "MSH",
+                         "MSQ",
+                         "MSBI",
+                         "PACC",
+                         "MSB",
+                         "MSW",
+                         "MSM")
+
+cyto_vol_column_names <- c("Case Type",
+                           "Setting",
+                           "MSH",
+                           "MSQ",
+                           "MSBI",
+                           "PACC",
+                           "MSB",
+                           "MSW",
+                           "MSM",
+                           "NYEE")
