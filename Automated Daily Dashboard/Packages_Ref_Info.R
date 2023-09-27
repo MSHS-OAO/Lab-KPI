@@ -240,88 +240,111 @@ tat_targets_ap <- data.frame(read_excel(reference_file,
 gi_codes <- data.frame(read_excel(reference_file, sheet = "GI_Codes"),
                        stringsAsFactors = FALSE)
 
-#-----------Create table template for Cyto/Path-----------#
-#The reason behind the table templates is to make sure all the variables and
-#patient settings are included
+SPEC_GROUP <- c("Breast", "GI","CYTO GYN", "CYTO NONGYN")
+PATIENT_SETTING <- c("IP", "Amb")
+SITES <- c("MSB","MSBI","PACC","MSW","MSH","MSM","MSSN","MSQ","NYEE")
+TAB <- c("Efficiency Indicators","24 Hour Volume")
+METRIC <- c("received_to_signed_out_within_target",
+            "avg_collection_to_signed_out",
+            "no_cases_signed")
 
-#Cyto
-#this template for cyto is with an assumption that received to result is not
-#centralized
-table_temp_cyto <- data.frame(matrix(ncol = 19, nrow = 4))
+table_ap_template <- expand.grid(SPEC_GROUP, PATIENT_SETTING,SITES,TAB,METRIC)
 
-colnames(table_temp_cyto) <- c("Spec_group", "Patient_setting",
-                               "no_cases_signed",
-                               "MSH.x", "BIMC.x", "MSQ.x", "NYEE.x",
-                               "PACC.x", "R.x", "SL.x", "KH.x", "BIMC.y",
-                               "MSH.y", "MSQ.y", "NYEE.y", "PACC.y", "R.y",
-                               "SL.y", "KH.y")
+colnames(table_ap_template) <- c("SPECIMEN_GROUP", "PATIENT_SETTING","SITE","TAB","METRIC")
 
-table_temp_cyto[1] <- c("CYTO GYN", "CYTO GYN", "CYTO NONGYN", "CYTO NONGYN")
-table_temp_cyto[2] <- c("IP", "Amb")
+table_ap_template <- table_ap_template %>%
+  mutate(DIVISION = case_when(SPECIMEN_GROUP %in% c("Breast", "GI") ~ "SURGICAL PATHOLOGY",
+                              SPECIMEN_GROUP %in% c("CYTO GYN", "CYTO NONGYN") ~ "CYTOLOGY"))
 
-#this template for cyto is with an assumption that received to result is
-#centralized
-table_temp_cyto_v2 <- data.frame(matrix(ncol = 12, nrow = 4))
 
-colnames(table_temp_cyto_v2) <- c("Spec_group", "Patient_setting",
-                                  "no_cases_signed",
-                                  "received_to_signed_out_within_target",
-                                  "BIMC", "MSH", "MSQ", "NYEE", "PACC",
-                                  "R", "SL", "KH")
+table_ap_template <- table_ap_template %>%
+  filter(!((DIVISION == "SURGICAL PATHOLOGY") & 
+             (SPECIMEN_GROUP %in% c("CYTO GYN", "CYTO NONGYN"))))
 
-table_temp_cyto_v2[1] <- c("CYTO GYN", "CYTO GYN", "CYTO NONGYN", "CYTO NONGYN")
-table_temp_cyto_v2[2] <- c("IP", "Amb")
+table_ap_template <- table_ap_template %>%
+  filter(!((DIVISION == "CYTOLOGY") & 
+             (SPECIMEN_GROUP %in% c("Breast", "GI"))))
 
-#this table template is for cytology volume
-table_temp_cyto_vol <- data.frame(matrix(ncol = 10, nrow = 4))
 
-colnames(table_temp_cyto_vol) <- c("Spec_group", "Patient_setting",
-                                   "BIMC", "MSH", "MSQ", "NYEE", "PACC",
-                                   "R", "SL", "KH")
 
-table_temp_cyto_vol[1] <- c("CYTO GYN", "CYTO GYN",
-                            "CYTO NONGYN", "CYTO NONGYN")
-table_temp_cyto_vol[2] <- c("IP", "Amb")
+table_ap_template <- table_ap_template %>%
+  filter(!((DIVISION == "CYTOLOGY") & 
+             (TAB == "Efficiency Indicators") & 
+             (METRIC %in% c("received_to_signed_out_within_target",
+                            "no_cases_signed"))))
 
-#Patho
-#this template for patho (sp) is with an assumption that received to result is
-#not centralized
-table_temp_patho <- data.frame(matrix(ncol = 17, nrow = 4))
-colnames(table_temp_patho) <- c("Spec_group", "Patient_setting",
-                                "no_cases_signed",
-                                "MSH.x", "BIMC.x", "MSQ.x", "PACC.x",
-                                "R.x", "SL.x", "KH.x", "BIMC.y", "MSH.y",
-                                "MSQ.y", "PACC.y", "R.y", "SL.y", "KH.y")
+table_ap_template <- table_ap_template %>%
+  filter(!((DIVISION == "SURGICAL PATHOLOGY") & 
+             (TAB == "Efficiency Indicators") & 
+             (METRIC == "no_cases_signed")))
 
-table_temp_patho[1] <- c("Breast", "Breast", "GI", "GI")
-table_temp_patho[2] <- c("IP", "Amb")
 
-#this table template is for surgical pathology volume
-table_temp_patho_vol <- data.frame(matrix(ncol = 9, nrow = 4))
-colnames(table_temp_patho_vol) <- c("Spec_group", "Patient_setting",
-                                    "BIMC", "MSH", "MSQ", "PACC",
-                                    "R", "SL", "KH")
+table_ap_template <- table_ap_template %>%
+  filter(!((DIVISION %in% c("SURGICAL PATHOLOGY","CYTOLOGY")) & 
+             (TAB == "24 Hour Volume") & 
+             (METRIC %in% c("received_to_signed_out_within_target",
+                            "avg_collection_to_signed_out"))))
 
-table_temp_patho_vol[1] <- c("Breast", "Breast", "GI", "GI")
-table_temp_patho_vol[2] <- c("IP", "Amb")
+# Efficiency Indicators template Pathology ----
+table_ap_template_surgical_pathology <- table_ap_template %>%
+  filter(DIVISION == "SURGICAL PATHOLOGY" &
+           !SITE %in% c("NYEE","MSSN")) %>%
+  filter(TAB == "Efficiency Indicators") %>%
+  select(-DIVISION,-TAB)
 
-sp_vol_column_order <- c("Spec_group", "Patient_setting",
-                         "MSH", "MSQ", "BIMC", "PACC", "KH", "R", "SL")
+# Efficiency Indicators template Cytology ----
+table_ap_template_cytology <- table_ap_template %>%
+  filter(DIVISION == "CYTOLOGY" &
+           !SITE %in% c("MSSN")) %>%
+  filter(TAB == "Efficiency Indicators") %>%
+  select(-DIVISION,-TAB)
 
-cyto_vol_column_order <- c("Spec_group", "Patient_setting",
-                           "MSH", "MSQ", "BIMC", "PACC", "KH", "R", "SL",
+
+# 24 Hour Volume template Pathology ----
+table_ap_template_surgical_pathology_24 <- table_ap_template %>%
+  filter(DIVISION == "SURGICAL PATHOLOGY" &
+           !SITE %in% c("NYEE","MSSN")) %>%
+  filter(TAB == "24 Hour Volume") %>%
+  select(-DIVISION,-TAB)
+
+# 24 Hour Volume template Cytology ----
+table_ap_template_cytology_24 <- table_ap_template %>%
+  filter(DIVISION == "CYTOLOGY" &
+           !SITE %in% c("MSSN")) %>%
+  filter(TAB == "24 Hour Volume") %>%
+  select(-DIVISION,-TAB)
+
+
+# Creating Mapping Template for AP Display Backlog ----
+SPEC_GROUP <- c("CYTO GYN", "CYTO NONGYN")
+METRIC <- c("total_accessioned_volume",
+            "cyto_backlog",
+            "percentile_25th",
+            "percentile_50th",
+            "maximum")
+
+table_backlog_template <- expand.grid(SPEC_GROUP,METRIC)
+
+
+colnames(table_backlog_template) <- c("Spec_group",
+                                      "METRIC")
+sp_vol_column_names <- c("Case Type",
+                         "Setting",
+                         "MSH",
+                         "MSQ",
+                         "MSBI",
+                         "PACC",
+                         "MSB",
+                         "MSW",
+                         "MSM")
+
+cyto_vol_column_names <- c("Case Type",
+                           "Setting",
+                           "MSH",
+                           "MSQ",
+                           "MSBI",
+                           "PACC",
+                           "MSB",
+                           "MSW",
+                           "MSM",
                            "NYEE")
-
-sp_standardized_column_names <-
-  c("Case Type", "Target", "Setting", "No. Cases Signed Out",
-    "MSH", "MSQ", "MSBI", "PACC", "MSB", "MSW", "MSSL",
-    "MSH", "MSQ", "MSBI", "PACC", "MSB", "MSW", "MSSL")
-
-sp_vol_column_names <- c("Case Type", "Setting",
-                         "MSH", "MSQ", "MSBI", "PACC", "MSB", "MSW", "MSSL")
-
-cyto_vol_column_names <- c("Case Type", "Setting",
-                           "MSH", "MSQ", "MSBI", "PACC", "MSB", "MSW", "MSSL",
-                           "NYEE")
-cyto_spec_group <- c("CYTO GYN", "CYTO NONGYN")
-patho_spec_group <- c("Breast", "GI")
