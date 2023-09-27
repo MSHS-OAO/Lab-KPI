@@ -95,165 +95,36 @@ infusion_tat_output <- summarize_cp_tat(x = cp_summary,
 # Anatomic Pathology (AP) includes Cytology and Surgical Pathology divisions
 #######
 #import source code
-source(here::here("Lab KPI Daily Dashboard/Daily_Run_AP_Custom_Functions.R"))
+source(here::here("Automated Daily Dashboard/AP_functions_data_preprocessing.R"))
+source(here::here("Automated Daily Dashboard/AP_processing_functions_for_output.R"))
+source(here::here("Automated Daily Dashboard/AP_kable_outputs.R"))
+
+
 ```
 
 ```{r Preprocess AP data, warning = FALSE, message = FALSE, echo = FALSE}
-# # Prepare cytology data for pre-processing by cross-walking Epic and
-# # PowerPath data
-# cyto_crosswalk <- cyto_prep(epic_data_raw, pp_data_raw)
-# 
-# # Preprocess cross-walked/filtered cytology data
-# cyto_preprocessed <- pre_processing_pp(cyto_crosswalk)
-# 
-# # This table gives the summarized cytology data for use in dashboard and repos
-# cyto_table_summarized <- cyto_preprocessed[[1]]
-# 
-# # This table gives the preprocessed and cleaned cytology data
-# cyto_preprocessed_df <- cyto_preprocessed[[2]]
-# #
-# # # Filter out any specimens signed out on dates other than the date of interest
-# # cyto_table_summarized <- cyto_table_summarized %>%
-# #   filter(Signed_out_date_only %in% resulted_date)
-# 
-# # Prepare surgical pathology data for pre-processing by subsetting data based on
-# # specimen type (breast & GI) and code (for GI cases)
-# sp_crosswalk <- patho_prep(pp_data_raw, gi_codes)
-# 
-# # Preprocess cross-walked/filtered surgical pathology data
-# sp_preprocessed <- pre_processing_pp(sp_crosswalk)
-# 
-# # This table gives the summarized surgical pathology data for use in dashboard
-# # and repos
-# sp_table_summarized <- sp_preprocessed[[1]]
-# 
-# # This table gives the preprocessed and cleaned surgical pathology data
-# sp_preprocessed_df <- sp_preprocessed[[2]]
-# 
-# # # # Filter out any specimens signed out on dates other than the date of interest
-# # sp_table_summarized <- sp_table_summarized %>%
-# #   filter(Signed_out_date_only %in% resulted_date)
+processed_cytology_data <-  cyto_prep(epic_data_raw ,pp_data_raw,yesterday)
+
+processed_surgical_pathology_data <- patho_prep(pp_data_raw,yesterday)
+
+processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw,yesterday)
+
 
 ```
 
-```{r Continue AP analysis, warning = FALSE, message = FALSE, echo = FALSE}
-# ##### This function helps in creating the analysis and tables from the
-# # summarized table.
-# #This table will give us the summarized TAT for cyto with an assumption that
-# #receive to result is not centralized.
-# cyto_table <-
-#   analyze_pp(cyto_table_summarized)[[1]]
-# 
-# #This table will give us the summarized TAT for cyto with an assumption that
-# #receive to result is centralized.
-# cyto_table_v2 <-
-#   analyze_pp(cyto_table_summarized)[[2]]
-# 
-# #this table summarizes the volume for cyto per hospital per patient setting
-# cyto_strat_vol <-
-#   analyze_pp(cyto_table_summarized)[[3]]
-# 
-# # This table gives the volume of specimens accessioned by date
-# #accessioned date. This table will be used to poduce the total accession volume
-# cyto_acc_vol1 <- analyze_pp(cyto_table_summarized)[[4]]
-# 
-# #This table will give us the summarized TAT for surgical pathology
-# #with an assumption that receive to result is not centralized.
-# sp_table <-
-#   analyze_pp(sp_table_summarized)[[1]]
-# 
-# #this table summarizes the volume for surgical pathology per hospital per
-# #patient setting
-# sp_strat_vol <-
-#   analyze_pp(sp_table_summarized)[[3]]
+
+```{r Calling the Custom functions for processing to output formats data, warning = FALSE, message = FALSE, echo = FALSE}
+stratified_volume_cytology_24 <- get_stratified_volume(processed_cytology_data, "CYTOLOGY")
+stratified_volume_surgical_pathology_24 <- get_stratified_volume(processed_surgical_pathology_data, "SURGICAL PATHOLOGY")
+
+backlog_cytlogy <- analyze_backlog(processed_backlog_data,processed_cytology_data)
+
+ei_cytlogy <- get_efficiency_indicators_cytology(processed_cytology_data)
+ei_surgical_pathology <- get_efficiency_indicators_surgical_pathology(processed_surgical_pathology_data)
 
 ```
 
-```{r Calling the Custom functions for preprocessing raw cytology backlog data, warning = FALSE, message = FALSE, echo = FALSE}
-# ##### This function helps in preprocessing the raw backlog data.
-# cyto_backlog_summarized <- pre_processing_backlog(cyto_backlog_data_raw)
 
-```
-
-```{r Calling the Custom functions for creating cytology backlog analysis tables, warning = FALSE, message = FALSE, echo = FALSE}
-# ##### This function helps in creating the analysis and tables from the
-# # summarized table.
-# backlog_acc_table_new2 <- analyze_backlog(cyto_backlog_summarized)
-
-```
-
-```{r Custom functions for formatting Cytology dashboard tables, echo = FALSE, warning = FALSE, message = FALSE}
-# ###### Source function for Table standardization for cyto and patho########
-# #To add all the missing rows and columns
-# 
-# #final cyto summarized table with an assumption that
-# #received to result is not centralized
-# cyto_table_new2 <- table_merging_cyto(cyto_table)
-# 
-# #final cyto summarized table with an assumption that
-# #received to result is centralized
-# cyto_table_new2_v2 <- table_merging_cyto_v2(cyto_table_v2)
-# 
-# #final surgical pathology summarized table with an assumption that
-# #received to result is not centralized
-# sp_table_new2 <- table_merging_patho(sp_table)
-# 
-# #final surgical pathology volume table per site per patient setting
-# sp_strat_vol_new2 <- table_merging_volume(
-#   table_temp_patho_vol,
-#   sp_strat_vol,
-#   sp_vol_column_order)
-# 
-# # sp_strat_vol_new2$Spec_group[
-# #   sp_strat_vol_new2$Spec_group == "GI"] <-
-# #   "GI Biopsies"
-# #
-# # sp_strat_vol_new2$Spec_group[
-# #   sp_strat_vol_new2$Spec_group == "Breast"] <-
-# #   "All Breast Specimens"
-# 
-# #final cyto volume table per site per patient setting
-# cyto_strat_vol_new2 <- table_merging_volume(
-#   table_temp_cyto_vol,
-#   cyto_strat_vol,
-#   cyto_vol_column_order)
-# 
-# #added this line to delete the cyto gyn from the table until we get correct data
-# #this line is not used anymore
-# cyto_strat_vol_new3 <-
-#   cyto_strat_vol_new2[-c(1, 2), ]
-# 
-# #final cyto summarized table with conditional formatting and receive to result
-# #targets with an assumption that received to result is not centralized
-# cyto_table_new3 <- conditional_formatting_cyto(cyto_table_new2)
-# 
-# #added this line to delete the cyto gyn from the table until we get correct data
-# #this line is not used anymore
-# cyto_table_new4 <- cyto_table_new3[-c(1, 2), ]
-# 
-# #final cyto summarized table with conditional formatting and receive to
-# #result targets with an assumption that received to result is centralized
-# cyto_table_new3_v2 <-
-#   conditional_formatting_cyto2(cyto_table_new2_v2)
-# 
-# #added this line to delete the cyto gyn from the table until we get correct data
-# #this line is not in use anymore
-# cyto_table_new3_v3 <- cyto_table_new3_v2[-c(1, 2), ]
-# 
-# #final surgical pathology summarized table with conditional formatting and
-# #receive to result targets with an assumption that received to result
-# #is centralized
-# sp_table_new3 <- conditional_formatting_patho(sp_table_new2)
-# 
-# 
-# # sp_table_new3$Spec_group[sp_table_new3$Spec_group == "GI"] <-
-# #   "GI Biopsies"
-# #
-# # sp_table_new3$Spec_group[
-# #   sp_table_new3$Spec_group == "Breast"] <-
-# #   "All Breast Specimens"
-
-```
 
 # {.tabset .tabset-fade .tabset-pills}
 
@@ -387,16 +258,9 @@ kable_add_on_volume(x = cp_summary)
 <span style = "color:green">Green:</span> >=90%</h5>
 ```{r Surgical Pathology Efficiency Indicators, echo=FALSE, warning=FALSE, message=FALSE}
 
-# if (holiday_det) {
-#   asis_output(
-#     paste(
-#       "<i>",
-#       "No efficiency indicator reporting on weekends and holidays.",
-#       "</i>"))
-# } else {
-#   table_formatting(sp_table_new3, sp_standardized_column_names)
-# }
+ei_surgical_pathology <- ap_ei_kable_surgical_pathology(ei_surgical_pathology)
 
+ei_surgical_pathology
 ```
 <h6>*TAT analysis includes all breast specimens and GI biopsies and excludes those with missing timestamps, negative TAT, and not from above settings.*</h6>
   
@@ -407,15 +271,8 @@ kable_add_on_volume(x = cp_summary)
 <span style = "color:orange">Yellow:</span> >=80% & <90%,
 <span style = "color:green">Green:</span> >=90%</h5>
 ```{r Cytology Efficiency Indicators, echo=FALSE, warning=FALSE, message=FALSE}
-# if (holiday_det) {
-#   asis_output(
-#     paste("<i>",
-#           "No efficiency indicator reporting on weekends and holidays.",
-#           "</i>"))
-# } else {
-#   table_formatting2(cyto_table_new3_v2)
-# }
-
+ei_cytlogy <- ap_ei_kable_cytology(ei_cytlogy)
+ei_cytlogy
 ```
 
 <br />
@@ -453,63 +310,24 @@ kable_cp_vol(inf_vol_table)
 #### *Surgical Pathology Signed Out Case Volume (Signed Out on `r result_date_text`)*
 ```{r Surgical Pathology: Volume of signed out cases, echo=FALSE, warning=FALSE, message=FALSE}
 
-# table_formatting_volume(sp_strat_vol_new2,
-#                         sp_vol_column_names)
+stratified_volume_surgical_pathology_24 <- table_formatting_volume(stratified_volume_surgical_pathology_24, "SURGICAL PATHOLOGY")
 
+stratified_volume_surgical_pathology_24
 ```
 
 ### Cytology
 #### *Cytology Accessioned Cases and Backlog Volume (As of `r result_date_text`)*
 ```{r Cytology Backlog and Accessioned case volume, echo=FALSE, warning=FALSE, message=FALSE}
-# if (holiday_det) {
-#   asis_output(
-#     paste("<i>",
-#           "No cases accessioned on weekends and holidays.",
-#           "</i>")
-#     )
-# } else if (is.null(backlog_acc_table_new2)) {
-#   asis_output(
-#     paste("<i>",
-#           "No data available for backlog and accessioned volume reporting.",
-#           "</i>")
-#   )
-# } else {
-#   backlog_acc_table_new2 %>%
-#     kable(escape = F, align = "c",
-#           col.names = c("Case Type", "Cases Accessioned", "Backlog Volume",
-#                         "25th Percentile", "50th Percentile", "Maximum")) %>%
-#     kable_styling(bootstrap_options = "hover", full_width = TRUE,
-#                   position = "center", row_label_position = "c",
-#                   font_size = 11) %>%
-#     column_spec(2, background = "#E6F8FF", color = "black") %>%
-#     column_spec(3:6, background = "#EBEBF9", color = "black") %>%
-#     row_spec(row = 0, font_size = 13) %>%
-#     add_header_above(c(
-#       " " = 2,
-#       "Elapsed Turn Around Time for Backlogged Cases From the Received Time" = 4),
-#       background = c("white", "#221F72"), color = "white", font_size = 13) %>%
-#     collapse_rows(columns = 1)
-# }
+backlog_cytlogy <- table_formatting_volume_backlog(backlog_cytlogy)
+
+backlog_cytlogy
 ```
 
 #### *Cytology Signed Out Cases Volume (As of `r result_date_text`)*
 ```{r Cytology Signed Out Cases, echo=FALSE, warning=FALSE, message=FALSE}
 
-# if (holiday_det) {
-#   asis_output(
-#     paste("<i>",
-#           "No cases signed out on weekends and holidays.",
-#           "</i>")
-#     )
-# } else if (is.null(cyto_strat_vol_new2)) {
-#   asis_output(
-#     paste("<i>",
-#           "No data available for signed out case volume reporting.",
-#           "</i>")
-#     )
-# } else {
-#   table_formatting_volume(cyto_strat_vol_new2, cyto_vol_column_names)
-# }
+stratified_volume_cytology_24 <- table_formatting_volume(stratified_volume_cytology_24, "CYTOLOGY")
+stratified_volume_cytology_24
 
 ```
 
