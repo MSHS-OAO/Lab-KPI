@@ -19,18 +19,16 @@ get_stratified_volume <- function(summarized_data, division){
   }
   
   vol_cases_signed_strat <- left_join(volume_24_template,vol_cases_signed_strat) %>%
+    mutate(VALUE = cell_spec(VALUE, "html",
+                             color = ifelse(is.na(VALUE), 
+                                            "lightgray",
+                                            "black"))) %>%
     pivot_wider(id_cols = c(SPECIMEN_GROUP,PATIENT_SETTING),
                 names_from = c(SITE),
-                values_from = VALUE,
-                values_fill = 0)
+                values_from = VALUE)
   
   return(vol_cases_signed_strat)
 }
-
-# Test 24 Volume LookBack ---- 
-
-cyto_strat <- get_stratified_volume(tab_data_cytology,"CYTOLOGY")
-patho_strat <- get_stratified_volume(tab_data_pathology,"SURGICAL PATHOLOGY")
 
 
 
@@ -113,6 +111,10 @@ get_efficiency_indicators_cytology <- function(summarized_data){
            avg_collection_to_signed_out_MSM,
            avg_collection_to_signed_out_NYEE) %>%
     mutate(received_to_signed_out_within_target = percent(received_to_signed_out_within_target, digits = 0),
+           no_cases_signed = cell_spec(no_cases_signed, "html",
+                                       color = ifelse(is.na(no_cases_signed), 
+                                                      "lightgray",
+                                                      "black")),
            received_to_signed_out_within_target = cell_spec(
              received_to_signed_out_within_target, "html",
              color = ifelse(is.na(received_to_signed_out_within_target), "lightgray",
@@ -209,7 +211,11 @@ get_efficiency_indicators_surgical_pathology <- function(summarized_data){
                                                          "PATIENT_SETTING" = "Patient.Setting"))
   # set the order
   efficiency_indicator_pathology_tab <- left_join(efficiency_indicator_pathology_tab,vol_cases_signed) %>%
-    mutate(Target = paste0("<= ",as.character(Received.to.signed.out.target..Days.)," Days")) %>%
+    mutate(Target = paste0("<= ",as.character(Received.to.signed.out.target..Days.)," Days"),
+           no_cases_signed = cell_spec(no_cases_signed, "html",
+                                       color = ifelse(is.na(no_cases_signed), 
+                                                      "lightgray",
+                                                      "black"))) %>%
     arrange(SPECIMEN_GROUP,PATIENT_SETTING) %>%
     select(SPECIMEN_GROUP,
            Target,
@@ -245,7 +251,7 @@ get_efficiency_indicators_surgical_pathology <- function(summarized_data){
 ##### This function helps in creating the analysis and tables from the
 # summarized table. Will be used in first run and second run as well.
 analyze_backlog <- function(summarized_table_backlog, summarized_table_cytology) {
-  if (is.null(summarized_table)) {
+  if (is.null(summarized_table_backlog)) {
     backlog_acc_table <- NULL
   } else {
     

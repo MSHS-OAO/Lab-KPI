@@ -109,7 +109,7 @@ table_formatting_volume_backlog <- function(backlog_table) {
             "No cases accessioned on weekends and holidays.",
             "</i>")
     )
-  } else if (is.null(backlog_acc_table_new2)) {
+  } else if (is.null(backlog_table)) {
     asis_output(
       paste("<i>",
             "No data available for backlog and accessioned volume reporting.",

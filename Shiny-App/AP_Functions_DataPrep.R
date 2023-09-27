@@ -1,9 +1,3 @@
-
-epic_data <- epic_data_raw
-pp_data <- pp_data_raw
-cyto_backlog_raw <- cyto_backlog_data_raw
-
-
 site_mapping <- function(data){
   
   
@@ -197,8 +191,6 @@ cyto_prep <- function(epic_data, pp_data,resulted_date) {
 }
 
 
-cyto_data <- cyto_prep(epic_data, pp_data, resulted_date)
-
 
 
 #create a function to prepare pathology data for pre-processing
@@ -362,7 +354,7 @@ patho_prep <- function(raw_data,resulted_date) {
 
 ##### This function helps in preprocessing the raw backlog data.
 # Will be used in first run
-pre_processing_backlog <- function(cyto_backlog_raw) {
+pre_processing_backlog <- function(cyto_backlog_raw,resulted_date) {
   #cyto backlog Calculation
   if (is.null(cyto_backlog_raw) || nrow(cyto_backlog_raw) == 0) {
     summarized_table <- NULL
