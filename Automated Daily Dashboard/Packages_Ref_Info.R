@@ -41,7 +41,8 @@ library(tidyr)
 
 #-------------------------------holiday/weekend-------------------------------#
 # Get today and yesterday's date
-today <- Sys.Date()
+# today <- Sys.Date()
+today <- as.Date("9/21/2023", format = "%m/%d/%Y")
 
 #Determine if yesterday was a holiday/weekend
 #get yesterday's DOW

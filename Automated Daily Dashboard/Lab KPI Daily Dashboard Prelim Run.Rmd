@@ -3,7 +3,7 @@ title: "MSHS Laboratory KPI Dashboard (Preliminary)"
 knit: (function(input, ...) {
       rmarkdown::render(input,
             output_file = paste0("/Pathology/Prelim Dashboard Output Tests KN/",
-            "Lab KPI Prelim Dashboard ",
+            "Lab KPI Prelim Dashboard Test ",
                     Sys.Date()),
       envir = globalenv()
     )
