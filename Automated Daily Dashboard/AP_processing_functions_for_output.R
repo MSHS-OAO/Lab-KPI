@@ -317,6 +317,10 @@ analyze_backlog <- function(summarized_table_backlog, summarized_table_cytology)
     backlog_acc_table <- merge(x = table_backlog_template,
                                y = backlog_acc_table,
                                all.x = TRUE, by = c("Spec_group","METRIC")) %>%
+      mutate(VALUE = cell_spec(VALUE, "html",
+                               color = ifelse(is.na(VALUE), 
+                                              "lightgray",
+                                              "black"))) %>%
       pivot_wider(names_from = "METRIC", 
                   values_from = "VALUE")
     
