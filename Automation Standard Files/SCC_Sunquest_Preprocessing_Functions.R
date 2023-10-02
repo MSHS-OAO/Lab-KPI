@@ -94,7 +94,7 @@ preprocess_scc <- function(raw_scc)  {
                                        units = "mins")
                             > 5, "AddOn", "Original"),
       # Determine if collection time is missing
-      MISSING_COLLECT = COLLECTION_DATE %in% RECEIVE_DATE, # COLLECT_TO_RECEIVE_TAT %in% 0,
+      MISSING_COLLECT = COLLECT_TO_RECEIVE_TAT %in% 0, #COLLECTION_DATE %in% RECEIVE_DATE,
       #
       # Determine TAT based on test, division, priority, and patient setting
       # Create column concatenating test and division to determine TAT targets
@@ -323,7 +323,8 @@ preprocess_sun <- function(raw_sun) {
                                        units = "mins") > 5, "AddOn", "Original"),
       #
       # Determine if collection time is missing
-      MISSING_COLLECT = CollectDateTime %in% OrderDateTime,
+      MISSING_COLLECT = (CollectDateTime - OrderDateTime) %in% 0,
+        # CollectDateTime %in% OrderDateTime,
       #
       # Determine TAT target based on test, priority, and patient setting
       # Create column concatenating test and division to determine TAT targets
