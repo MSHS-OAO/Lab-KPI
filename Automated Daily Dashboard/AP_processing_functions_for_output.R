@@ -324,8 +324,8 @@ analyze_backlog <- function(summarized_table_backlog, summarized_table_cytology)
       pivot_wider(names_from = "METRIC", 
                   values_from = "VALUE")
     
-    backlog_acc_table <- backlog_acc_table %>% 
-      mutate(across(everything(), ~replace_na(.x, 0)))
+    # backlog_acc_table <- backlog_acc_table %>% 
+    #   mutate(across(everything(), ~replace_na(.x, 0)))
     
     #added this line to delete the cyto gyn from the table until we get
     #correct data. Currently not in use
