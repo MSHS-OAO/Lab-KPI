@@ -44,6 +44,10 @@ source(here::here("Automated Daily Dashboard/Packages_Ref_Info.R"))
 #######
 
 source(here::here("Automated Daily Dashboard/Daily_Run_Raw_Data_Import.R"))
+
+cp_eval <- !(is.null(scc_data_raw) | is.null(sq_data_raw))
+
+ap_eval <- !(is.null(pp_data_file) | is.null(cyto_backlog_data_raw) | is.null(epic_data_raw))
 ```
 
 ```{r Import CP custom functions, warning = FALSE, message = FALSE, echo = FALSE}
@@ -55,12 +59,12 @@ source(here::here("Automation Standard Files/SCC_Sunquest_Preprocessing_Function
 source(here::here("Automated Daily Dashboard/CP_Summary_Kable_Functions.R"))
 ```
 
-```{r Preprocess CP data, warning = FALSE, message = FALSE, echo = FALSE}
+```{r Preprocess CP data, warning = FALSE, message = FALSE, echo = FALSE, eval = cp_eval}
 # Code for calling custom functions to preprocess and summarize CP data 
 source(here::here("Automated Daily Dashboard/CP_Preprocessing_Analysis.R"))
 ```
 
-```{r Subset and format CP data for each lab division for daily dashboard, warning = FALSE, message = FALSE, echo = FALSE}
+```{r Subset and format CP data for each lab division for daily dashboard, warning = FALSE, message = FALSE, echo = FALSE, eval = cp_eval}
 # Custom function to subset and summarize data for each lab division ----------
 # Chemistry
 chem_tat_output <- summarize_cp_tat(x = cp_summary,
@@ -102,7 +106,7 @@ source(here::here("Automated Daily Dashboard/AP_kable_outputs.R"))
 
 ```
 
-```{r Preprocess AP data, warning = FALSE, message = FALSE, echo = FALSE}
+```{r Preprocess AP data, warning = FALSE, message = FALSE, echo = FALSE, eval = ap_eval}
 processed_cytology_data <-  cyto_prep(epic_data_raw ,pp_data_raw,yesterday)
 
 processed_surgical_pathology_data <- patho_prep(pp_data_raw,yesterday)
@@ -113,7 +117,7 @@ processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw,yesterday
 ```
 
 
-```{r Calling the Custom functions for processing to output formats data, warning = FALSE, message = FALSE, echo = FALSE}
+```{r Calling the Custom functions for processing to output formats data, warning = FALSE, message = FALSE, echo = FALSE, eval = ap_eval}
 stratified_volume_cytology_24 <- get_stratified_volume(processed_cytology_data, "CYTOLOGY")
 stratified_volume_surgical_pathology_24 <- get_stratified_volume(processed_surgical_pathology_data, "SURGICAL PATHOLOGY")
 
@@ -138,7 +142,14 @@ ei_surgical_pathology <- get_efficiency_indicators_surgical_pathology(processed_
 <span style = "color:orange">Yellow:</span> >=80% & <95%,
 <span style = "color:green">Green:</span> >=95%</h5>
 ```{r Chemistry dashboard table, warning = FALSE, message = FALSE, echo = FALSE}
-kable_cp_tat(x = chem_tat_output[[2]])
+if (cp_eval){
+  kable_cp_tat(x = chem_tat_output[[2]])
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Sunquest and/or SCC data. Please check that file is saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 ```
 <h6>*TAT Analysis excludes add on orders, labs with missing timestamps, labs with negative TAT, and labs not from above settings. Labs with missing collection times excluded from collect-to-result analysis. MSH BUN excludes labs collected and processed at RTC; see "Infusion" tab.*</h6>
   
@@ -149,7 +160,14 @@ kable_cp_tat(x = chem_tat_output[[2]])
 <span style = "color:orange">Yellow:</span> >=80% & <95%,
 <span style = "color:green">Green:</span> >=95%</h5>
 ```{r Hematology dashboard table, warning = FALSE, message = FALSE, echo = FALSE}
-kable_cp_tat(x = hematology_tat_output[[2]])
+if (cp_eval){
+  kable_cp_tat(x = hematology_tat_output[[2]])
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Sunquest and/or SCC data. Please check that file is saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 ```
 <h6>*TAT Analysis excludes add on orders, labs with missing timestamps, labs with negative TAT, and labs not from above settings. Labs with missing collection times excluded from collect-to-result analysis. MSH HGB excludes labs collected and processed at RTC; see "Infusion" tab.*</h6>
   
@@ -161,67 +179,76 @@ kable_cp_tat(x = hematology_tat_output[[2]])
 <span style = "color:green">Green:</span> =100%</h5>
 ```{r Create Micro RRL TAT and Volume Table, warning = FALSE, message = FALSE, echo = FALSE}
 # Create volume table for Microbiology RRL that mimics TAT table layout
-if (is.null(micro_summary)) {
-  micro_tat_vol_cast <- NULL
+if (cp_eval) {
+  if (is.null(micro_summary)) {
+    micro_tat_vol_cast <- NULL
+    } else {
+      # Ensure all Microbiology RRL test, site, and priority combinations are included
+      micro_vol_templ <- tat_dashboard_templ %>%
+        filter(Division == "Microbiology RRL") %>%
+        mutate(Incl = NULL,
+               Division = NULL)
+      
+      micro_vol_df <- micro_summary %>%
+        mutate(Metric = "ResultedVolume") %>%
+        rename(Value = ResultedVolume) %>%
+        select(-Division, -ResultedVol_ReceiveTAT, -ResultedVol_CollectTAT,
+               -ReceiveResultInTarget, -CollectResultInTarget,
+               -ReceiveResultPercent, -CollectResultPercent) %>%
+        left_join(micro_vol_templ,
+                  by = c("Test" = "Test",
+                         "Site" = "Site",
+                         "DashboardPriority" = "DashboardPriority",
+                         "DashboardSetting" = "DashboardSetting")) %>%
+        mutate(Value = replace_na(Value, 0),
+               ReceiveResultTarget = "ResultedVolume",
+               CollectResultTarget = "",
+               #
+               # Set test, site, priority, and setting as factors
+               Test = droplevels(factor(Test, levels = test_names,
+                                        ordered = TRUE)),
+               Site = droplevels(factor(Site, levels = all_sites,
+                                        ordered = TRUE)),
+               DashboardPriority = droplevels(
+                 factor(DashboardPriority,
+                        levels = dashboard_priority_order,
+                        ordered = TRUE)),
+               DashboardSetting = droplevels(
+                 factor(DashboardSetting,
+                        levels = dashboard_pt_setting,
+                        ordered = TRUE))) %>%
+        arrange(Test, DashboardPriority, DashboardSetting, Site) %>%
+        pivot_wider(names_from = c(Metric, Site),
+                    names_sep = "_",
+                    values_from = Value) %>%
+        relocate(TestAndPriority, .after = DashboardPriority) %>%
+        relocate(ReceiveResultTarget, .after = TestAndPriority) %>%
+        relocate(CollectResultTarget, .after = last_col())
+      
+      original_length <- ncol(micro_vol_df)
+      
+      missing_cols <- colnames(micro_dashboard_cast)[
+        seq(original_length + 1, ncol(micro_dashboard_cast))]
+      
+      micro_vol_df[missing_cols] <- ""
+      
+      colnames(micro_vol_df) <- colnames(micro_dashboard_cast)
+      
+      micro_tat_vol_cast <- rbind(micro_dashboard_cast, micro_vol_df)
+      
+      micro_tat_vol_cast <- micro_tat_vol_cast %>%
+        arrange(Test, ReceiveResultTarget)
+      }
+  
+  kable_cp_tat(x = micro_tat_vol_cast)
 } else {
-  # Ensure all Microbiology RRL test, site, and priority combinations are included
-  micro_vol_templ <- tat_dashboard_templ %>%
-    filter(Division == "Microbiology RRL") %>%
-    mutate(Incl = NULL,
-           Division = NULL)
-  
-  micro_vol_df <- micro_summary %>%
-    mutate(Metric = "ResultedVolume") %>%
-    rename(Value = ResultedVolume) %>%
-    select(-Division, -ResultedVol_ReceiveTAT, -ResultedVol_CollectTAT,
-           -ReceiveResultInTarget, -CollectResultInTarget,
-           -ReceiveResultPercent, -CollectResultPercent) %>%
-    left_join(micro_vol_templ,
-              by = c("Test" = "Test",
-                     "Site" = "Site",
-                     "DashboardPriority" = "DashboardPriority",
-                     "DashboardSetting" = "DashboardSetting")) %>%
-    mutate(Value = replace_na(Value, 0),
-           ReceiveResultTarget = "ResultedVolume",
-           CollectResultTarget = "",
-           #
-           # Set test, site, priority, and setting as factors
-           Test = droplevels(factor(Test, levels = test_names,
-                                    ordered = TRUE)),
-           Site = droplevels(factor(Site, levels = all_sites,
-                                    ordered = TRUE)),
-           DashboardPriority = droplevels(
-             factor(DashboardPriority,
-                    levels = dashboard_priority_order,
-                    ordered = TRUE)),
-           DashboardSetting = droplevels(
-             factor(DashboardSetting,
-                    levels = dashboard_pt_setting,
-                    ordered = TRUE))) %>%
-    arrange(Test, DashboardPriority, DashboardSetting, Site) %>%
-    pivot_wider(names_from = c(Metric, Site),
-                names_sep = "_",
-                values_from = Value) %>%
-    relocate(TestAndPriority, .after = DashboardPriority) %>%
-    relocate(ReceiveResultTarget, .after = TestAndPriority) %>%
-    relocate(CollectResultTarget, .after = last_col())
-  
-  original_length <- ncol(micro_vol_df)
-  
-  missing_cols <- colnames(micro_dashboard_cast)[
-    seq(original_length + 1, ncol(micro_dashboard_cast))]
-  
-  micro_vol_df[missing_cols] <- ""
-  
-  colnames(micro_vol_df) <- colnames(micro_dashboard_cast)
-  
-  micro_tat_vol_cast <- rbind(micro_dashboard_cast, micro_vol_df)
-  
-  micro_tat_vol_cast <- micro_tat_vol_cast %>%
-    arrange(Test, ReceiveResultTarget)
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Sunquest and/or SCC data. Please check that file is saved properly.",
+          "</span style='color:red'></b></i>"))
 }
 
-kable_cp_tat(x = micro_tat_vol_cast)
+
 ```
 <h6>*TAT Analysis excludes add on orders, labs with missing timestamps, labs with negative TAT, and labs not from above settings. Labs with missing collection times excluded from collect-to-result analysis.*</h6>
   
@@ -231,7 +258,14 @@ kable_cp_tat(x = micro_tat_vol_cast)
 <span style = "color:orange">Yellow:</span> >=80% & <90%,
 <span style = "color:green">Green:</span> >=90%</h5>
 ```{r Create Infusion TAT and Volume Table, warning = FALSE, message = FALSE, echo = FALSE}
-kable_cp_tat(x = infusion_tat_output[[2]])
+if (cp_eval){
+  kable_cp_tat(x = infusion_tat_output[[2]])
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Sunquest and/or SCC data. Please check that file is saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 ```
 <h6>*TAT Analysis excludes add on orders, labs with missing timestamps, labs with negative TAT, and labs not from above settings. Labs with missing collection times excluded from collect-to-result analysis.*</h6>
   
@@ -244,10 +278,16 @@ kable_cp_tat(x = infusion_tat_output[[2]])
 # # Labs with missing collection times -----------------------
 # Custom function for percentage of labs with missing collection times
 # Call custom functions for missing collections and add-on order volume --------
-kable_missing_collections(x = cp_summary)
-
-kable_add_on_volume(x = cp_summary)
-
+if (cp_eval){
+  kable_missing_collections(x = cp_summary)
+  
+  kable_add_on_volume(x = cp_summary)
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Sunquest and/or SCC data. Please check that file is saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 ```
 <h6>*Missing collection time analysis includes analytes represented in Chemistry, Hematology, and Microbiology RRL dashboard TAT analysis from ED, ICU, IP Non-ICU, and ambulatory settings.*</h6>
   
@@ -256,7 +296,7 @@ kable_add_on_volume(x = cp_summary)
 <h5>Status Definitions: <span style = "color:red">Red:</span> <80%, 
 <span style = "color:orange">Yellow:</span> >=80% & <90%,
 <span style = "color:green">Green:</span> >=90%</h5>
-```{r Surgical Pathology Efficiency Indicators, echo=FALSE, warning=FALSE, message=FALSE}
+```{r Surgical Pathology Efficiency Indicators, echo=FALSE, warning=FALSE, message=FALSE, eval = ap_eval}
 
 ei_surgical_pathology <- ap_ei_kable_surgical_pathology(ei_surgical_pathology)
 
@@ -270,7 +310,7 @@ ei_surgical_pathology
 <h5>Status Definitions: <span style = "color:red">Red:</span> <80%, 
 <span style = "color:orange">Yellow:</span> >=80% & <90%,
 <span style = "color:green">Green:</span> >=90%</h5>
-```{r Cytology Efficiency Indicators, echo=FALSE, warning=FALSE, message=FALSE}
+```{r Cytology Efficiency Indicators, echo=FALSE, warning=FALSE, message=FALSE, eval = ap_eval}
 ei_cytlogy <- ap_ei_kable_cytology(ei_cytlogy)
 ei_cytlogy
 ```
@@ -282,33 +322,61 @@ ei_cytlogy
 ### Chemistry
 #### *Chemistry Resulted Lab Volume (Labs Resulted on `r result_date_text`)*
 ```{r Chemistry: 24 hour volume lookback, echo = FALSE, warning = FALSE, message = FALSE}
-chem_vol_table <- summarize_cp_vol(x = cp_summary,
-                                        lab_division = "Chemistry")
 
-kable_cp_vol(chem_vol_table)
+if (cp_eval){
+  chem_vol_table <- summarize_cp_vol(x = cp_summary,
+                                     lab_division = "Chemistry")
+  
+  kable_cp_vol(chem_vol_table)
+
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Sunquest and/or SCC data. Please check that file is saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 ```
 
 ### Hematology
 #### *Hematology Resulted Lab Volume (Labs Resulted on `r result_date_text`)*
 ```{r Hematology: 24 hour volume lookback, echo = FALSE, warning = FALSE, message = FALSE}
-hem_vol_table <- summarize_cp_vol(x = cp_summary,
-                                       lab_division = "Hematology")
 
-kable_cp_vol(hem_vol_table)
+if (cp_eval){
+  hem_vol_table <- summarize_cp_vol(x = cp_summary,
+                                    lab_division = "Hematology")
+  
+  kable_cp_vol(hem_vol_table)
+
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Sunquest and/or SCC data. Please check that file is saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 ```
 
 ### Infusion
 #### *Infusion Resulted Lab Volume (Labs Resulted on `r result_date_text`)*
 ```{r Infusion: 24 hour volume lookback, echo = FALSE, warning = FALSE, message = FALSE}
-inf_vol_table <- summarize_cp_vol(x = cp_summary,
-                                       lab_division = "Infusion")
 
-kable_cp_vol(inf_vol_table)
+if (cp_eval){
+  inf_vol_table <- summarize_cp_vol(x = cp_summary,
+                                    lab_division = "Infusion")
+  
+  kable_cp_vol(inf_vol_table)
+
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Sunquest and/or SCC data. Please check that file is saved properly.",
+          "</span style='color:red'></b></i>"))
+}
+
 ```
 
 ### Surgical Pathology
 #### *Surgical Pathology Signed Out Case Volume (Signed Out on `r result_date_text`)*
-```{r Surgical Pathology: Volume of signed out cases, echo=FALSE, warning=FALSE, message=FALSE}
+```{r Surgical Pathology: Volume of signed out cases, echo=FALSE, warning=FALSE, message=FALSE, eval = ap_eval}
 
 stratified_volume_surgical_pathology_24 <- table_formatting_volume(stratified_volume_surgical_pathology_24, "SURGICAL PATHOLOGY")
 
@@ -317,14 +385,14 @@ stratified_volume_surgical_pathology_24
 
 ### Cytology
 #### *Cytology Accessioned Cases and Backlog Volume (As of `r result_date_text`)*
-```{r Cytology Backlog and Accessioned case volume, echo=FALSE, warning=FALSE, message=FALSE}
+```{r Cytology Backlog and Accessioned case volume, echo=FALSE, warning=FALSE, message=FALSE, eval = ap_eval}
 backlog_cytlogy <- table_formatting_volume_backlog(backlog_cytlogy)
 
 backlog_cytlogy
 ```
 
 #### *Cytology Signed Out Cases Volume (As of `r result_date_text`)*
-```{r Cytology Signed Out Cases, echo=FALSE, warning=FALSE, message=FALSE}
+```{r Cytology Signed Out Cases, echo=FALSE, warning=FALSE, message=FALSE, eval = ap_eval}
 
 stratified_volume_cytology_24 <- table_formatting_volume(stratified_volume_cytology_24, "CYTOLOGY")
 stratified_volume_cytology_24
