@@ -1486,7 +1486,7 @@
     },
     "plyr": {
       "Source": "CRAN",
-      "Repository": "https://hso-packagemanager.mssm.edu/prod-cran/__linux__/focal/2022-10-04",
+      "Repository": "https://cran.rstudio.com",
       "GithubRepo": null,
       "GithubUsername": null,
       "GithubRef": null,
