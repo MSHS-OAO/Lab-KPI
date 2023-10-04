@@ -93,7 +93,7 @@ infusion_tat_output <- summarize_cp_tat(x = cp_summary,
 
 ```
 
-```{r Import AP custom functions, warning = FALSE, message = FALSE, echo = FALSE}
+```{r Import AP custom functions, echo=FALSE, message=FALSE, warning=FALSE}
 #######
 # Source Code for preprocessing, analyzing, and displaying Anatomic Pathology
 # Anatomic Pathology (AP) includes Cytology and Surgical Pathology divisions
@@ -107,17 +107,24 @@ source(here::here("Automated Daily Dashboard/AP_kable_outputs.R"))
 ```
 
 ```{r Preprocess AP data, warning = FALSE, message = FALSE, echo = FALSE, eval = ap_eval}
+
+
 processed_cytology_data <-  cyto_prep(epic_data_raw ,pp_data_raw,yesterday)
 
 processed_surgical_pathology_data <- patho_prep(pp_data_raw,yesterday)
 
 processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw,yesterday)
 
+  
+
+
 
 ```
 
 
 ```{r Calling the Custom functions for processing to output formats data, warning = FALSE, message = FALSE, echo = FALSE, eval = ap_eval}
+
+
 stratified_volume_cytology_24 <- get_stratified_volume(processed_cytology_data, "CYTOLOGY")
 stratified_volume_surgical_pathology_24 <- get_stratified_volume(processed_surgical_pathology_data, "SURGICAL PATHOLOGY")
 
@@ -125,6 +132,8 @@ backlog_cytlogy <- analyze_backlog(processed_backlog_data,processed_cytology_dat
 
 ei_cytlogy <- get_efficiency_indicators_cytology(processed_cytology_data)
 ei_surgical_pathology <- get_efficiency_indicators_surgical_pathology(processed_surgical_pathology_data)
+
+
 
 ```
 
@@ -296,11 +305,18 @@ if (cp_eval){
 <h5>Status Definitions: <span style = "color:red">Red:</span> <80%, 
 <span style = "color:orange">Yellow:</span> >=80% & <90%,
 <span style = "color:green">Green:</span> >=90%</h5>
-```{r Surgical Pathology Efficiency Indicators, echo=FALSE, warning=FALSE, message=FALSE, eval = ap_eval}
+```{r Surgical Pathology Efficiency Indicators, echo=FALSE, warning=FALSE, message=FALSE}
 
-ei_surgical_pathology <- ap_ei_kable_surgical_pathology(ei_surgical_pathology)
+if (ap_eval){
+  ei_surgical_pathology <- ap_ei_kable_surgical_pathology(ei_surgical_pathology)
+  ei_surgical_pathology
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 
-ei_surgical_pathology
 ```
 <h6>*TAT analysis includes all breast specimens and GI biopsies and excludes those with missing timestamps, negative TAT, and not from above settings.*</h6>
   
@@ -310,9 +326,19 @@ ei_surgical_pathology
 <h5>Status Definitions: <span style = "color:red">Red:</span> <80%, 
 <span style = "color:orange">Yellow:</span> >=80% & <90%,
 <span style = "color:green">Green:</span> >=90%</h5>
-```{r Cytology Efficiency Indicators, echo=FALSE, warning=FALSE, message=FALSE, eval = ap_eval}
-ei_cytlogy <- ap_ei_kable_cytology(ei_cytlogy)
-ei_cytlogy
+```{r Cytology Efficiency Indicators, echo=FALSE, warning=FALSE, message=FALSE}
+
+if (ap_eval){
+  ei_cytlogy <- ap_ei_kable_cytology(ei_cytlogy)
+  #ei_cytlogy
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
+          "</span style='color:red'></b></i>"))
+}
+
+
 ```
 
 <br />
@@ -376,26 +402,49 @@ if (cp_eval){
 
 ### Surgical Pathology
 #### *Surgical Pathology Signed Out Case Volume (Signed Out on `r result_date_text`)*
-```{r Surgical Pathology: Volume of signed out cases, echo=FALSE, warning=FALSE, message=FALSE, eval = ap_eval}
+```{r Surgical Pathology: Volume of signed out cases, echo=FALSE, warning=FALSE, message=FALSE}
+if (ap_eval){
+  stratified_volume_surgical_pathology_24 <- table_formatting_volume(stratified_volume_surgical_pathology_24, "SURGICAL PATHOLOGY")
 
-stratified_volume_surgical_pathology_24 <- table_formatting_volume(stratified_volume_surgical_pathology_24, "SURGICAL PATHOLOGY")
+  stratified_volume_surgical_pathology_24
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 
-stratified_volume_surgical_pathology_24
 ```
 
 ### Cytology
 #### *Cytology Accessioned Cases and Backlog Volume (As of `r result_date_text`)*
-```{r Cytology Backlog and Accessioned case volume, echo=FALSE, warning=FALSE, message=FALSE, eval = ap_eval}
-backlog_cytlogy <- table_formatting_volume_backlog(backlog_cytlogy)
+```{r Cytology Backlog and Accessioned case volume, echo=FALSE, warning=FALSE, message=FALSE}
 
-backlog_cytlogy
+if (ap_eval){
+  backlog_cytlogy <- table_formatting_volume_backlog(backlog_cytlogy)
+  backlog_cytlogy
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
+          "</span style='color:red'></b></i>"))
+}
+
 ```
 
 #### *Cytology Signed Out Cases Volume (As of `r result_date_text`)*
 ```{r Cytology Signed Out Cases, echo=FALSE, warning=FALSE, message=FALSE, eval = ap_eval}
 
-stratified_volume_cytology_24 <- table_formatting_volume(stratified_volume_cytology_24, "CYTOLOGY")
-stratified_volume_cytology_24
+if (ap_eval){
+  stratified_volume_cytology_24 <- table_formatting_volume(stratified_volume_cytology_24, "CYTOLOGY")
+  stratified_volume_cytology_24
+
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 
 ```
 
