@@ -2671,7 +2671,6 @@ ei_cytlogy <- get_efficiency_indicators_cytology(processed_cytology_data)
 ei_surgical_pathology <- get_efficiency_indicators_surgical_pathology(processed_surgical_pathology_data)
 
 
-
 ```
 
 
