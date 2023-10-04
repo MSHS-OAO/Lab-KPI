@@ -1486,7 +1486,7 @@
     },
     "plyr": {
       "Source": "CRAN",
-      "Repository": "https://cran.rstudio.com",
+      "Repository": "https://hso-packagemanager.mssm.edu/prod-cran/__linux__/focal/2022-10-04",
       "GithubRepo": null,
       "GithubUsername": null,
       "GithubRef": null,
@@ -2718,7 +2718,7 @@
       "checksum": "aa9099b0329f4fec3a2be2c9e5c7d859"
     },
     "Lab KPI Daily Dashboard Prelim Run.Rmd": {
-      "checksum": "82e79efa98ba8c76d5a89268c631e466"
+      "checksum": "45c0bcbfd6e2c1fa3c85f1ab0f56e2da"
     },
     "Ops_Qlty_Indicators_Form.R": {
       "checksum": "b05a1cb00b48a7a96dbddfc686de1f61"
