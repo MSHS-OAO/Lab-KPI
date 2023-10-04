@@ -1669,37 +1669,1008 @@ infusion_tat_output <- summarize_cp_tat(x = cp_summary,
 # source(here::here("Automated Daily Dashboard/AP_processing_functions_for_output.R"))
 # source(here::here("Automated Daily Dashboard/AP_kable_outputs.R"))
 
+# Copied from Automated Daily Dashboard/AP_functions_data_preprocessing.R
+site_mapping <- function(data){
+  
+  
+  data <- data %>%
+    mutate(Facility = case_when(Facility == "KH" ~ "MSB",
+                                Facility == "R" ~ "MSW",
+                                Facility == "STL" ~ "MSM",
+                                Facility == "BIMC" ~ "MSBI",
+                                Facility == "SNCH" ~ "MSSN",
+                                Facility == "MSS" ~ "MSH",
+                                Facility == "SL" ~ "MSM",
+                                #Facility == "PACC" ~ "MS USQ",
+                                TRUE ~ Facility ))
+  
+  
+  
+}
+
+
+format_dates <- function(data){
+  
+  data[c("Case_created_date",
+                 "Collection_Date",
+                 "Received_Date",
+                 "signed_out_date")] <-
+    lapply(data[c("Case_created_date",
+                          "Collection_Date",
+                          "Received_Date",
+                          "signed_out_date")],
+           as.POSIXct, tz = "", format = "%m/%d/%y %I:%M %p" ,origin = "1970-01-01")
+  
+  data
+  
+}
+
+
+# Function to preprate prepare cytology data for pre-processing by crosswalking
+# Epic and PowerPath data
+# combines orginal cyto_prep, pre_processing_pp in Daily_Run_AP_Custom_Functions
+
+cyto_prep <- function(epic_data, pp_data,resulted_date) {
+  if (is.null(epic_data) || is.null(pp_data) || 
+      nrow(epic_data) == 0 || nrow(pp_data) == 0) {
+    summarized_table <- NULL
+    return(summarized_table)
+  } else {
+    
+    # Preprocess Epic data
+    # Select specimens that were finalized in Epic based on Lab Status
+    epic_data_finalized_results <- epic_data %>%
+      filter(LAB_STATUS %in% c("Final result", "Edited Result - FINAL"))
+    
+    # Create dataframe of unique specimen ID for crosswalking with PowerPath data
+    # cross-walking with PowerPath data
+    epic_data_specimens <- epic_data_finalized_results %>%
+      distinct(SPECIMEN_ID)
+    
+    # Update names for MSH and MSM
+    # pp_data <- pp_data %>%
+    #   mutate(Facility = case_when(Facility == "MSS" ~ "MSH",
+    #                               Facility == "STL"~ "SL",
+    #                               TRUE ~ Facility))
+    
+    # Subset PowerPath data to keep Cyto Gyn and Cyto NonGyn and primary
+    # specimens only
+    cyto_data <- pp_data %>%
+      filter(spec_sort_order == "A" &
+               spec_group %in% c("CYTO NONGYN", "CYTO GYN"))
+    
+    cyto_data <- merge(x = cyto_data, y = epic_data_specimens,
+                        by.x = "Case_no",
+                        by.y = "SPECIMEN_ID")
+    
+    
+    
+    # Crosswalk Rev_ctr and patient setting for PowerPath data
+    cyto_data <- merge(x = cyto_data, y = patient_setting, all.x = TRUE)
+    
+    # update sites/facilities
+    cyto_data <- site_mapping(cyto_data)
+    
+    # Update MSB patient setting based on patient type column
+    cyto_data <- cyto_data %>%
+      mutate(Patient.Setting = case_when(Rev_ctr == "MSBK" & (patient_type == "A" | patient_type == "O") ~ "Amb",
+                                         Rev_ctr == "MSBK" &  patient_type == "IN" ~ "IP",
+                                         TRUE ~ Patient.Setting))
+    
+    # Crosswalk TAT targets based on spec_group and patient setting
+    cyto_data <- merge(x = cyto_data, y = tat_targets_ap,
+                          all.x = TRUE, by = c("spec_group", "Patient.Setting"))
+    
+
+    #Change all Dates into POSIXct format to start the calculations
+    cyto_data <- format_dates(cyto_data)
+    
+    # Add columns for turnaround time calculations:
+    # Collection to signed out (in calendar days) and
+    # received to signed out (in business days)
+    cyto_data <- cyto_data %>%
+      mutate(
+        # Add column for collected to signed out turnaround time in calendar days
+        Collection_to_signed_out =
+          as.numeric(difftime(signed_out_date,Collection_Date,units="days")),
+        # Add column for received to signed out turnaround time in business days
+        Received_to_signed_out = bizdays(Received_Date, signed_out_date),
+        # Prepare data for accessioned volume analysis
+        # First find the date of the last weekday and add 1 for report date
+        report_date_only = as.Date(signed_out_date) + 1,
+        #  Find the accessioned date and use this for determining accessioned volume
+        acc_date_only = as.Date(Received_Date)) %>%
+      # Filter out anything with a sign out date other than result date of interest
+      filter(date(signed_out_date) %in% resulted_date)
+    
+
+    #summarize the data to be used for analysis and to be stored as historical
+    #repo
+    summarized_table <- cyto_data %>%
+      group_by(Spec_code,
+               spec_group,
+               Facility,
+               Patient.Setting,
+               Rev_ctr,
+               as.Date(signed_out_date),
+               weekdays(as.Date(signed_out_date)),
+               Received.to.signed.out.target..Days.,
+               Collected.to.signed.out.target..Days.,
+               acc_date_only,
+               weekdays(acc_date_only),
+               report_date_only,
+               weekdays(report_date_only)) %>%
+      summarise(no_cases_signed = n(),
+                lab_metric_tat_avg = round(mean(Received_to_signed_out,
+                                                na.rm = TRUE), 0),
+                lab_metric_tat_med = round(median(Received_to_signed_out,
+                                                  na.rm = TRUE), 0),
+                lab_metric_tat_sd = round(sd(Received_to_signed_out, na.rm = TRUE), 1),
+                lab_metric_within_target = as.numeric(format(
+                  round(
+                    sum(Received_to_signed_out <= Received.to.signed.out.target..Days.,
+                        na.rm = TRUE) / sum(
+                          Received_to_signed_out >= 0, na.rm = TRUE), 2))),
+                patient_metric_tat_avg = as.numeric(format(
+                  ceiling(mean(Collection_to_signed_out, na.rm = TRUE)))),
+                patient_metric_tat_med = round(median(Collection_to_signed_out,
+                                                      na.rm = TRUE), 0),
+                patient_metric_tat_sd = round(sd(Collection_to_signed_out,
+                                                 na.rm = TRUE), 1),
+                cyto_acc_vol = as.numeric(sum((report_date_only - 1) == acc_date_only,
+                                              na.rm = TRUE)))
+    
+    
+    
+    colnames(summarized_table) <-
+      c("Spec_code", "Spec_group", "Facility", "Patient_setting", "Rev_ctr",
+        "Signed_out_date_only", "Signed_out_day_only", "Lab_metric_target",
+        "Patient_metric_target", "acc_date_only", "acc_day_only",
+        "report_date_only", "report_day_only", "No_cases_signed_out",
+        "Lab_metric_avg", "Lab_metric_med", "Lab_metric_std",
+        "Lab_metric_within_target", "Patient_metric_avg", "Patient_metric_med",
+        "Patient_metric_std", "cyto_acc_vol")
+    
+    summarized_table <- summarized_table %>%
+      rename(SPECIMEN_CODE = Spec_code,
+             SPECIMEN_GROUP = Spec_group,
+             SITE = Facility,
+             PATIENT_SETTING = Patient_setting,
+             REVENUE_CENTER = Rev_ctr,
+             SIGNED_OUT_DATE = Signed_out_date_only,
+             SIGNED_OUT_DAY = Signed_out_day_only,
+             REC_TO_SIGNED_OUT_TARGET = Lab_metric_target,
+             COL_TO_SIGNED_OUT_TARGET = Patient_metric_target,
+             ACCESSION_DATE = acc_date_only,
+             ACCESION_DAY = acc_day_only,
+             REPORT_DATE = report_date_only,
+             REPORT_DAY = report_day_only,
+             NO_CASES_SIGNED_OUT = No_cases_signed_out,
+             REC_TO_SIGNED_OUT_AVG = Lab_metric_avg,
+             REC_TO_SIGNED_OUT_MEDIAN = Lab_metric_med,
+             REC_TO_SIGNED_OUT_STDDEV = Lab_metric_std,
+             REC_TO_SIGNED_OUT_WITHIN_TARGET = Lab_metric_within_target,
+             COL_TO_SIGNED_OUT_AVG = Patient_metric_avg,
+             COL_TO_SIGNED_OUT_MEDIAN = Patient_metric_med,
+             COL_TO_SIGNED_OUT_STDDEV = Patient_metric_std,
+             CYTO_ACCESSION_VOLUME = cyto_acc_vol) #%>%
+      #mutate(TAB = "CYTOLOGY") 
+    # # Filter out any specimens signed out on other dates
+    # summarize_table <- summarized_table %>%
+    #   filter(Signed_out_date_only %in% dates)
+    return(summarized_table)
+  }
+}
+
+
+
+
+#create a function to prepare pathology data for pre-processing
+# combines orginal patho_prep, pre_processing_pp in Daily_Run_AP_Custom_Functions
+
+patho_prep <- function(raw_data,resulted_date) {
+  if (is.null(raw_data) || nrow(raw_data) == 0) {
+    summarized_table <- NULL
+    return(summarized_table)
+  } else {
+    
+    # resulted_date <- as.Date(max(raw_data$signed_out_date), format("%m/%d/%y"))
+    #------------Extract the All Breast and GI specs Data Only--------------#
+    # Merge the inclusion/exclusion criteria with PowerPath data to determine
+    # which GI cases to include in the analysis
+    
+    pp_data_gi_codes <- merge(x = raw_data, y = gi_codes, all.x = TRUE)
+    
+    pp_data_gi_codes <- pp_data_gi_codes %>%
+      mutate(spec_group = case_when(spec_group == "BREAST" ~ "Breast", 
+                                    TRUE ~ spec_group))
+    
+    pp_data_gi_codes <- site_mapping(pp_data_gi_codes)
+    
+    
+    #Create dataframe with cases that should be excluded based on GI code
+    exclude_gi_codes <- pp_data_gi_codes %>%
+      filter(spec_group %in% c("GI") &
+               !(GI_Code_InclExcl %in% c("Include")))
+    
+    # Create vector of case numbers to exclude
+    exclude_case_numbers <- unique(exclude_gi_codes$Case_no)
+    
+    # Subset surgical pathology data based on inclusion criteria
+    sp_data <- pp_data_gi_codes %>%
+      filter(# Select primary specimens only
+        spec_sort_order == "A" &
+          # Select GI specimens with codes that are included and any breast specimens
+          ((spec_group == "GI" & !(Case_no %in% exclude_case_numbers)) |
+             (spec_group == "Breast" )) &
+          # Exclude NYEE
+          Facility != "NYEE")
+    # Crosswalk Rev_ctr and patient setting for PowerPath data
+    sp_data_patient_setting <- merge(x = sp_data, y = patient_setting, all.x = TRUE)
+    
+    
+    # Update MSB patient setting based on patient type column
+    sp_data_patient_setting <- sp_data_patient_setting %>%
+      mutate(Patient.Setting = case_when(Rev_ctr == "MSBK" & (patient_type == "A" | patient_type == "O") ~ "Amb",
+                                         Rev_ctr == "MSBK" &  patient_type == "IN" ~ "IP",
+                                         TRUE ~ Patient.Setting))
+    
+    # Crosswalk TAT targets based on spec_group and patient setting
+    patient_setting_with_targets <- merge(x = sp_data_patient_setting, y = tat_targets_ap,
+                                          all.x = TRUE, by = c("spec_group", "Patient.Setting"))
+    
+    #Change all Dates into POSIXct format to start the calculations
+    patient_setting_with_targets <- format_dates(patient_setting_with_targets)
+    
+    
+    # Add columns for turnaround time calculations:
+    # Collection to signed out (in calendar days) and
+    # received to signed out (in business days)
+    patient_setting_with_targets <- patient_setting_with_targets %>%
+      mutate(
+        # Add column for collected to signed out turnaround time in calendar days
+        Collection_to_signed_out =
+          as.numeric(difftime(signed_out_date,Collection_Date,units="days")),
+        # Add column for received to signed out turnaround time in business days
+        Received_to_signed_out = bizdays(Received_Date, signed_out_date),
+        # Prepare data for accessioned volume analysis
+        # First find the date of the last weekday and add 1 for report date
+        report_date_only = as.Date(signed_out_date) + 1,
+        #  Find the accessioned date and use this for determining accessioned volume
+        acc_date_only = as.Date(Received_Date)) %>%
+      # Filter out anything with a sign out date other than result date of interest
+      filter(date(signed_out_date) %in% resulted_date)
+    
+
+    #summarize the data to be used for analysis and to be stored as historical
+    #repo
+    summarized_table <- patient_setting_with_targets %>%
+      group_by(Spec_code,
+               spec_group,
+               Facility,
+               Patient.Setting,
+               Rev_ctr,
+               as.Date(signed_out_date),
+               weekdays(as.Date(signed_out_date)),
+               Received.to.signed.out.target..Days.,
+               Collected.to.signed.out.target..Days.,
+               acc_date_only,
+               weekdays(acc_date_only),
+               report_date_only,
+               weekdays(report_date_only)) %>%
+      summarise(no_cases_signed = n(),
+                lab_metric_tat_avg = round(mean(Received_to_signed_out,
+                                                na.rm = TRUE), 0),
+                lab_metric_tat_med = round(median(Received_to_signed_out,
+                                                  na.rm = TRUE), 0),
+                lab_metric_tat_sd = round(sd(Received_to_signed_out, na.rm = TRUE), 1),
+                lab_metric_within_target = as.numeric(format(
+                  round(
+                    sum(Received_to_signed_out <= Received.to.signed.out.target..Days.,
+                        na.rm = TRUE) / sum(
+                          Received_to_signed_out >= 0, na.rm = TRUE), 2))),
+                patient_metric_tat_avg = as.numeric(format(
+                  ceiling(mean(Collection_to_signed_out, na.rm = TRUE)))),
+                patient_metric_tat_med = round(median(Collection_to_signed_out,
+                                                      na.rm = TRUE), 0),
+                patient_metric_tat_sd = round(sd(Collection_to_signed_out,
+                                                 na.rm = TRUE), 1),
+                cyto_acc_vol = as.numeric(sum((report_date_only - 1) == acc_date_only,
+                                              na.rm = TRUE)))
+    
+    
+    
+    colnames(summarized_table) <-
+      c("Spec_code", "Spec_group", "Facility", "Patient_setting", "Rev_ctr",
+        "Signed_out_date_only", "Signed_out_day_only", "Lab_metric_target",
+        "Patient_metric_target", "acc_date_only", "acc_day_only",
+        "report_date_only", "report_day_only", "No_cases_signed_out",
+        "Lab_metric_avg", "Lab_metric_med", "Lab_metric_std",
+        "Lab_metric_within_target", "Patient_metric_avg", "Patient_metric_med",
+        "Patient_metric_std", "cyto_acc_vol")
+    
+    summarized_table <- summarized_table %>%
+      rename(SPECIMEN_CODE = Spec_code,
+             SPECIMEN_GROUP = Spec_group,
+             SITE = Facility,
+             PATIENT_SETTING = Patient_setting,
+             REVENUE_CENTER = Rev_ctr,
+             SIGNED_OUT_DATE = Signed_out_date_only,
+             SIGNED_OUT_DAY = Signed_out_day_only,
+             REC_TO_SIGNED_OUT_TARGET = Lab_metric_target,
+             COL_TO_SIGNED_OUT_TARGET = Patient_metric_target,
+             ACCESSION_DATE = acc_date_only,
+             ACCESION_DAY = acc_day_only,
+             REPORT_DATE = report_date_only,
+             REPORT_DAY = report_day_only,
+             NO_CASES_SIGNED_OUT = No_cases_signed_out,
+             REC_TO_SIGNED_OUT_AVG = Lab_metric_avg,
+             REC_TO_SIGNED_OUT_MEDIAN = Lab_metric_med,
+             REC_TO_SIGNED_OUT_STDDEV = Lab_metric_std,
+             REC_TO_SIGNED_OUT_WITHIN_TARGET = Lab_metric_within_target,
+             COL_TO_SIGNED_OUT_AVG = Patient_metric_avg,
+             COL_TO_SIGNED_OUT_MEDIAN = Patient_metric_med,
+             COL_TO_SIGNED_OUT_STDDEV = Patient_metric_std,
+             CYTO_ACCESSION_VOLUME = cyto_acc_vol) #%>%
+      #mutate(TAB = "SURGICAL PATHOLOGY")
+    
+    # # Filter out any specimens signed out on other dates
+    # summarize_table <- summarized_table %>%
+    #   filter(Signed_out_date_only %in% dates)
+    return(summarized_table)
+  }
+  
+}
+
+
+
+##### This function helps in preprocessing the raw backlog data.
+# Will be used in first run
+pre_processing_backlog <- function(cyto_backlog_raw,resulted_date) {
+  #cyto backlog Calculation
+  if (is.null(cyto_backlog_raw) || nrow(cyto_backlog_raw) == 0) {
+    summarized_table <- NULL
+  } else {
+    #vlookup the Rev_Center and its corresponding patient setting for the
+    #PowerPath Data
+    
+    cyto_backlog_ps <- merge(x = cyto_backlog_raw, y = patient_setting,
+                             all.x = TRUE)
+    
+    #vlookup targets based on spec_group and patient setting
+    cyto_backlog_ps_target <- merge(x = cyto_backlog_ps, y = tat_targets_ap,
+                                    all.x = TRUE,
+                                    by = c("spec_group", "Patient.Setting"))
+    
+    cyto_backlog_ps_target <- site_mapping(cyto_backlog_ps_target)
+    
+    #Keep the cyto gyn and cyto non-gyn
+    cyto_backlog <- cyto_backlog_ps_target %>%
+      filter(spec_group %in% c("CYTO NONGYN","CYTO GYN"))
+    
+    #Change all Dates into POSIXct format to start the calculations
+    cyto_backlog <- format_dates(cyto_backlog)
+    
+    #Backlog Calculations: Date now - case created date
+    #without weekends and holidays, subtract one so we don't include today's date
+
+    cyto_backlog <- cyto_backlog %>%
+      mutate(backlog = bizdays(cyto_backlog$Case_created_date, today) - 1,
+             acc_date_only = as.Date(cyto_backlog$Received_Date),
+             Report_Date = resulted_date + 1 )
+    
+    #summarize the data to be used for analysis and to be stored as historical
+    #repo
+    summarized_table <- cyto_backlog %>%
+      group_by(Spec_code,
+               spec_group,
+               Facility,
+               Patient.Setting,
+               Rev_ctr,
+               acc_date_only,
+               weekdays(acc_date_only),
+               Report_Date) %>%
+      summarise(cyto_backlog = format(
+        round(
+          sum(
+            backlog > Received.to.signed.out.target..Days.,
+            na.rm = TRUE), 0)),
+        
+        percentile_25th =
+          format(
+            ceiling(
+              quantile(
+                backlog[backlog > Received.to.signed.out.target..Days.],
+                prob = 0.25, na.rm = TRUE))),
+        
+        percentile_50th =
+          format(
+            ceiling(
+              quantile(
+                backlog[backlog > Received.to.signed.out.target..Days.],
+                prob = 0.5, na.rm = TRUE))),
+        
+        percentile_75th =
+          format(
+            ceiling(
+              quantile(
+                backlog[backlog > Received.to.signed.out.target..Days.],
+                prob = 0.75, na.rm = TRUE))),
+        
+        maximum = format(
+          ceiling(
+            max(
+              backlog[backlog > Received.to.signed.out.target..Days.],
+              na.rm = TRUE))),
+        
+        average = format(
+          ceiling(
+            mean(
+              backlog[backlog > Received.to.signed.out.target..Days.],
+              na.rm = TRUE))),
+        
+        minimum = format(
+          ceiling(
+            min(
+              backlog[backlog > Received.to.signed.out.target..Days.],
+              na.rm = TRUE))),
+        
+        cyto_acc_vol = as.numeric(sum(resulted_date == acc_date_only,
+                                      na.rm = TRUE))) %>%
+      mutate(maximum = if_else(maximum %in% c("-Inf" ,"Inf") ,"0",
+                               maximum),
+             maximum = as.numeric(maximum))
+    
+    #standardize the name for the current summary to match the historical repo
+    colnames(summarized_table) <-
+      c("Spec_code", "Spec_group", "Facility", "Patient_setting", "Rev_ctr",
+        "acc_date_only", "acc_day_only", "Report_Date", "cyto_backlog",
+        "percentile_25th", "percentile_50th", "percentile_75th","minimum","average","maximum", "cyto_acc_vol")
+  }
+  return(summarized_table)
+  
+}
+
+# Copied from Automated Daily Dashboard/AP_processing_functions_for_output.R
+# For 24 Hour Volume Look Back Surgical Pathology/Cytology Tab ----
+get_stratified_volume <- function(summarized_data, division){
+  
+  vol_cases_signed_strat <- summarized_data %>%
+    group_by(SPECIMEN_GROUP,
+             SITE,
+             PATIENT_SETTING) %>%
+    summarise(no_cases_signed =
+                sum(NO_CASES_SIGNED_OUT,
+                    na.rm = TRUE))%>%
+    pivot_longer(cols = c(no_cases_signed),
+                 names_to  = "METRIC",
+                 values_to = "VALUE")
+  
+  if(division == "SURGICAL PATHOLOGY"){
+    volume_24_template <- table_ap_template_surgical_pathology_24 
+  }else{
+    volume_24_template <- table_ap_template_cytology_24
+  }
+  
+  vol_cases_signed_strat <- left_join(volume_24_template,vol_cases_signed_strat) %>%
+    mutate(VALUE = cell_spec(VALUE, "html",
+                             color = ifelse(is.na(VALUE), 
+                                            "lightgray",
+                                            "black"))) %>%
+    pivot_wider(id_cols = c(SPECIMEN_GROUP,PATIENT_SETTING),
+                names_from = c(SITE),
+                values_from = VALUE)
+  
+  return(vol_cases_signed_strat)
+}
+
+
+
+# For Efficiency Indicators Cytology Data ---- 
+get_efficiency_indicators_cytology <- function(summarized_data){
+  
+  # Volume
+  vol_cases_signed <- summarized_data %>%
+    group_by(SPECIMEN_GROUP,
+             PATIENT_SETTING) %>%
+    summarise(no_cases_signed = sum(NO_CASES_SIGNED_OUT,
+                                    na.rm = TRUE))
+  
+  # Received to Signed
+  received_to_signed <- summarized_data %>%
+    group_by(SPECIMEN_GROUP,
+             PATIENT_SETTING) %>%
+    summarise(received_to_signed_out_within_target =
+                format(
+                  round(
+                    sum(
+                      (REC_TO_SIGNED_OUT_WITHIN_TARGET *
+                         NO_CASES_SIGNED_OUT) /
+                        sum(NO_CASES_SIGNED_OUT),
+                      na.rm = TRUE), 2)))
+  
+  #Calculate average collection to signed out
+  efficiency_indicator_cytology_tab <- summarized_data %>%
+    group_by(SPECIMEN_GROUP,
+             SITE,
+             PATIENT_SETTING) %>%
+    summarise(avg_collection_to_signed_out =
+                format(
+                  round(
+                    sum(
+                      (COL_TO_SIGNED_OUT_AVG *
+                         NO_CASES_SIGNED_OUT) /
+                        sum(NO_CASES_SIGNED_OUT),
+                      na.rm = TRUE), 0))) %>%
+    pivot_longer(cols = c(avg_collection_to_signed_out),
+                 names_to  = "METRIC",
+                 values_to = "VALUE") %>%
+    mutate(VALUE = as.numeric(VALUE))
+  
+  
+  
+  efficiency_indicator_cytology_tab <- left_join(table_ap_template_cytology,
+                                                 efficiency_indicator_cytology_tab) %>%
+    mutate(VALUE = cell_spec(VALUE, "html",
+                             color = ifelse(is.na(VALUE), 
+                                            "lightgray",
+                                            "black"))) %>%
+    pivot_wider(id_cols = c(SPECIMEN_GROUP,PATIENT_SETTING),
+                names_from = c(METRIC,SITE),
+                values_from = VALUE)
+  
+  
+  efficiency_indicator_cytology_tab <- left_join(efficiency_indicator_cytology_tab,
+                                                 tat_targets_ap %>%
+                                                   select(1,2,3),
+                                                 by = c("SPECIMEN_GROUP" = "spec_group",
+                                                        "PATIENT_SETTING" = "Patient.Setting"))
+  # set the order
+  efficiency_indicator_cytology_tab <- left_join(left_join(efficiency_indicator_cytology_tab,
+                                                           vol_cases_signed),
+                                                 received_to_signed) %>%
+    mutate(Target = paste0("<= ",as.character(Received.to.signed.out.target..Days.)," Days")) %>%
+    arrange(SPECIMEN_GROUP,PATIENT_SETTING) %>%
+    select(SPECIMEN_GROUP,
+           Target,
+           PATIENT_SETTING,
+           no_cases_signed,
+           received_to_signed_out_within_target,
+           avg_collection_to_signed_out_MSH,
+           avg_collection_to_signed_out_MSQ,
+           avg_collection_to_signed_out_MSBI,
+           avg_collection_to_signed_out_PACC,
+           avg_collection_to_signed_out_MSB,
+           avg_collection_to_signed_out_MSW,
+           avg_collection_to_signed_out_MSM,
+           avg_collection_to_signed_out_NYEE) %>%
+    mutate(received_to_signed_out_within_target = percent(received_to_signed_out_within_target, digits = 0),
+           no_cases_signed = cell_spec(no_cases_signed, "html",
+                                       color = ifelse(is.na(no_cases_signed), 
+                                                      "lightgray",
+                                                      "black")),
+           received_to_signed_out_within_target = cell_spec(
+             received_to_signed_out_within_target, "html",
+             color = ifelse(is.na(received_to_signed_out_within_target), "lightgray",
+                            ifelse((received_to_signed_out_within_target >= 0.90),
+                                   "green",
+                                   ifelse(
+                                     (received_to_signed_out_within_target >= 0.8) |
+                                       (received_to_signed_out_within_target > 0.9),
+                                     "orange", "red")))))
+  
+  
+  return(efficiency_indicator_cytology_tab)
+  
+}
+
+#Tests Surgical Cytology Efficiency Data ----
+#cytology_eff_data <- get_efficiency_indicators_cytology(tab_data_cytology)
+
+
+
+# For Efficiency Indicators Surgical Pathology Tab ----
+get_efficiency_indicators_surgical_pathology <- function(summarized_data){
+  # get the volume by patient setting
+  vol_cases_signed <- summarized_data %>%
+    group_by(SPECIMEN_GROUP,
+             PATIENT_SETTING) %>%
+    summarise(no_cases_signed = sum(NO_CASES_SIGNED_OUT,
+                                    na.rm = TRUE))
+  
+  #Calculate average collection to signed out
+  #Calculate % Receive to result TAT within target
+  #this part of the code creates the table for the received to result TAT
+  #within target with an assumption that the receive to result is not
+  #centralized which means it is stratified by facility
+  
+  efficiency_indicator_pathology_tab <- summarized_data %>%
+    group_by(SPECIMEN_GROUP,
+             SITE,
+             PATIENT_SETTING) %>%
+    summarise(avg_collection_to_signed_out =
+                format(
+                  round(
+                    sum(
+                      (COL_TO_SIGNED_OUT_AVG *
+                         NO_CASES_SIGNED_OUT) /
+                        sum(NO_CASES_SIGNED_OUT),
+                      na.rm = TRUE), 0)),
+              received_to_signed_out_within_target =
+                format(
+                  round(
+                    sum(
+                      (REC_TO_SIGNED_OUT_WITHIN_TARGET *
+                         NO_CASES_SIGNED_OUT) /
+                        sum(NO_CASES_SIGNED_OUT),
+                      na.rm = TRUE), 2))) %>%
+    pivot_longer(cols = c(avg_collection_to_signed_out,received_to_signed_out_within_target),
+                 names_to  = "METRIC",
+                 values_to = "VALUE") %>%
+    mutate(VALUE = as.numeric(VALUE))
+  
+  
+  
+  efficiency_indicator_pathology_tab <- left_join(table_ap_template_surgical_pathology,
+                                                  efficiency_indicator_pathology_tab) %>%
+    pivot_wider(id_cols = c(SPECIMEN_GROUP,PATIENT_SETTING,SITE),
+                names_from = c(METRIC),
+                values_from = VALUE) %>%
+    mutate(received_to_signed_out_within_target = percent(received_to_signed_out_within_target, digits = 0),
+           received_to_signed_out_within_target = cell_spec(
+             received_to_signed_out_within_target, "html",
+             color = ifelse(is.na(received_to_signed_out_within_target), "lightgray",
+                            ifelse((received_to_signed_out_within_target >= 0.90),
+                                   "green",
+                                   ifelse(
+                                     (received_to_signed_out_within_target >= 0.8) |
+                                       (received_to_signed_out_within_target > 0.9),
+                                     "orange", "red")))),
+           avg_collection_to_signed_out = cell_spec(
+             avg_collection_to_signed_out, "html",
+             color = ifelse(is.na(avg_collection_to_signed_out), "lightgray","black")),
+           avg_collection_to_signed_out = as.character(avg_collection_to_signed_out)) %>%
+    pivot_longer(cols = c(avg_collection_to_signed_out,received_to_signed_out_within_target),
+                 names_to  = "METRIC",
+                 values_to = "VALUE") %>%
+    pivot_wider(id_cols = c(SPECIMEN_GROUP,PATIENT_SETTING),
+                names_from = c(METRIC,SITE),
+                values_from = VALUE)
+  
+  
+  efficiency_indicator_pathology_tab <- left_join(efficiency_indicator_pathology_tab,
+                                                  tat_targets_ap %>%
+                                                    select(1,2,3),
+                                                  by = c("SPECIMEN_GROUP" = "spec_group",
+                                                         "PATIENT_SETTING" = "Patient.Setting"))
+  # set the order
+  efficiency_indicator_pathology_tab <- left_join(efficiency_indicator_pathology_tab,vol_cases_signed) %>%
+    mutate(Target = paste0("<= ",as.character(Received.to.signed.out.target..Days.)," Days"),
+           no_cases_signed = cell_spec(no_cases_signed, "html",
+                                       color = ifelse(is.na(no_cases_signed), 
+                                                      "lightgray",
+                                                      "black"))) %>%
+    arrange(SPECIMEN_GROUP,PATIENT_SETTING) %>%
+    select(SPECIMEN_GROUP,
+           Target,
+           PATIENT_SETTING,
+           no_cases_signed,
+           received_to_signed_out_within_target_MSH,
+           received_to_signed_out_within_target_MSQ,
+           received_to_signed_out_within_target_MSBI,
+           received_to_signed_out_within_target_PACC,
+           received_to_signed_out_within_target_MSB,
+           received_to_signed_out_within_target_MSW,
+           received_to_signed_out_within_target_MSM,
+           avg_collection_to_signed_out_MSH,
+           avg_collection_to_signed_out_MSQ,
+           avg_collection_to_signed_out_MSBI,
+           avg_collection_to_signed_out_PACC,
+           avg_collection_to_signed_out_MSB,
+           avg_collection_to_signed_out_MSW,
+           avg_collection_to_signed_out_MSM) %>%
+    mutate(SPECIMEN_GROUP = case_when(SPECIMEN_GROUP == "Breast" ~ paste0("All ",
+                                                                          SPECIMEN_GROUP,
+                                                                          " Specimens"),
+                                      SPECIMEN_GROUP == "GI" ~ paste0(SPECIMEN_GROUP,
+                                                                      " Biopsies")))
+  
+  return(efficiency_indicator_pathology_tab)
+  
+}
+
+
+##### This function helps in creating the analysis and tables from the
+# summarized table. Will be used in first run and second run as well.
+##### This function helps in creating the analysis and tables from the
+# summarized table. Will be used in first run and second run as well.
+analyze_backlog <- function(summarized_table_backlog, summarized_table_cytology) {
+  if (is.null(summarized_table_backlog)) {
+    backlog_acc_table <- NULL
+  } else {
+    
+    cyto_backlog_volume <- summarized_table_backlog %>%
+      group_by(Spec_group) %>%
+      summarise(cyto_backlog = sum(as.numeric(cyto_backlog),
+                                   na.rm = TRUE),
+                percentile_25th =
+                  ceiling(quantile(as.numeric(percentile_25th),
+                                   prob = 0.25,
+                                   na.rm = TRUE)),
+                percentile_50th =
+                  ceiling(quantile(as.numeric(percentile_50th),
+                                   prob = 0.5,
+                                   na.rm = TRUE)),
+                maximum =
+                  ceiling(max(as.numeric(maximum),
+                              na.rm = TRUE)))
+    
+    cyto_backlog_volume  <- cyto_backlog_volume  %>%
+      mutate(maximum = ifelse(maximum %in% c("-Inf","Inf"), 
+                              0,
+                              maximum))
+    #Days of work
+    cyto_case_vol_dow <- as.numeric(cyto_backlog_volume$cyto_backlog[1]) / 80
+    
+    
+    cyto_cases_accesioned <- summarized_table_cytology %>%
+      group_by(SPECIMEN_GROUP) %>%
+      summarise(cyto_acc_recieved = as.numeric(sum(CYTO_ACCESSION_VOLUME,
+                                                   na.rm = TRUE))) %>%
+      rename(Spec_group = SPECIMEN_GROUP )
+    
+    #count the accessioned volume that was accessioned on that date
+    #from the backlog report
+    cyto_acc_spec_group <- summarized_table_backlog %>%
+      group_by(Spec_group) %>%
+      summarise(cyto_acc_spec_group_vol = as.numeric(sum(cyto_acc_vol,
+                                                         na.rm = TRUE)))
+    #sum the two counts
+    cyto_acc_totals <- merge(x = cyto_cases_accesioned, y = cyto_acc_spec_group)
+    
+    cyto_acc_totals  <- cyto_acc_totals%>%
+      mutate(total_accessioned_volume = cyto_acc_recieved + cyto_acc_spec_group_vol,
+             cyto_acc_recieved = NULL,
+             cyto_acc_spec_group_vol = NULL)
+    
+    
+    backlog_acc_table <- merge(x = cyto_acc_totals,
+                               y = cyto_backlog_volume,
+                               all = TRUE,
+    ) %>%
+      pivot_longer(cols = c("total_accessioned_volume",
+                            "cyto_backlog",
+                            "percentile_25th",
+                            "percentile_50th",
+                            "maximum"),
+                   names_to = "METRIC",
+                   values_to = "VALUE") %>%
+      drop_na(VALUE)
+    
+    
+    backlog_acc_table <- merge(x = table_backlog_template,
+                               y = backlog_acc_table,
+                               all.x = TRUE, by = c("Spec_group","METRIC")) %>%
+      mutate(VALUE = cell_spec(VALUE, "html",
+                               color = ifelse(is.na(VALUE), 
+                                              "lightgray",
+                                              "black"))) %>%
+      pivot_wider(names_from = "METRIC", 
+                  values_from = "VALUE")
+    
+    # backlog_acc_table <- backlog_acc_table %>% 
+    #   mutate(across(everything(), ~replace_na(.x, 0)))
+    
+    #added this line to delete the cyto gyn from the table until we get
+    #correct data. Currently not in use
+    #backlog_acc_table <- backlog_acc_table[-c(1), ]
+  }
+  return(backlog_acc_table)
+}
+
+# Copied from Automated Daily Dashboard/AP_kable_outputs.R
+# Surgical Pathology - Efficiency Indicators ----
+ap_ei_kable_surgical_pathology <- function(surgical_pathology_ei_data){
+  
+  if(is.null(surgical_pathology_ei_data)){
+    surgical_pathology_ei_data <- NULL
+    asis_output(
+      paste("<i>",
+            "No data available for efficiency indicator reporting.",
+            "</i>"))
+  }else{
+    colnames <- c("Case Type",
+                  "Target",
+                  "Setting",
+                  "No. Cases Signed Out",
+                  "MSH",
+                  "MSQ",
+                  "MSBI",
+                  "PACC",
+                  "MSB",
+                  "MSW",
+                  "MSM",
+                  "MSH",
+                  "MSQ",
+                  "MSBI",
+                  "PACC",
+                  "MSB",
+                  "MSW",
+                  "MSM")
+    
+    num_col <- length(colnames)
+    # Format kable
+    kable(surgical_pathology_ei_data, format = "html", escape = FALSE, align = "c",
+          col.names = colnames) %>%
+      kable_styling(bootstrap_options = "hover", position = "center",
+                    font_size = 11,
+                    full_width = FALSE) %>%
+      column_spec(column = c(1, 11, 18),
+                  border_right = "thin solid lightgray") %>%
+      add_header_above(c(" " = 1,
+                         "Receive to Result Within Target (Business Days)" =
+                           10,
+                         "Average Collect to Result TAT (Calendar Days)" =
+                           7),
+                       background = c("white", "#00AEEF", "#221f72"),
+                       color = "white", line = FALSE, font_size = 13) %>%
+      column_spec(column = 2:11, background = "#E6F8FF",color = "black") %>%
+      column_spec(column = 12:num_col, background = "#EBEBF9",color = "black") %>%
+      row_spec(row = 0, font_size = 13) %>%
+      collapse_rows(columns = c(1, 2))
+    
+  }
+}
+
+
+# Cytology - Efficiency Indicators ----
+ap_ei_kable_cytology <- function(cytology_ei_data){
+  
+  if(is.null(cytology_ei_data)){
+    cytology_ei_data <- NULL
+    asis_output(
+      paste("<i>",
+            "No data available for efficiency indicator reporting.",
+            "</i>"))
+  }else{
+    colnames <- c("Case Type",
+                  "Target",
+                  "Setting",
+                  "No. Cases Signed Out",
+                  "Centralized Lab",
+                  "MSH",
+                  "MSQ",
+                  "MSBI",
+                  "PACC",
+                  "MSB",
+                  "MSW",
+                  "MSM",
+                  "NYEE")
+    
+    num_col <- length(colnames)
+    # Format kable
+    kable(cytology_ei_data, format = "html", escape = FALSE, align = "c",
+          col.names = colnames) %>%
+      kable_styling(bootstrap_options = "hover", position = "center",
+                    font_size = 11,
+                    full_width = FALSE) %>%
+      column_spec(column = c(1, 5, num_col),
+                  border_right = "thin solid lightgray") %>%
+      add_header_above(c(" " = 1,
+                         "Receive to Result Within Target (Business Days)" =
+                           4,
+                         "Average Collect to Result TAT (Calendar Days)" =
+                           8),
+                       background = c("white", "#00AEEF", "#221f72"),
+                       color = "white", line = FALSE, font_size = 13) %>%
+      column_spec(column = 2:5, background = "#E6F8FF",color = "black") %>%
+      column_spec(column = 6:num_col, background = "#EBEBF9",color = "black") %>%
+      row_spec(row = 0, font_size = 13) %>%
+      collapse_rows(columns = c(1, 2))
+    
+  }
+}
+
+
+# 24 Hours Volume Backlog ----
+table_formatting_volume_backlog <- function(backlog_table) {
+  if (holiday_det) {
+    asis_output(
+      paste("<i>",
+            "No cases accessioned on weekends and holidays.",
+            "</i>")
+    )
+  } else if (is.null(backlog_table)) {
+    asis_output(
+      paste("<i>",
+            "No data available for backlog and accessioned volume reporting.",
+            "</i>")
+    )
+  } else {
+    backlog_table %>%
+      kable(escape = F, align = "c",
+            col.names = c("Case Type", "Cases Accessioned", "Backlog Volume",
+                          "25th Percentile", "50th Percentile", "Maximum")) %>%
+      kable_styling(bootstrap_options = "hover", full_width = TRUE,
+                    position = "center", row_label_position = "c",
+                    font_size = 11) %>%
+      column_spec(2, background = "#E6F8FF", color = "black") %>%
+      column_spec(3:6, background = "#EBEBF9", color = "black") %>%
+      row_spec(row = 0, font_size = 13) %>%
+      add_header_above(c(
+        " " = 2,
+        "Elapsed Turn Around Time for Backlogged Cases From the Received Time" = 4),
+        background = c("white", "#221F72"), color = "white", font_size = 13) %>%
+      collapse_rows(columns = 1)
+  }
+}
+
+
+# 24 Hours Volume SP and Cytology ----
+
+table_formatting_volume <- function(vol_table, tab) {
+  if (is.null(vol_table)) {
+    vol_table <- NULL
+    asis_output(
+      paste("<i>",
+            "No data available for volume reporting.",
+            "</i>")
+    )
+  } else {
+    
+    column_names <- NA
+    
+    if(tab == "CYTOLOGY"){
+      column_names <- cyto_vol_column_names
+    }else{
+      column_names <- sp_vol_column_names
+    }
+    
+    vol_table %>%
+      select(everything()) %>%
+      kable(escape = F, align = "c", col.names = column_names) %>%
+      kable_styling(bootstrap_options = "hover", full_width = FALSE,
+                    position = "center", row_label_position = "c",
+                    font_size = 11) %>%
+      add_header_above(c(" " = 2,
+                         "Resulted Lab Volume" = length(column_names) - 2),
+                       background = c("white", "#00B9F2"), color = "white",
+                       font_size = 13) %>%
+      column_spec(3:length(column_names), background = "#E6F8FF",
+                  color = "black") %>%
+      row_spec(row = 0, font_size = 13) %>%
+      collapse_rows(columns = 1)
+    
+  }
+}
+
 
 ```
 
 ```{r Preprocess AP data, warning = FALSE, message = FALSE, echo = FALSE, eval = ap_eval}
 
 
-# processed_cytology_data <-  cyto_prep(epic_data_raw ,pp_data_raw,yesterday)
-# 
-# processed_surgical_pathology_data <- patho_prep(pp_data_raw,yesterday)
-# 
-# processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw,yesterday)
-# 
-#   
+processed_cytology_data <-  cyto_prep(epic_data_raw ,pp_data_raw,yesterday)
 
+processed_surgical_pathology_data <- patho_prep(pp_data_raw,yesterday)
 
+processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw,yesterday)
 
 ```
 
 
 ```{r Calling the Custom functions for processing to output formats data, warning = FALSE, message = FALSE, echo = FALSE, eval = ap_eval}
-# 
-# 
-# stratified_volume_cytology_24 <- get_stratified_volume(processed_cytology_data, "CYTOLOGY")
-# stratified_volume_surgical_pathology_24 <- get_stratified_volume(processed_surgical_pathology_data, "SURGICAL PATHOLOGY")
-# 
-# backlog_cytlogy <- analyze_backlog(processed_backlog_data,processed_cytology_data)
-# 
-# ei_cytlogy <- get_efficiency_indicators_cytology(processed_cytology_data)
-# ei_surgical_pathology <- get_efficiency_indicators_surgical_pathology(processed_surgical_pathology_data)
-# 
-# 
+
+
+stratified_volume_cytology_24 <- get_stratified_volume(processed_cytology_data, "CYTOLOGY")
+stratified_volume_surgical_pathology_24 <- get_stratified_volume(processed_surgical_pathology_data, "SURGICAL PATHOLOGY")
+
+backlog_cytlogy <- analyze_backlog(processed_backlog_data,processed_cytology_data)
+
+ei_cytlogy <- get_efficiency_indicators_cytology(processed_cytology_data)
+ei_surgical_pathology <- get_efficiency_indicators_surgical_pathology(processed_surgical_pathology_data)
+
+
 
 ```
 
@@ -1872,16 +2843,16 @@ if (cp_eval){
 <span style = "color:orange">Yellow:</span> >=80% & <90%,
 <span style = "color:green">Green:</span> >=90%</h5>
 ```{r Surgical Pathology Efficiency Indicators, echo=FALSE, warning=FALSE, message=FALSE}
-# 
-# if (ap_eval){
-#   ei_surgical_pathology <- ap_ei_kable_surgical_pathology(ei_surgical_pathology)
-#   ei_surgical_pathology
-# } else {
-#   asis_output(
-#     paste("<i><b><span style='color:red'>",
-#           "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
-#           "</span style='color:red'></b></i>"))
-# }
+
+if (ap_eval){
+  ei_surgical_pathology <- ap_ei_kable_surgical_pathology(ei_surgical_pathology)
+  ei_surgical_pathology
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 
 ```
 <h6>*TAT analysis includes all breast specimens and GI biopsies and excludes those with missing timestamps, negative TAT, and not from above settings.*</h6>
@@ -1893,16 +2864,16 @@ if (cp_eval){
 <span style = "color:orange">Yellow:</span> >=80% & <90%,
 <span style = "color:green">Green:</span> >=90%</h5>
 ```{r Cytology Efficiency Indicators, echo=FALSE, warning=FALSE, message=FALSE}
-# 
-# if (ap_eval){
-#   ei_cytlogy <- ap_ei_kable_cytology(ei_cytlogy)
-#   #ei_cytlogy
-# } else {
-#   asis_output(
-#     paste("<i><b><span style='color:red'>",
-#           "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
-#           "</span style='color:red'></b></i>"))
-# }
+
+if (ap_eval){
+  ei_cytlogy <- ap_ei_kable_cytology(ei_cytlogy)
+  #ei_cytlogy
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 
 
 ```
@@ -1969,16 +2940,16 @@ if (cp_eval){
 ### Surgical Pathology
 #### *Surgical Pathology Signed Out Case Volume (Signed Out on `r result_date_text`)*
 ```{r Surgical Pathology: Volume of signed out cases, echo=FALSE, warning=FALSE, message=FALSE}
-# if (ap_eval){
-#   stratified_volume_surgical_pathology_24 <- table_formatting_volume(stratified_volume_surgical_pathology_24, "SURGICAL PATHOLOGY")
-# 
-#   stratified_volume_surgical_pathology_24
-# } else {
-#   asis_output(
-#     paste("<i><b><span style='color:red'>",
-#           "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
-#           "</span style='color:red'></b></i>"))
-# }
+if (ap_eval){
+  stratified_volume_surgical_pathology_24 <- table_formatting_volume(stratified_volume_surgical_pathology_24, "SURGICAL PATHOLOGY")
+
+  stratified_volume_surgical_pathology_24
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 
 ```
 
@@ -1986,31 +2957,31 @@ if (cp_eval){
 #### *Cytology Accessioned Cases and Backlog Volume (As of `r result_date_text`)*
 ```{r Cytology Backlog and Accessioned case volume, echo=FALSE, warning=FALSE, message=FALSE}
 
-# if (ap_eval){
-#   backlog_cytlogy <- table_formatting_volume_backlog(backlog_cytlogy)
-#   backlog_cytlogy
-# } else {
-#   asis_output(
-#     paste("<i><b><span style='color:red'>",
-#           "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
-#           "</span style='color:red'></b></i>"))
-# }
+if (ap_eval){
+  backlog_cytlogy <- table_formatting_volume_backlog(backlog_cytlogy)
+  backlog_cytlogy
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 
 ```
 
 #### *Cytology Signed Out Cases Volume (As of `r result_date_text`)*
 ```{r Cytology Signed Out Cases, echo=FALSE, warning=FALSE, message=FALSE, eval = ap_eval}
 
-# if (ap_eval){
-#   stratified_volume_cytology_24 <- table_formatting_volume(stratified_volume_cytology_24, "CYTOLOGY")
-#   stratified_volume_cytology_24
-# 
-# } else {
-#   asis_output(
-#     paste("<i><b><span style='color:red'>",
-#           "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
-#           "</span style='color:red'></b></i>"))
-# }
+if (ap_eval){
+  stratified_volume_cytology_24 <- table_formatting_volume(stratified_volume_cytology_24, "CYTOLOGY")
+  stratified_volume_cytology_24
+
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Powerpath/EPIC/Backlog Data. Please check that files are saved properly.",
+          "</span style='color:red'></b></i>"))
+}
 
 ```
 
