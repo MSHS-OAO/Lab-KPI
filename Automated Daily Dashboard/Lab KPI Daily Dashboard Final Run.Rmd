@@ -2,7 +2,7 @@
 title: "MSHS Laboratory KPI Dashboard (Final)"
 knit: (function(input, ...) {
       rmarkdown::render(input,
-            output_file = paste0("/Pathology/Final Dashboard Output Tests KN/",
+            output_file = paste0("/Pathology/Final Dashboard Output/",
             "Lab KPI Final Dashboard ",
                     Sys.Date()),
       envir = globalenv()
