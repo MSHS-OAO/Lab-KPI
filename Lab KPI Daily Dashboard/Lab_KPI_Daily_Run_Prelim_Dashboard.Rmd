@@ -1,5 +1,13 @@
 ---
-title: "MSHS Laboratory KPI Dashboard"
+title: "MSHS Laboratory KPI Dashboard (Preliminary)"
+knit: (function(input, ...) {
+      rmarkdown::render(input,
+            output_file = paste0("/Pathology/Prelim Dashboard Output Tests KN/",
+            "Lab KPI Prelim Dashboard ",
+                    Sys.Date()),
+      envir = globalenv()
+    )
+  })
 output:
   html_document:
     toc: true
@@ -115,7 +123,7 @@ cyto_table_summarized <- cyto_preprocessed[[1]]
 
 # This table gives the preprocessed and cleaned cytology data
 cyto_preprocessed_df <- cyto_preprocessed[[2]]
-# 
+#
 # # Filter out any specimens signed out on dates other than the date of interest
 # cyto_table_summarized <- cyto_table_summarized %>%
 #   filter(Signed_out_date_only %in% resulted_date)
@@ -211,7 +219,7 @@ sp_strat_vol_new2 <- table_merging_volume(
 # sp_strat_vol_new2$Spec_group[
 #   sp_strat_vol_new2$Spec_group == "GI"] <-
 #   "GI Biopsies"
-# 
+#
 # sp_strat_vol_new2$Spec_group[
 #   sp_strat_vol_new2$Spec_group == "Breast"] <-
 #   "All Breast Specimens"
@@ -252,7 +260,7 @@ sp_table_new3 <- conditional_formatting_patho(sp_table_new2)
 
 # sp_table_new3$Spec_group[sp_table_new3$Spec_group == "GI"] <-
 #   "GI Biopsies"
-# 
+#
 # sp_table_new3$Spec_group[
 #   sp_table_new3$Spec_group == "Breast"] <-
 #   "All Breast Specimens"
