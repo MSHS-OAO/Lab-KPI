@@ -1,3 +1,8 @@
+---
+title: "Top Level File for Rendering Laboratory KPI Dashboard (Preliminary)"
+output:
+  html_document
+---
 
 ```{r render test, echo = FALSE, warning = FALSE, message = FALSE}
 # Render daily dashboard and specify output file location
