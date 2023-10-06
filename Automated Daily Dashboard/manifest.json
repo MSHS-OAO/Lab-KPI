@@ -4,7 +4,7 @@
   "platform": "4.2.1",
   "metadata": {
     "appmode": "rmd-static",
-    "primary_rmd": "Lab KPI Daily Dashboard Prelim Run.Rmd",
+    "primary_rmd": "Top Level Markdown Render.Rmd",
     "primary_html": null,
     "content_category": null,
     "has_parameters": false
@@ -844,39 +844,6 @@
         "Date/Publication": "2018-03-16 08:58:03 UTC",
         "Encoding": "UTF-8",
         "Built": "R 4.2.0; ; 2022-05-07 00:04:00 UTC; unix"
-      }
-    },
-    "here": {
-      "Source": "CRAN",
-      "Repository": "https://hso-packagemanager.mssm.edu/prod-cran/__linux__/focal/2022-10-04",
-      "GithubRepo": null,
-      "GithubUsername": null,
-      "GithubRef": null,
-      "GithubSha1": null,
-      "description": {
-        "Package": "here",
-        "Title": "A Simpler Way to Find Your Files",
-        "Version": "1.0.1",
-        "Date": "2020-12-13",
-        "Authors@R": "\n    c(person(given = \"Kirill\",\n             family = \"M\\u00fcller\",\n             role = c(\"aut\", \"cre\"),\n             email = \"krlmlr+r@mailbox.org\",\n             comment = c(ORCID = \"0000-0002-1416-3412\")),\n      person(given = \"Jennifer\",\n             family = \"Bryan\",\n             role = \"ctb\",\n             email = \"jenny@rstudio.com\",\n             comment = c(ORCID = \"0000-0002-6983-2759\")))",
-        "Description": "Constructs paths to your project's files.\n    Declare the relative path of a file within your project with 'i_am()'.\n    Use the 'here()' function as a drop-in replacement for 'file.path()',\n    it will always locate the files relative to your project root.",
-        "License": "MIT + file LICENSE",
-        "URL": "https://here.r-lib.org/, https://github.com/r-lib/here",
-        "BugReports": "https://github.com/r-lib/here/issues",
-        "Imports": "rprojroot (>= 2.0.2)",
-        "Suggests": "conflicted, covr, fs, knitr, palmerpenguins, plyr, readr,\nrlang, rmarkdown, testthat, uuid, withr",
-        "VignetteBuilder": "knitr",
-        "Encoding": "UTF-8",
-        "LazyData": "true",
-        "RoxygenNote": "7.1.1.9000",
-        "Config/testthat/edition": "3",
-        "NeedsCompilation": "no",
-        "Packaged": "2020-12-13 06:59:33 UTC; kirill",
-        "Author": "Kirill Müller [aut, cre] (<https://orcid.org/0000-0002-1416-3412>),\n  Jennifer Bryan [ctb] (<https://orcid.org/0000-0002-6983-2759>)",
-        "Maintainer": "Kirill Müller <krlmlr+r@mailbox.org>",
-        "Repository": "CRAN",
-        "Date/Publication": "2020-12-13 07:30:02 UTC",
-        "Built": "R 4.2.1; ; 2022-10-03 16:41:57 UTC; unix"
       }
     },
     "highr": {
@@ -1895,37 +1862,6 @@
         "Built": "R 4.2.1; ; 2022-10-03 16:13:51 UTC; unix"
       }
     },
-    "rprojroot": {
-      "Source": "CRAN",
-      "Repository": "https://hso-packagemanager.mssm.edu/prod-cran/__linux__/focal/2022-10-04",
-      "GithubRepo": null,
-      "GithubUsername": null,
-      "GithubRef": null,
-      "GithubSha1": null,
-      "description": {
-        "Package": "rprojroot",
-        "Title": "Finding Files in Project Subdirectories",
-        "Version": "2.0.3",
-        "Authors@R": "\n    person(given = \"Kirill\",\n           family = \"M\\u00fcller\",\n           role = c(\"aut\", \"cre\"),\n           email = \"krlmlr+r@mailbox.org\",\n           comment = c(ORCID = \"0000-0002-1416-3412\"))",
-        "Description": "Robust, reliable and flexible paths to files below\n    a project root. The 'root' of a project is defined as a directory that\n    matches a certain criterion, e.g., it contains a certain regular file.",
-        "License": "MIT + file LICENSE",
-        "URL": "https://rprojroot.r-lib.org/, https://github.com/r-lib/rprojroot",
-        "BugReports": "https://github.com/r-lib/rprojroot/issues",
-        "Depends": "R (>= 3.0.0)",
-        "Suggests": "covr, knitr, lifecycle, mockr, rmarkdown, testthat (>=\n3.0.0), withr",
-        "VignetteBuilder": "knitr",
-        "Config/testthat/edition": "3",
-        "Encoding": "UTF-8",
-        "RoxygenNote": "7.1.2",
-        "NeedsCompilation": "no",
-        "Packaged": "2022-04-02 16:14:00 UTC; kirill",
-        "Author": "Kirill Müller [aut, cre] (<https://orcid.org/0000-0002-1416-3412>)",
-        "Maintainer": "Kirill Müller <krlmlr+r@mailbox.org>",
-        "Repository": "CRAN",
-        "Date/Publication": "2022-04-02 16:40:02 UTC",
-        "Built": "R 4.2.1; ; 2022-10-03 16:29:58 UTC; unix"
-      }
-    },
     "rstudioapi": {
       "Source": "CRAN",
       "Repository": "https://hso-packagemanager.mssm.edu/prod-cran/__linux__/focal/2022-10-04",
@@ -2696,35 +2632,20 @@
     }
   },
   "files": {
-    "AP_functions_data_preprocessing.R": {
-      "checksum": "e7ed93e33df19208b03fcee48db88396"
-    },
-    "AP_kable_outputs.R": {
-      "checksum": "002c9b5effc0ce7301188e5dae5a31e1"
-    },
-    "AP_processing_functions_for_output.R": {
-      "checksum": "cc9a3b2314ba01748c9e69afd911a72a"
-    },
-    "CP_Preprocessing_Analysis.R": {
-      "checksum": "a9028efcbf54f9d1a6084b8188beeadc"
-    },
-    "CP_Summary_Kable_Functions.R": {
-      "checksum": "6a56b073b3903666b37b34038e45b8d1"
-    },
-    "Daily_Run_Raw_Data_Import.R": {
-      "checksum": "1a6eebde5a1fbedc792a2fd6bd6cbff3"
-    },
-    "Lab KPI Daily Dashboard Final Run.Rmd": {
-      "checksum": "aa9099b0329f4fec3a2be2c9e5c7d859"
-    },
     "Lab KPI Daily Dashboard Prelim Run.Rmd": {
-      "checksum": "f6fbd7ff091afb1da17e42ab585fdfad"
+      "checksum": "0f892884bf5d5ed82ceed679a0c29032"
     },
-    "Ops_Qlty_Indicators_Form.R": {
-      "checksum": "b05a1cb00b48a7a96dbddfc686de1f61"
+    "Lab-KPI-Daily-Dashboard-Prelim-Run.html": {
+      "checksum": "d06f074226f4a18e59b6aab4c32120d2"
     },
-    "Packages_Ref_Info.R": {
-      "checksum": "7f87827b80b7e813985edc28427ab72f"
+    "Test-File.html": {
+      "checksum": "fed333a5a4df196a4607c4dd6acd1d07"
+    },
+    "Top Level Markdown Render.Rmd": {
+      "checksum": "f85c070cd0e7da83db91808be52e7524"
+    },
+    "Top-Level-Markdown-Render.html": {
+      "checksum": "1c16a3e2a3bff392f3919bb5eb209e25"
     }
   },
   "users": null
