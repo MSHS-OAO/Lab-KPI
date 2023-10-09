@@ -1,5 +1,5 @@
 ---
-title: "Top Level File for Rendering Laboratory KPI Dashboard (Preliminary)"
+title: "Top Level File for Rendering Laboratory KPI Dashboard (Final)"
 output:
   html_document
 ---
@@ -7,5 +7,5 @@ output:
 ```{r render test, echo = FALSE, warning = FALSE, message = FALSE}
 # Render daily dashboard and specify output file location
 
-rmarkdown::render("Lab KPI Daily Dashboard Final Run.Rmd", output_file = paste0("/Pathology/Prelim Dashboard Output/", "Lab KPI Final Dashboard ", Sys.Date()))
+rmarkdown::render("Lab KPI Daily Dashboard Final Run.Rmd", output_file = paste0("/Pathology/Final Dashboard Output/", "Lab KPI Final Dashboard ", Sys.Date()))
 ```
