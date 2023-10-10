@@ -3303,7 +3303,7 @@ if(form_eval){
 #### *Operational Indicators for Labs at each Site & Centralized Anatomic Pathology (Submitted on `r format(today, "%m/%d/%y")`)*
 ```{r Qualitative Indicators for Clinical Labs, echo=FALSE, message=FALSE, warning=FALSE, eval = TRUE}
 
-if(form_eval){
+if(form_eval & !is.null(formatted_clinical_labs3)){
   formatted_clinical_labs3 %>%
     select(everything()) %>%
     kable(escape = F, align = "c",
@@ -3339,7 +3339,7 @@ comments_clinical_labs %>%
 ```{r Qualitative Indicators for LIS, echo=FALSE, message=FALSE, warning=FALSE, eval = TRUE}
 
 
-if(form_eval){
+if(form_eval & !is.null(formatted_lis_new2)){
   formatted_lis_new2 %>%
       select(everything()) %>%
       kable(escape = F, align = "c",
@@ -3366,7 +3366,7 @@ if(form_eval){
 ##### *Reported Never Events for Each Division/Facility (Submitted on `r format(today, "%m/%d/%y")`)*
 ```{r Lab KPI Form for Never Events, echo=FALSE, message=FALSE, warning=FALSE, eval = TRUE}
 
-if(form_eval){
+if(form_eval & !is.null(never_events_only)){
   never_events_only %>%
     select(everything()) %>%
     kable(escape = F, align = "c",
@@ -3402,7 +3402,7 @@ if(form_eval){
 ```{r Lab KPI Form for Good Catches, echo=FALSE, message=FALSE, warning=FALSE, eval = TRUE}
 
 
-if(form_eval){
+if(form_eval & !is.null(good_catch)){
   good_catch %>%
     select(everything()) %>%
     kable(escape = F, align = "c",
