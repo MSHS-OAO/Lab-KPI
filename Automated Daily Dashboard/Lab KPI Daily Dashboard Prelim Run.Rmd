@@ -2866,6 +2866,7 @@ if (ap_eval){
 
 if (ap_eval){
   ei_cytlogy <- ap_ei_kable_cytology(ei_cytlogy)
+  ei_cytlogy
   #ei_cytlogy
 } else {
   asis_output(
@@ -2969,7 +2970,7 @@ if (ap_eval){
 ```
 
 #### *Cytology Signed Out Cases Volume (As of `r result_date_text`)*
-```{r Cytology Signed Out Cases, echo=FALSE, warning=FALSE, message=FALSE, eval = ap_eval}
+```{r Cytology Signed Out Cases, echo=FALSE, warning=FALSE, message=FALSE, eval = TRUE}
 
 if (ap_eval){
   stratified_volume_cytology_24 <- table_formatting_volume(stratified_volume_cytology_24, "CYTOLOGY")
