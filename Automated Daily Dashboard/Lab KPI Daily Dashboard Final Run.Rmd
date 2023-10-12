@@ -3290,6 +3290,7 @@ if(form_eval){
   formatted_lis_new2 <- NULL
   never_events_only <- NULL
   good_catch <- NULL
+  never_events_comments <- NULL
 }
 
 
@@ -3315,14 +3316,22 @@ if(form_eval & !is.null(formatted_clinical_labs3)){
                   font_size = 11) %>%
     row_spec(row = 0, font_size = 13)
 
-comments_clinical_labs %>%
-    select(everything()) %>%
-    kable(escape = F, align = "c",
-          col.names = c("Facility", "Comments if At Risk or Not Safe")) %>%
-    kable_styling(bootstrap_options = "hover", full_width = TRUE,
-                  position = "center", row_label_position = "c",
-                  font_size = 11) %>%
-    row_spec(row = 0, font_size = 13)
+}else{
+    asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Form Responses Data. Please check that files are saved properly.",
+          "</span style='color:red'></b></i>"))
+}
+
+if(form_eval & !is.null(comments_clinical_labs)){
+  comments_clinical_labs %>%
+      select(everything()) %>%
+      kable(escape = F, align = "c",
+            col.names = c("Facility", "Comments if At Risk or Not Safe")) %>%
+      kable_styling(bootstrap_options = "hover", full_width = TRUE,
+                    position = "center", row_label_position = "c",
+                    font_size = 11) %>%
+      row_spec(row = 0, font_size = 13)
 
 }else{
     asis_output(
@@ -3330,6 +3339,7 @@ comments_clinical_labs %>%
           "Missing Form Responses Data. Please check that files are saved properly.",
           "</span style='color:red'></b></i>"))
 }
+
 
 ```
 
@@ -3378,8 +3388,16 @@ if(form_eval & !is.null(never_events_only)){
     kable_styling(bootstrap_options = "hover", full_width = FALSE,
                   position = "center", row_label_position = "c",
                   font_size = 11) %>%
-    row_spec(row = 0, font_size = 13)
-  
+    row_spec(row = 0, font_size = 13)  
+  }else{
+    asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Form Responses Data. Please check that files are saved properly.",
+          "</span style='color:red'></b></i>"))
+  }
+
+
+if(form_eval & !is.null(never_events_comments)){
   never_events_comments %>%
     select(everything()) %>%
     kable(escape = F, align = "c",
