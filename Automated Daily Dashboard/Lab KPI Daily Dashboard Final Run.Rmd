@@ -102,7 +102,7 @@ user_directory <- paste0("/Pathology/")
 # Import analysis reference data
 reference_file <- paste0(user_directory,
                          "/Code Reference/",
-                         "Analysis Reference 2023-09-15.xlsx")
+                         "Analysis Reference 2023-10-13.xlsx")
 
 # CP and Micro --------------------------------
 cp_scc_test_codes <- read_excel(reference_file, sheet = "SCC_TestCodes")
