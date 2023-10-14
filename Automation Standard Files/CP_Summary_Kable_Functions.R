@@ -145,12 +145,12 @@ summarize_cp_tat <- function(x, lab_division) {
                              (ReceiveResultPercent == 1.00 &
                                 lab_division %in% c("Microbiology RRL")) |
                              (ReceiveResultPercent >= 0.90 &
-                                lab_division %in% c("Infusion")),
+                                lab_division %in% c("Infusion","Blood Bank")),
                            "green",
                            ifelse(
                              (ReceiveResultPercent >= 0.8 &
                                 lab_division %in%
-                                c("Chemistry", "Hematology", "Infusion")) |
+                                c("Chemistry", "Hematology", "Infusion","Blood Bank")) |
                                (ReceiveResultPercent >= 0.9 &
                                   lab_division %in% c("Microbiology RRL")),
                              "orange", "red")))),
@@ -163,12 +163,12 @@ summarize_cp_tat <- function(x, lab_division) {
                              (CollectResultPercent == 1.00 &
                                 lab_division %in% c("Microbiology RRL")) |
                              (CollectResultPercent >= 0.90 &
-                                lab_division %in% c("Infusion")),
+                                lab_division %in% c("Infusion","Blood Bank")),
                            "green",
                            ifelse(
                              (CollectResultPercent >= 0.8 &
                                 lab_division %in%
-                                c("Chemistry", "Hematology", "Infusion")) |
+                                c("Chemistry", "Hematology", "Infusion","Blood Bank")) |
                                (CollectResultPercent >= 0.9 &
                                   lab_division %in% c("Microbiology RRL")),
                              "orange", "red")))),
