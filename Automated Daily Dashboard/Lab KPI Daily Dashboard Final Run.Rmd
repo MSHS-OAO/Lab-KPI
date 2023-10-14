@@ -3300,6 +3300,7 @@ if(form_eval){
   never_events_only <- NULL
   good_catch <- NULL
   never_events_comments <- NULL
+  comments_clinical_labs <- NULL
 }
 
 
