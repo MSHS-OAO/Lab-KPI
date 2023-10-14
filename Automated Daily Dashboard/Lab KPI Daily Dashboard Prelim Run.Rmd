@@ -2826,6 +2826,15 @@ if (cp_eval){
 if (cp_eval){
   kable_missing_collections(x = cp_summary)
   
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Sunquest and/or SCC data. Please check that file is saved properly.",
+          "</span style='color:red'></b></i>"))
+}
+
+if (cp_eval){
+
   kable_add_on_volume(x = cp_summary)
 } else {
   asis_output(
