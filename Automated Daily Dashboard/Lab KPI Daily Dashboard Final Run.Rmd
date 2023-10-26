@@ -102,7 +102,7 @@ user_directory <- paste0("/Pathology/")
 # Import analysis reference data
 reference_file <- paste0(user_directory,
                          "/Code Reference/",
-                         "Analysis Reference 2023-09-15.xlsx")
+                         "Analysis Reference 2023-10-13.xlsx")
 
 # CP and Micro --------------------------------
 cp_scc_test_codes <- read_excel(reference_file, sheet = "SCC_TestCodes")
@@ -149,7 +149,8 @@ cp_micro_lab_order <- c("Troponin",
                         "HGB",
                         "PT",
                         "Rapid Flu",
-                        "C. diff")
+                        "C. diff",
+                        "Antibody Screen")
 
 all_sites <- c("MSH", "MSQ", "MSBI", "MSB", "MSW", "MSM", "MSSN", "RTC")
 hosp_sites <- c("MSH", "MSQ", "MSBI", "MSB", "MSW", "MSM", "MSSN")
@@ -161,7 +162,7 @@ dashboard_pt_setting <- c("ED & ICU", "IP Non-ICU", "Amb")
 
 dashboard_priority_order <- c("All", "Stat", "Routine")
 
-cp_division_order <- c("Chemistry", "Hematology", "Microbiology RRL", "Infusion")
+cp_division_order <- c("Chemistry", "Hematology", "Microbiology RRL", "Infusion","Blood Bank")
 
 # Create template dataframes for combinations of tests, priority, and settings
 # that will be used in TAT and volume look back tables. These templates ensure
@@ -225,7 +226,9 @@ tat_dashboard_templ <- tat_base_template %>%
         # for infusion labs since all labs treated the same
         (Division %in% c("Infusion") & (!(Test %in% c("BUN", "HGB")) |
                                           !(DashboardSetting %in% c("Amb")) |
-                                          !(DashboardPriority %in% c("All")))), "Excl", "Incl")) %>%
+                                          !(DashboardPriority %in% c("All"))))|
+       #Remove any All stratitifcation for Blood Bank 
+       (Division %in% c("Blood Bank") & ((DashboardPriority %in% c("All")))), "Excl", "Incl")) %>%
   filter(Incl == "Incl")
 
 vol_dashboard_templ <- vol_base_template %>%
@@ -253,8 +256,9 @@ vol_dashboard_templ <- vol_base_template %>%
         # only labs processed there. Also remove non-amb setting
         (Division %in% c("Infusion") & (!(Test %in% c("BUN", "HGB")) |
                                           !(PtSetting %in% c("Amb")) |
-                                          !(DashboardPriority %in% c("All")))),
-      "Excl", "Incl")) %>%
+                                          !(DashboardPriority %in% c("All"))))|
+       #Remove any All stratitifcation for Blood Bank 
+       (Division %in% c("Blood Bank") & ((DashboardPriority %in% c("All")))),"Excl", "Incl")) %>%
   filter(Incl == "Incl")
 
 #-----------Patient Setting Excel File-----------#
@@ -1158,12 +1162,12 @@ summarize_cp_tat <- function(x, lab_division) {
                              (ReceiveResultPercent == 1.00 &
                                 lab_division %in% c("Microbiology RRL")) |
                              (ReceiveResultPercent >= 0.90 &
-                                lab_division %in% c("Infusion")),
+                                lab_division %in% c("Infusion","Blood Bank")),
                            "green",
                            ifelse(
                              (ReceiveResultPercent >= 0.8 &
                                 lab_division %in%
-                                c("Chemistry", "Hematology", "Infusion")) |
+                                c("Chemistry", "Hematology", "Infusion","Blood Bank")) |
                                (ReceiveResultPercent >= 0.9 &
                                   lab_division %in% c("Microbiology RRL")),
                              "orange", "red")))),
@@ -1176,12 +1180,12 @@ summarize_cp_tat <- function(x, lab_division) {
                              (CollectResultPercent == 1.00 &
                                 lab_division %in% c("Microbiology RRL")) |
                              (CollectResultPercent >= 0.90 &
-                                lab_division %in% c("Infusion")),
+                                lab_division %in% c("Infusion","Blood Bank")),
                            "green",
                            ifelse(
                              (CollectResultPercent >= 0.8 &
                                 lab_division %in%
-                                c("Chemistry", "Hematology", "Infusion")) |
+                                c("Chemistry", "Hematology", "Infusion","Blood Bank")) |
                                (CollectResultPercent >= 0.9 &
                                   lab_division %in% c("Microbiology RRL")),
                              "orange", "red")))),
@@ -1644,6 +1648,14 @@ micro_dashboard_cast <- micro_tat_output[[2]]
 # Infusion
 infusion_tat_output <- summarize_cp_tat(x = cp_summary,
                                         lab_division = "Infusion")
+
+# Blood Bank
+bloodbank_tat_output <- summarize_cp_tat(x = cp_summary,
+                                        lab_division = "Blood Bank")
+
+blood_bank_summary <- bloodbank_tat_output[[1]]
+blood_bank_cast <- bloodbank_tat_output[[2]]
+
 
 ```
 
@@ -2869,6 +2881,101 @@ if (ap_eval){
 
 ```
 
+
+### Blood Bank
+#### *Blood Bank KPI (Specimens Signed Out on `r result_date_text`)*
+<h5>Status Definitions: <span style = "color:red">Red:</span> <80%, 
+<span style = "color:orange">Yellow:</span> >=80% & <90%,
+<span style = "color:green">Green:</span> >=90%</h5>
+```{r Blood Bank Efficiency Indicators, echo = FALSE, warning = FALSE, message = FALSE}
+if (cp_eval) {
+  if (is.null(blood_bank_summary)) {
+    bloodbank_tat_vol_cast <- NULL
+    } else {
+      # Ensure all Microbiology RRL test, site, and priority combinations are included
+      bloodbank_vol_templ <- tat_dashboard_templ %>%
+        filter(Division == "Blood Bank") %>%
+        mutate(Incl = NULL,
+               Division = NULL)
+      
+      blood_bank_vol_df <- blood_bank_summary %>%
+        mutate(Metric = "ResultedVolume") %>%
+        rename(Value = ResultedVolume) %>%
+        select(-Division, -ResultedVol_ReceiveTAT, -ResultedVol_CollectTAT,
+               -ReceiveResultInTarget, -CollectResultInTarget,
+               -ReceiveResultPercent, -CollectResultPercent) %>%
+        left_join(micro_vol_templ,
+                  by = c("Test" = "Test",
+                         "Site" = "Site",
+                         "DashboardPriority" = "DashboardPriority",
+                         "DashboardSetting" = "DashboardSetting")) %>%
+        mutate(Value = replace_na(Value, 0),
+               ReceiveResultTarget = "ResultedVolume",
+               CollectResultTarget = "",
+               #
+               # Set test, site, priority, and setting as factors
+               Test = droplevels(factor(Test, levels = test_names,
+                                        ordered = TRUE)),
+               Site = droplevels(factor(Site, levels = all_sites,
+                                        ordered = TRUE)),
+               DashboardPriority = droplevels(
+                 factor(DashboardPriority,
+                        levels = dashboard_priority_order,
+                        ordered = TRUE)),
+               DashboardSetting = droplevels(
+                 factor(DashboardSetting,
+                        levels = dashboard_pt_setting,
+                        ordered = TRUE))) %>%
+        arrange(Test, DashboardPriority, DashboardSetting, Site) %>%
+        pivot_wider(names_from = c(Metric, Site),
+                    names_sep = "_",
+                    values_from = Value) %>%
+        relocate(TestAndPriority, .after = DashboardPriority) %>%
+        relocate(ReceiveResultTarget, .after = TestAndPriority) %>%
+        relocate(CollectResultTarget, .after = last_col())
+      
+      original_length <- ncol(blood_bank_vol_df)
+      
+      missing_cols <- colnames(blood_bank_cast)[
+        seq(original_length + 1, ncol(blood_bank_cast))]
+      
+      blood_bank_vol_df[missing_cols] <- ""
+      
+      colnames(blood_bank_vol_df) <- colnames(blood_bank_cast)
+      
+      bloodbank_tat_vol_cast <- rbind(blood_bank_cast, blood_bank_vol_df)
+      
+      bloodbank_tat_vol_cast <- bloodbank_tat_vol_cast %>%
+        arrange(Test, ReceiveResultTarget)
+      }
+  
+  kable_cp_tat(x = bloodbank_tat_vol_cast)
+} else {
+  asis_output(
+    paste("<i><b><span style='color:red'>",
+          "Missing Sunquest and/or SCC data. Please check that file is saved properly.",
+          "</span style='color:red'></b></i>"))
+}
+
+
+
+
+
+
+
+
+# if (cp_eval){
+#   kable_cp_tat(x = bloodbank_tat_output[[2]])
+# } else {
+#   asis_output(
+#     paste("<i><b><span style='color:red'>",
+#           "Missing Sunquest and/or SCC data. Please check that file is saved properly.",
+#           "</span style='color:red'></b></i>"))
+# }
+```
+
+
+
 <br />
 
 ```{r Lab_KPI_Form file, warning = FALSE, message = FALSE, echo = FALSE}
@@ -3548,6 +3655,9 @@ if (ap_eval){
 }
 
 ```
+
+
+
 
 ## **Assumptions and Methodology** {.tabset .tabset-fade .tabset-pills}
 ### Definitions
