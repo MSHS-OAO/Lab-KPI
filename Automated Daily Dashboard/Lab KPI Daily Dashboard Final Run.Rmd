@@ -2946,7 +2946,7 @@ if (cp_eval) {
       bloodbank_tat_vol_cast <- rbind(blood_bank_cast, blood_bank_vol_df)
       
       bloodbank_tat_vol_cast <- bloodbank_tat_vol_cast %>%
-        arrange(Test, ReceiveResultTarget)
+        arrange(Test, DashboardPriority, ReceiveResultTarget)
       }
   
   kable_cp_tat(x = bloodbank_tat_vol_cast)
