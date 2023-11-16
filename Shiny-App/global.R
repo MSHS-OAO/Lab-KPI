@@ -1,5 +1,5 @@
 # Source packages and reference information for shiny app
-source("Lab KPI Daily Dashboard/Shiny_Package_Ref.R")
+source("Shiny_Package_Ref.R")
 
 
 # 
