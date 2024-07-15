@@ -4,7 +4,7 @@
 Core Lab, Microbiology, Pathology, Cytology
 
 ## Purpose:
-The purpose of this project is to create a dashboard that can be used to review the laboratory KPIs during both the daily laboratory huddles and daily system huddles.
+The purpose of this branch is to create a weekly dashboard that can be used to review the laboratory KPIs during both the weekly ED laboratory huddles.
 The scope of this work includes the automation of any relevant analysis, stratification of data based on user needs, merging data from multiple IT systems, and providing a mechanism to document information not stored in IT systems.
 
 ## Users:
@@ -14,7 +14,8 @@ Laboratory managers and laboratory leadership
 Laboratory leadership, site leadership, system leadership
 
 ## OAO Team Members:
-Kate Nevin and Asala Erekat
+@tommandru and @armando-v
+
 
 ## Coding Language:
 This project was coded in R programming language and it results in an HTML R-Markdown output.
