@@ -4,12 +4,12 @@
 rm(list = ls())
 
 # Determine directory
-if ("Presidents" %in% list.files("J://")) {
-  user_directory <- paste0("J:/Presidents/HSPI-PM/",
+if ("Presidents" %in% list.files("/SharedDrive/")) {
+  user_directory <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/",
                            "Operations Analytics and Optimization/Projects/",
                            "Service Lines/Lab Kpi/Data")
 } else {
-  user_directory <- paste0("J:/deans/Presidents/HSPI-PM/",
+  user_directory <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/",
                            "Operations Analytics and Optimization/Projects/",
                            "Service Lines/Lab Kpi/Data")
 }
