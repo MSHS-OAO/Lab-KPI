@@ -1,10 +1,10 @@
 ---
 title: "Lab Data Database Push"
 editor_options:
-  chunk_output_type: consoledate: "2024-07-25"
+  chunk_output_type: console
 ---
 
-```{r}
+```{r include = TRUE echo = TRUE message = TRUE}
 #Required packages: run these every time you run the code
 #Required packages: run these every time you run the code
 library(timeDate)
