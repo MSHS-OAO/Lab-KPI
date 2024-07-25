@@ -1,26 +1,10 @@
-# This code is used to create and maintain a data repository with:
-# 1. Raw data for in scope analytes for 60 days
-# 2. Daily summary based on dashboard stratifications
-# 3. Weekly summary based on dashboard stratifications
-# 4. Monthly summary based on dashboard stratifications
+---
+title: "Lab Data Database Push"
+output: html_document
+date: "2024-07-25"
+---
 
-#Install packages only the first time you run the code
-#install.packages("timeDate")
-#install.packages("lubridate")
-#install.packages("readxl")
-#install.packages("dplyr")
-#install.packages("reshape2")
-#install.packages("knitr")
-#install.packages("kableExtra")
-#install.packages("formattable")
-#install.packages("bizdays")
-#install.packages("rmarkdown")
-#install.packages("stringr")
-#install.packages("writexl")
-#install.packages("tidyr")
-
-#-------------------------------Required packages-------------------------------#
-
+```{r}
 #Required packages: run these every time you run the code
 library(timeDate)
 library(readxl)
@@ -41,8 +25,6 @@ rm(list = ls())
 source(here::here("CPDataProcessing/CONSTANTS.R"))
 source(here::here("CPDataProcessing/processing.R"))
 source(here::here("CPDataProcessing/write_temporary_table_to_database_and_merge_updated.R"))
-
-
 
 # Determine date range for reports to include in repository
 if (initial_run == TRUE) {
@@ -276,3 +258,25 @@ for (file in file_list_sun){
   
 }
 
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
