@@ -1,6 +1,6 @@
 ---
 title: "Lab Data Database Push"
-output: html_document
+output: console
 date: "2024-07-25"
 ---
 
