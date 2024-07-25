@@ -95,7 +95,7 @@ write_temporary_table_to_database_and_merge_updated <- function(data, key_column
       #Test connection
       tryCatch({
         dbBegin(ch)
-        dbExecute(ch, split_queries_sql_statements[[1]])
+        dbExecute(ch, split_queries_sql_statements[[i]])
         dbCommit(ch)
       },
       error = function(err){
