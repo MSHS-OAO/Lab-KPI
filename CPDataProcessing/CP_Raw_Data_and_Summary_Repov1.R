@@ -40,27 +40,9 @@ rm(list = ls())
 
 source(here::here("CPDataProcessing/CONSTANTS.R"))
 source(here::here("CPDataProcessing/processing.R"))
+source(here::here("CPDataProcessing/write_temporary_table_to_database_and_merge_updated.R"))
 
-# Set working directory -------------------------------
 
-if ("Presidents" %in% list.files("/SharedDrive/")) {
-  user_directory <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/",
-                           "Operations Analytics and Optimization/Projects/",
-                           "Service Lines/Lab Kpi/Data")
-} else {
-  user_directory <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/",
-                           "Operations Analytics and Optimization/Projects/",
-                           "Service Lines/Lab Kpi/Data")
-}
-
-user_path <- paste0(user_directory, "\\*.*")
-
-# Import data for two scenarios - first time compiling repo and updating repo ----------
-initial_run <- TRUE
-
-# Determine today's date to determine last possible data report
-todays_date <- as.Date(Sys.Date(), format = "%Y-%m-%d")
-this_month <- month(todays_date)
 
 # Determine date range for reports to include in repository
 if (initial_run == TRUE) {
@@ -69,7 +51,7 @@ if (initial_run == TRUE) {
   #                                   1, "/",
   #                                   year(Sys.Date())), format = "%m/%d/%Y")
   # repo_start_date <- todays_date - 60
-  repo_start_date <- as.Date("12/1/2021", format = "%m/%d/%Y")
+  repo_start_date <- as.Date("7/1/2023", format = "%m/%d/%Y")
   # Create vector with date range for new data repository
   repo_date_range <- seq(from = repo_start_date + 1,
                          to = todays_date,
@@ -238,7 +220,6 @@ if(length(sun_date_range)>900){
 }
 
 
-
 # Read daily SCC reports from date range, if any exist --------
 if (length(file_list_scc) > 0) {
   scc_raw_data_list <- lapply(
@@ -287,19 +268,19 @@ if (length(file_list_sun) > 0) {
 # Compile processed SCC daily data ------------------------------
 if (!is.null(scc_raw_data_list)) {
   # Preprocess SCC daily raw data using custom function
-  scc_daily_preprocessed <- lapply(scc_raw_data_list1,
+  scc_daily_preprocessed <- lapply(scc_raw_data_list,
                                    preprocess_scc)
   # Select the second element of the list of lists
-  scc_preprocessed_data <- lapply(scc_daily_preprocessed, function(x) x[[2]])
+  # scc_preprocessed_data <- lapply(scc_daily_preprocessed, function(x) x[[2]])
   
   # # Remove any labs with incorrect dates then bind daily reports into one data frame
   # scc_preprocessed_data <- lapply(scc_preprocessed_data, 
   #                                 function(x) correct_result_dates(x, number_days = 1))
   
   # Bind all data together
-  scc_daily_bind <- bind_rows(scc_preprocessed_data)
+  scc_daily_bind <- bind_rows(scc_daily_preprocessed)
   
-} else {
+  } else {
   scc_daily_bind <- NULL
 }
 
@@ -310,10 +291,10 @@ if (!is.null(sun_daily_raw_data_list)) {
   sun_daily_preprocessed <- lapply(sun_daily_raw_data_list,
                                    preprocess_daily_sun)
   # Select the second element of the list of lists
-  sun_preprocessed_data <- lapply(sun_daily_preprocessed, function(x) x[[2]])
+  # sun_preprocessed_data <- lapply(sun_daily_preprocessed, function(x) x[[2]])
   
   # Bind daily reports into one data frame
-  sun_daily_bind <- bind_rows(sun_preprocessed_data)
+  sun_daily_bind <- bind_rows(sun_daily_preprocessed)
   
 } else {
   sun_daily_bind <- NULL
@@ -321,24 +302,6 @@ if (!is.null(sun_daily_raw_data_list)) {
 
 # Bind together preprocessed SCC and Sunquest data --------------------------------------
 bind_all_data <- rbind(sun_daily_bind, scc_daily_bind)
-
-# Add columns for month and week number
-bind_all_data <- bind_all_data %>%
-  mutate(
-    # Find month name from result date
-    Year = year(ResultDate),
-    MonthNo = month(ResultDate),
-    MonthName = month(ResultDate, label = TRUE, abbr = TRUE),
-    MonthRollUp = as.Date(paste0(MonthNo, "/",
-                   1, "/",
-                   Year),
-            format = "%m/%d/%Y"),
-    # WeekNo = format(ResultDate, "%U"),
-    WeekStart = ResultDate - (wday(ResultDate) - 1),
-    WeekEnd = ResultDate + (7 - wday(ResultDate)),
-    WeekOf = paste0(format(WeekStart, "%m/%d/%y"),
-                   "-",
-                   format(WeekEnd, "%m/%d/%y")))
 
 # Combine raw data repo with new data
 if (initial_run == TRUE) {

@@ -16,10 +16,15 @@ library(pool)
 library(DBI)
 library(odbc)
 library(dbplyr)
+library(glue)
+library(assertr)
+library(doParallel)
 
 
 # Set working directory -------------------------------
 dsn <- "OAO Cloud DB Production"
+dsn_oracle <- paste0(dsn, " Oracle")
+
 conn <- dbConnect(odbc(), dsn)
 
 
@@ -37,7 +42,7 @@ user_path <- paste0(user_directory, "\\*.*")
 
 
 # Import data for two scenarios - first time compiling repo and updating repo ----------
-initial_run <- FALSE
+initial_run <- TRUE
 
 # Determine today's date to determine last possible data report
 todays_date <- as.Date(Sys.Date(), format = "%Y-%m-%d")
@@ -84,7 +89,8 @@ scc_setting <- tbl(conn,"LAB_KPI_SCC_CLINICTYPE") %>%
 sun_setting <- tbl(conn,"LAB_KPI_SUN_LOCTYPE") %>%
   collect()
 
-mshs_site <- read_excel(reference_file, sheet = "SiteNames")
+mshs_site <- tbl(conn,"LAB_KPI_SITE_NAMES") %>%
+  collect()
 
 cp_micro_lab_order <- c("Troponin",
                         "Lactate WB",
