@@ -57,9 +57,9 @@ this_month <- month(todays_date)
 
 
 # Import Clinical Pathology analysis reference data ---------------
-reference_file <- paste0(user_directory,
-                         "/Code Reference/",
-                         "Analysis Reference 2023-10-13.xlsx")
+# reference_file <- paste0(user_directory,
+#                          "/Code Reference/",
+#                          "Analysis Reference 2023-10-13.xlsx")
 
 scc_test_code <- tbl(conn,"LAB_KPI_SCC_TEST_CODES") %>%
   collect()
@@ -806,7 +806,7 @@ if (initial_run == TRUE) {
   #                                   1, "/",
   #                                   year(Sys.Date())), format = "%m/%d/%Y")
   # repo_start_date <- todays_date - 60
-  repo_start_date <- as.Date("12/1/2022", format = "%m/%d/%Y")
+  repo_start_date <- as.Date("6/1/2021", format = "%m/%d/%Y")
   # Create vector with date range for new data repository
   repo_date_range <- seq(from = repo_start_date + 1,
                          to = todays_date,
