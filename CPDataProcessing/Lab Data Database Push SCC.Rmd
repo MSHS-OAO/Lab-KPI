@@ -1004,52 +1004,33 @@ for (file in file_list_scc){
   write_temporary_table_to_database_and_merge_updated(scc_daily_preprocessed,
                                                       key_columns = key_cols,
                                                       update_columns = update_cols,
-                                                      source_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA_ST",
-                                                      destination_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA")
+                                                      source_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA_SCC_ST",
+                                                      destination_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA_SCC")
 
 }
 
-for (file in file_list_sun){
-  sun_data <- read_excel(
-    path = paste0(user_directory, "/SUN CP Reports/", file),
-    col_types = c("text", "text", "text", "text", "text",
-                  "text", "text", "text", "text",
-                  "numeric", "numeric", "numeric", "numeric", "numeric",
-                  "text", "text", "text", "text", "text",
-                  "text", "text", "text", "text", "text",
-                  "text", "text", "text", "text", "text",
-                  "text", "text", "text", "text", "text", "text"))
-  sun_daily_preprocessed <- preprocess_daily_sun(sun_data)
-  key_cols <- c("ORDERID","TEST")
-  update_cols <-  names(sun_daily_preprocessed)
-  update_cols <- update_cols[! update_cols %in% key_cols]
-  write_temporary_table_to_database_and_merge_updated(sun_daily_preprocessed,
-                                                      key_columns = key_cols,
-                                                      update_columns = update_cols,
-                                                      source_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA_ST",
-                                                      destination_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA")
-  
-}
+# for (file in file_list_sun){
+#   sun_data <- read_excel(
+#     path = paste0(user_directory, "/SUN CP Reports/", file),
+#     col_types = c("text", "text", "text", "text", "text",
+#                   "text", "text", "text", "text",
+#                   "numeric", "numeric", "numeric", "numeric", "numeric",
+#                   "text", "text", "text", "text", "text",
+#                   "text", "text", "text", "text", "text",
+#                   "text", "text", "text", "text", "text",
+#                   "text", "text", "text", "text", "text", "text"))
+#   sun_daily_preprocessed <- preprocess_daily_sun(sun_data)
+#   key_cols <- c("ORDERID","TEST")
+#   update_cols <-  names(sun_daily_preprocessed)
+#   update_cols <- update_cols[! update_cols %in% key_cols]
+#   write_temporary_table_to_database_and_merge_updated(sun_daily_preprocessed,
+#                                                       key_columns = key_cols,
+#                                                       update_columns = update_cols,
+#                                                       source_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA_ST",
+#                                                       destination_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA")
+#   
+# }
 
 
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
