@@ -994,20 +994,20 @@ if(length(sun_date_range)>900){
 #     filter(ResultDate %in% correct_dates)
 #   return(new_data)
 # }
-# for (file in file_list_scc){
-#   print(file)
-#   scc_data <- read_excel(path = paste0(user_directory, "/SCC CP Reports/", file))
-#   scc_daily_preprocessed <- preprocess_scc(scc_data)
-#   key_cols <- c("ORDERID","TEST")
-#   update_cols <- names(scc_daily_preprocessed)
-#   update_cols <- update_cols[! update_cols %in% key_cols]
-#   write_temporary_table_to_database_and_merge_updated(scc_daily_preprocessed,
-#                                                       key_columns = key_cols,
-#                                                       update_columns = update_cols,
-#                                                       source_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA_ST",
-#                                                       destination_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA")
-#   
-# }
+for (file in file_list_scc){
+  print(file)
+  scc_data <- read_excel(path = paste0(user_directory, "/SCC CP Reports/", file))
+  scc_daily_preprocessed <- preprocess_scc(scc_data)
+  key_cols <- c("ORDERID","TEST")
+  update_cols <- names(scc_daily_preprocessed)
+  update_cols <- update_cols[! update_cols %in% key_cols]
+  write_temporary_table_to_database_and_merge_updated(scc_daily_preprocessed,
+                                                      key_columns = key_cols,
+                                                      update_columns = update_cols,
+                                                      source_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA_ST",
+                                                      destination_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA")
+
+}
 
 for (file in file_list_sun){
   sun_data <- read_excel(
