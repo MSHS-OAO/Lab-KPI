@@ -3,7 +3,7 @@ title: "Lab Data Database Push"
 output: html_document
 ---
 
-```{r include = TRUE,echo = TRUE, message = TRUE}
+```{r include = FALSE,echo = TRUE, message = TRUE}
 #Required packages: run these every time you run the code
 #Required packages: run these every time you run the code
 library(timeDate)
@@ -1010,6 +1010,7 @@ if(length(sun_date_range)>900){
 # }
 
 for (file in file_list_sun){
+  print(file)
   sun_data <- read_excel(
     path = paste0(user_directory, "/SUN CP Reports/", file),
     col_types = c("text", "text", "text", "text", "text",
