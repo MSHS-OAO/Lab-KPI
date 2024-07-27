@@ -26,6 +26,7 @@ library(dbplyr)
 library(glue)
 library(assertr)
 library(doParallel)
+knitr::opts_chunk$set(eval = TRUE, echo = TRUE, results = "hide")
 
 
 # Set working directory -------------------------------
