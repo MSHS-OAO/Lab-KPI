@@ -3,7 +3,7 @@ title: "Lab Data Database Push"
 output: html_document
 ---
 
-```{r include = FALSE,echo = TRUE, message = TRUE}
+```{r eval=TRUE, echo=TRUE, warning=TRUE, include=FALSE, paged.print=TRUE}
 #Required packages: run these every time you run the code
 #Required packages: run these every time you run the code
 library(timeDate)
