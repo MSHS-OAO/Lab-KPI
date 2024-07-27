@@ -1035,3 +1035,7 @@ for (file in file_list_sun){
 
 
 ```
+
+```{r}
+library(stringr)
+```
