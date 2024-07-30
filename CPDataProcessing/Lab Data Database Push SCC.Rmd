@@ -545,7 +545,7 @@ preprocess_scc <- function(raw_scc)  {
                       format(WEEKEND, "%m/%d/%y")))
   
   scc_master <- scc_master %>%
-    drop_na(c(ORDERID, TEST,RESULTTIME)) %>%
+    drop_na(c(ORDERID, TEST,RESULTTIME,TESTNAME)) %>%
     distinct()
   
 }
@@ -729,7 +729,28 @@ if(length(sun_date_range)>900){
 
 
 
+con <- dbConnect(odbc(), dsn)
 
+query_pull <- glue("SELECT  RESULTDATE,COUNT(*) AS NTEST_SCC
+          FROM LAB_KPI_PROCESSED_DAILY_CP_DATA_SCC
+          GROUP BY  RESULTDATE
+          ORDER BY RESULTDATE")
+
+res <- dbGetQuery(con,query_pull)
+dbDisconnect(con)
+res <- res %>%
+  mutate(RESULTDATE = as.Date(RESULTDATE)+1)
+dates_in_data <- as.Date(res$RESULTDATE)
+dates_missing <- scc_date_range[! scc_date_range %in% dates_in_data]
+
+
+pattern_scc = paste0("^(Doc){1}.+",
+                       dates_missing,
+                       ".xlsx",
+                       collapse = "|")
+file_list_scc <- list.files(
+    path = paste0(user_directory, "/SCC CP Reports"),
+    pattern = pattern_scc)
 
 # # Custom function to determine resulted lab date from preprocessed data -------
 # # SCC data often has a few labs with incorrect result date
@@ -751,7 +772,7 @@ for (file in file_list_scc){
   print(file)
   scc_data <- read_excel(path = paste0(user_directory, "/SCC CP Reports/", file))
   scc_daily_preprocessed <- preprocess_scc(scc_data)
-  key_cols <- c("ORDERID","TEST", "RESULTTIME")
+  key_cols <- c("ORDERID","TEST", "RESULTTIME","TESTNAME")
   update_cols <- names(scc_daily_preprocessed)
   update_cols <- update_cols[! update_cols %in% key_cols]
   write_temporary_table_to_database_and_merge_updated(scc_daily_preprocessed,
