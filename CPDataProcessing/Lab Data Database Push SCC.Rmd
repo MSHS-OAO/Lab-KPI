@@ -739,8 +739,8 @@ for (file in file_list_scc){
   write_temporary_table_to_database_and_merge_updated(scc_daily_preprocessed,
                                                       key_columns = key_cols,
                                                       update_columns = update_cols,
-                                                      source_table_name = "LAB_KPI_PREPROCESSED_DAILY_ST",
-                                                      destination_table_name = "LAB_KPI_PREPROCESSED_DAILY")
+                                                      source_table_name="LAB_KPI_PROCESSED_DAILY_CP_DATA_SCC_ST",
+                                                      destination_table_name="LAB_KPI_PROCESSED_DAILY_CP_DATA_SCC")
 
 }
 
