@@ -42,7 +42,7 @@ user_path <- paste0(user_directory, "\\*.*")
 
 
 # Import data for two scenarios - first time compiling repo and updating repo ----------
-initial_run <- TRUE
+initial_run <- FALSE
 
 # Determine today's date to determine last possible data report
 todays_date <- as.Date(Sys.Date(), format = "%Y-%m-%d")

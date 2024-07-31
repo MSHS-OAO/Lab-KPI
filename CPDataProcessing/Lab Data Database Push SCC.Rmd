@@ -382,7 +382,7 @@ preprocess_scc <- function(raw_scc)  {
                                       units = "mins")
                            > 5, "AddOn", "Original"),
       # Determine if collection time is missing
-      MissingCollect = ifelse(CollectToReceive == 0,'TRUE','FALSE'),
+      MissingCollect = ifelse(CollectToReceive == 0,1,0),
       #
       # Determine TAT based on test, division, priority, and patient setting
       # Create column concatenating test and division to determine TAT targets
@@ -438,8 +438,8 @@ preprocess_scc <- function(raw_scc)  {
                         match(Concate1, tat_targets$Concate)])),
       #
       # Determine if Receive to Result and Collect to Result TAT meet targets
-      ReceiveResultInTarget = ifelse(ReceiveToResult <= ReceiveResultTarget, 'TRUE','FALSE'),
-      CollectResultInTarget = ifelse(CollectToResult <= CollectResultTarget, 'TRUE','FALSE'),
+      ReceiveResultInTarget = ifelse(ReceiveToResult <= ReceiveResultTarget, 1,0),
+      CollectResultInTarget = ifelse(CollectToResult <= CollectResultTarget, 1,0),
       # Create column with patient name, order ID, test, collect, receive, and
       # result date and determine if there is a duplicate; order time excluded
       Concate4 = paste(LAST_NAME, FIRST_NAME,
@@ -460,15 +460,15 @@ preprocess_scc <- function(raw_scc)  {
                                         CollectToResult < 0 |
                                         ReceiveToResult < 0 |
                                         is.na(CollectToResult) |
-                                        is.na(ReceiveToResult), 'FALSE', 'TRUE'),
-      CollectTime_TATInclude = ifelse(MissingCollect == 'TRUE' |
+                                        is.na(ReceiveToResult), 0, 1),
+      CollectTime_TATInclude = ifelse(MissingCollect == 1 |
                                         AddOnMaster == "AddOn" |
                                         MasterSetting == "Other" |
                                         CollectToReceive < 0 |
                                         CollectToResult < 0 |
                                         ReceiveToResult < 0 |
                                         is.na(CollectToResult) |
-                                        is.na(ReceiveToResult), 'FALSE', 'TRUE'))
+                                        is.na(ReceiveToResult), 0, 1))
   
   # Remove duplicate tests
   raw_scc <- raw_scc %>%
@@ -729,45 +729,6 @@ if(length(sun_date_range)>900){
 
 
 
-con <- dbConnect(odbc(), dsn)
-
-query_pull <- glue("SELECT  RESULTDATE,COUNT(*) AS NTEST_SCC
-          FROM LAB_KPI_PROCESSED_DAILY_CP_DATA_SCC
-          GROUP BY  RESULTDATE
-          ORDER BY RESULTDATE")
-
-res <- dbGetQuery(con,query_pull)
-dbDisconnect(con)
-res <- res %>%
-  mutate(RESULTDATE = as.Date(RESULTDATE)+1)
-dates_in_data <- as.Date(res$RESULTDATE)
-dates_missing <- scc_date_range[! scc_date_range %in% dates_in_data]
-
-
-pattern_scc = paste0("^(Doc){1}.+",
-                       dates_missing,
-                       ".xlsx",
-                       collapse = "|")
-file_list_scc <- list.files(
-    path = paste0(user_directory, "/SCC CP Reports"),
-    pattern = pattern_scc)
-
-# # Custom function to determine resulted lab date from preprocessed data -------
-# # SCC data often has a few labs with incorrect result date
-# correct_result_dates <- function(data, number_days) {
-#   all_resulted_dates_vol <- data %>%
-#     group_by(ResultDate) %>%
-#     summarize(VolLabs = n()) %>%
-#     arrange(desc(VolLabs)) %>%
-#     ungroup()
-#   
-#   
-#   correct_dates <- all_resulted_dates_vol$ResultDate[1:number_days]
-#   
-#   new_data <- data %>%
-#     filter(ResultDate %in% correct_dates)
-#   return(new_data)
-# }
 for (file in file_list_scc){
   print(file)
   scc_data <- read_excel(path = paste0(user_directory, "/SCC CP Reports/", file))
@@ -778,8 +739,8 @@ for (file in file_list_scc){
   write_temporary_table_to_database_and_merge_updated(scc_daily_preprocessed,
                                                       key_columns = key_cols,
                                                       update_columns = update_cols,
-                                                      source_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA_SCC_ST",
-                                                      destination_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA_SCC")
+                                                      source_table_name = "LAB_KPI_PREPROCESSED_DAILY_ST",
+                                                      destination_table_name = "LAB_KPI_PREPROCESSED_DAILY")
 
 }
 

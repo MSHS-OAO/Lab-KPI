@@ -322,7 +322,7 @@ if (initial_run == TRUE) {
 # Create data frame of start and end dates of weeks and months
 # This will be used to determine if the data for a complete week or month is present
 # If the week or month is not complete, that data will not be included in the repositories
-week_dates <- unique(latest_raw_data_repo[, c("WeekStart", "WeekEnd")])
+week_dates <- unique(latest_raw_data_repo[, c("WEEKSTART", "WEEKEND")])
 
 week_dates <- week_dates %>%
   mutate(StartInData = WeekStart %in% unique(latest_raw_data_repo$ResultDate),

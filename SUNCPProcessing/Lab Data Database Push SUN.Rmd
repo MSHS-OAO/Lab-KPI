@@ -373,7 +373,7 @@ preprocess_daily_sun <- function(raw_sun) {
                                       units = "mins") > 5, "AddOn", "Original"),
       #
       # Determine if collection time is missing
-      MissingCollect = ifelse(CollectDateTime == OrderDateTime, 'TRUE', 'FALSE'),
+      MissingCollect = ifelse(CollectDateTime == OrderDateTime, 1, 0),
       #
       # Determine TAT target based on test, priority, and patient setting
       # Create column concatenating test and division to determine TAT targets
@@ -429,8 +429,8 @@ preprocess_daily_sun <- function(raw_sun) {
                         match(Concate1, tat_targets$Concate)])),
       #
       # Determine if Receive to Result and Collect to Result TAT meet targets
-      ReceiveResultInTarget = ifelse(ReceiveToResult <= ReceiveResultTarget, 'TRUE', 'FALSE'),
-      CollectResultInTarget = ifelse(CollectToResult <= CollectResultTarget, 'TRUE', 'FALSE'),
+      ReceiveResultInTarget = ifelse(ReceiveToResult <= ReceiveResultTarget, 1, 0),
+      CollectResultInTarget = ifelse(CollectToResult <= CollectResultTarget, 1, 0),
       #
       # Create column with patient name, order ID, test, collect, receive, and
       # result date and determine if there is a duplicate; order time excluded
@@ -452,15 +452,15 @@ preprocess_daily_sun <- function(raw_sun) {
                                         CollectToResult < 0 |
                                         ReceiveToResult < 0 |
                                         is.na(CollectToResult) |
-                                        is.na(ReceiveToResult), 'FALSE', 'TRUE'),
-      CollectTime_TATInclude = ifelse(MissingCollect == 'TRUE' |
+                                        is.na(ReceiveToResult), 0, 1),
+      CollectTime_TATInclude = ifelse(MissingCollect == 1 |
                                         AddOnMaster == "AddOn" |
                                         MasterSetting == "Other" |
                                         CollectToReceive < 0 |
                                         CollectToResult < 0 |
                                         ReceiveToResult < 0 |
                                         is.na(CollectToResult) |
-                                        is.na(ReceiveToResult), 'FALSE', 'TRUE'))
+                                        is.na(ReceiveToResult), 0, 1))
   
   # Remove duplicate tests
   raw_sun <- raw_sun %>%
@@ -764,14 +764,14 @@ for (file in file_list_sun){
                   "text", "text", "text", "text", "text",
                   "text", "text", "text", "text", "text", "text"))
   sun_daily_preprocessed <- preprocess_daily_sun(sun_data)
-  key_cols <- c("ORDERID","TEST","RESULTTIME")
+  key_cols <- c("ORDERID","TEST","RESULTTIME", "TESTNAME")
   update_cols <-  names(sun_daily_preprocessed)
   update_cols <- update_cols[! update_cols %in% key_cols]
-  write_temporary_table_to_database_and_merge_updated(sun_daily_preprocessed,
+  write_temporary_table_to_database_and_merge_updated(data =sun_daily_preprocessed,
                                                       key_columns = key_cols,
                                                       update_columns = update_cols,
-                                                      source_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA_SUN_ST",
-                                                      destination_table_name = "LAB_KPI_PROCESSED_DAILY_CP_DATA_SUN")
+                                                      source_table_name = "LAB_KPI_PREPROCESSED_DAILY_ST",
+                                                      destination_table_name = "LAB_KPI_PREPROCESSED_DAILY")
   
 }
 
