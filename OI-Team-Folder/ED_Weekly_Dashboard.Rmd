@@ -34,6 +34,13 @@ library(ggplot2)
 library(janitor)
 library(tidyr)
 library(purrr)
+library(pool)
+library(DBI)
+library(odbc)
+library(dbplyr)
+library(glue)
+library(assertr)
+library(doParallel)
 ```
 
 ```{r global_options, echo=FALSE}
@@ -59,25 +66,65 @@ if ("Presidents" %in% list.files("J://")) {
                            "Service Lines/Lab Kpi/Data")
 }
 
-cp_user_path <- paste0(user_directory, "/CP Repositories/WeeklyRepo/*.*")
+# cp_user_path <- paste0(user_directory, "/CP Repositories/WeeklyRepo/*.*")
 
 # Import Clinical Pathology historical repository (Sunquest and SCC)
-cp_hist <-
-  readRDS(
-    file =
-      choose.files(default = cp_user_path,
-                   caption = "Select Clinical Pathology Weekly Repository"))
+# cp_hist <-
+#   readRDS(
+#     file =
+#       choose.files(default = cp_user_path,
+#                    caption = "Select Clinical Pathology Weekly Repository"))
 
-cp_hist <- cp_hist %>%
-  ungroup()
+
+# cp_hist <- cp_hist %>%
+#   ungroup()
 
 # Determine start week based on look back period
 todays_date <- Sys.Date()
+current_year <- format(todays_date, "%Y")
+previous_year <- as.numeric(current_year)-1
+previous_year_start <- paste0(current_year,'-01','-01')
+# todays_date <- as.Date('2024-08-05') #comment later
 this_week_no <- format(todays_date, "%U")
 this_week_start <- todays_date - (wday(todays_date) - 1)
 
 lookback_period <- 12
 dashboard_start <- this_week_start - lookback_period*7
+dashboard_start_sql <- format(dashboard_start, '%Y-%m-%d')
+dashboard_end <- dashboard_start  + 70
+
+
+dsn <- "OAO Cloud DB Production"
+conn <- dbConnect(odbc(), dsn)
+cp_hist <- tbl(conn,"LAB_KPI_CP_WEEKLY_VIEW") %>%
+  filter(WEEKSTART >= TO_DATE(previous_year_start, 'YYYY-MM-DD')) %>%
+  collect()%>%
+  rename(Site = SITE,
+         WeekStart = WEEKSTART,
+         WeekEnd = WEEKEND,
+         WeekOf = WEEKOF,
+         Test = TEST,
+         Division = DIVISION,
+         MasterSetting = MASTERSETTING,
+         DashboardSetting = DASHBOARDSETTING,
+         DashboardPriority = DASHBOARDPRIORITY,
+         ReceiveResultTarget = RECEIVERESULTTARGET,
+         CollectResultTarget = COLLECTRESULTTARGET,
+         TotalResulted = TOTALRESULTED,
+         ReceiveTime_VolIncl = RECEIVETIME_VOLINCL,
+         CollectTime_VolIncl = COLLECTTIME_VOLINCL,
+         TotalReceiveResultInTarget = TOTALRECEIVERESULTINTARGET,
+         TotalCollectResultInTarget = TOTALCOLLECTRESULTINTARGET,
+         TotalAddOnOrder = TOTALADDONORDER,
+         TotalMissingCollections = TOTALMISSINGCOLLECTIONS,
+         CollectReceive_Avg = COLLECTRECEIVE_AVG,
+         CollectReceive_Median = COLLECTRECEIVE_MEDIAN,
+         ReceiveResult_Avg = RECEIVERESULT_AVG,
+         ReceiveResult_Median = RECEIVERESULT_MEDIAN,
+         CollectResult_Avg = COLLECTRESULT_AVG,
+         CollectResult_Median = COLLECTRESULT_MEDIAN)
+dbDisconnect(conn)
+
 
 # Specify tests and patient settings in scope for the dashboard
 settings_in_scope <- c("ED")
@@ -95,7 +142,8 @@ pt_setting <- c("Amb", "ED", "ICU", "IP Non-ICU", "Other", "Total")
 # Subset historical repository based on date range, settings and tests in scope
 repo_median_tat <- cp_hist %>%
   filter(WeekStart >= dashboard_start &
-           MasterSetting %in% settings_in_scope &
+         WeekEnd <= dashboard_end &
+         MasterSetting %in% settings_in_scope &
            Test %in% tests_in_scope) %>%
   select(Site,
          WeekStart,
@@ -117,7 +165,8 @@ repo_median_tat <- cp_hist %>%
                               levels = c("CollectReceive_Median",
                                          "ReceiveResult_Median",
                                          "CollectResult_Median"),
-                              ordered = TRUE)) %>%
+                              ordered = TRUE),
+         WeekStart = as.Date(WeekStart)) %>%
   ungroup()
 
 ```
@@ -427,7 +476,7 @@ resulted_volume_kable(site = "MSW", test = "Troponin")
 
 ### Data Sources & Methodology
 <h4><b>Data Sources</b></h4>
-MSH and MSQ: Based on daily SCC report. Troponin labs identified by those with Test ID of TROI. Patient setting based on "Clinic Type" field and ICU identified using "Ward Name" field. </br>
+MSH and MSQ: Based on daily SCC report. Troponin labs identified by those with Test ID of TROI, HSTRI, TROP, TROPHS. Patient setting based on "Clinic Type" field and ICU identified using "Ward Name" field. </br>
 MSBI, MSB, MSW, MSM, MSSN: Based on daily Sunquest report. Troponin labs identified as those with Test Code of TROP. Patient setting based on "Loc Type" field and ICUs identified using "Loc Name" field.</br>
 
 <h4><b>Analysis Methodology</b></h4>
