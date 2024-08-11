@@ -559,7 +559,7 @@ if (initial_run == TRUE) {
   #                                   1, "/",
   #                                   year(Sys.Date())), format = "%m/%d/%Y")
   # repo_start_date <- todays_date - 60
-  repo_start_date <- as.Date("05/31/2021", format = "%m/%d/%Y")
+  repo_start_date <- as.Date("07/15/2024", format = "%m/%d/%Y")
   # Create vector with date range for new data repository
   repo_date_range <- seq(from = repo_start_date + 1,
                          to = todays_date,
