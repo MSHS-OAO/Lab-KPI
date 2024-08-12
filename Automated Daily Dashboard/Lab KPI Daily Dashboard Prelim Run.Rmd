@@ -152,7 +152,7 @@ cp_micro_lab_order <- c("Troponin",
                         "C. diff",
                         "Antibody Screen")
 
-all_sites <- c("MSH", "MSQ", "MSBI", "MSB", "MSW", "MSM", "MSSN", "RTC", "MSC", "MSUS")
+all_sites <- c("MSH", "MSQ", "MSBI", "MSB", "MSW", "MSM", "MSSN", "RTC")
 hosp_sites <- c("MSH", "MSQ", "MSBI", "MSB", "MSW", "MSM", "MSSN")
 infusion_sites <- c("RTC")
 
