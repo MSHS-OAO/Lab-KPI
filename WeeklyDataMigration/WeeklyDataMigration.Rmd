@@ -624,11 +624,14 @@ preprocess_scc <- function(raw_scc)  {
   raw_scc <- left_join(raw_scc, scc_setting,
                        by = c("CLINIC_TYPE" = "CLINIC_TYPE"))
   # Crosswalk site name
+  raw_scc <- raw_scc %>%
+    mutate(COLLECT_CENTER_ID = str_sub(COLLECT_CENTER_ID, 1, 1))
+  
   raw_scc <- left_join(raw_scc, mshs_site,
-                       by = c("SITE" = "DATA_SITE"))
+                       by = c("COLLECT_CENTER_ID" = "DATA_SITE"))
   
   raw_scc <- raw_scc%>%
-    select(-SITE) %>%
+    select(-SITE.x) %>%
     rename(SITE = SITE.y)
   
   # Preprocess SCC data and add any necessary columns

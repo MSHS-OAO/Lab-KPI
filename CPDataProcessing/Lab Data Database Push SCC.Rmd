@@ -334,11 +334,14 @@ preprocess_scc <- function(raw_scc)  {
   raw_scc <- left_join(raw_scc, scc_setting,
                        by = c("CLINIC_TYPE" = "CLINIC_TYPE"))
   # Crosswalk site name
+  raw_scc <- raw_scc %>%
+    mutate(COLLECT_CENTER_ID = str_sub(COLLECT_CENTER_ID, 1, 1))
+  
   raw_scc <- left_join(raw_scc, mshs_site,
-                       by = c("SITE" = "DATA_SITE"))
+                       by = c("COLLECT_CENTER_ID" = "DATA_SITE"))
   
   raw_scc <- raw_scc%>%
-    select(-SITE) %>%
+    select(-SITE.x) %>%
     rename(SITE = SITE.y)
   
   # Preprocess SCC data and add any necessary columns
@@ -739,8 +742,8 @@ for (file in file_list_scc){
   write_temporary_table_to_database_and_merge_updated(scc_daily_preprocessed,
                                                       key_columns = key_cols,
                                                       update_columns = update_cols,
-                                                      source_table_name="LAB_KPI_PROCESSED_DAILY_CP_DATA_SCC_ST",
-                                                      destination_table_name="LAB_KPI_PROCESSED_DAILY_CP_DATA_SCC")
+                                                      source_table_name="LAB_KPI_PREPROCESSED_DAILY_ST",
+                                                      destination_table_name="LAB_KPI_PREPROCESSED_DAILY")
 
 }
 
