@@ -102,7 +102,7 @@ user_directory <- paste0("/Pathology/")
 # Import analysis reference data
 reference_file <- paste0(user_directory,
                          "/Code Reference/",
-                         "Analysis Reference 2023-10-13.xlsx")
+                         "Analysis Reference 2024-08-12.xlsx")
 
 # CP and Micro --------------------------------
 cp_scc_test_codes <- read_excel(reference_file, sheet = "SCC_TestCodes")
@@ -606,8 +606,11 @@ preprocess_scc <- function(raw_scc)  {
   raw_scc <- left_join(raw_scc, cp_scc_setting,
                        by = c("CLINIC_TYPE" = "CLINIC_TYPE"))
   # Crosswalk site name
+  raw_scc <- raw_scc %>%
+    mutate(COLLECT_CENTER_ID = str_sub(COLLECT_CENTER_ID, 1, 1))
+  
   raw_scc <- left_join(raw_scc, cp_mshs_sites,
-                       by = c("SITE" = "DATA_SITE"))
+                       by = c("COLLECT_CENTER_ID" = "DATA_SITE"))
   
   # Preprocess SCC data and add any necessary columns
   raw_scc <- raw_scc %>%
