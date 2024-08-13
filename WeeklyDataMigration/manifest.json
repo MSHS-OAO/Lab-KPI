@@ -4,7 +4,7 @@
   "platform": "4.2.3",
   "metadata": {
     "appmode": "rmd-static",
-    "primary_rmd": "Lab Data Database Push SCC.Rmd",
+    "primary_rmd": "WeeklyDataMigration.Rmd",
     "primary_html": null,
     "content_category": null,
     "has_parameters": false
@@ -69,6 +69,39 @@
         "Repository": "CRAN",
         "Date/Publication": "2023-01-23 05:49:12 UTC",
         "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-03-15 09:05:02 UTC; unix"
+      }
+    },
+    "Matrix": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "Matrix",
+        "Version": "1.5-3",
+        "Date": "2022-11-09",
+        "Priority": "recommended",
+        "Title": "Sparse and Dense Matrix Classes and Methods",
+        "Contact": "Matrix-authors@R-project.org",
+        "Maintainer": "Martin Maechler <mmaechler+Matrix@gmail.com>",
+        "Authors@R": "c(person(\"Douglas\", \"Bates\", role = \"aut\")\n , person(\"Martin\", \"Maechler\", role = c(\"aut\", \"cre\"),\n          email = \"mmaechler+Matrix@gmail.com\",\n          comment = c(ORCID = \"0000-0002-8685-9910\"))\n , person(\"Mikael\", \"Jagan\", role = \"aut\",\n          comment = c(ORCID = \"0000-0002-3542-2938\"))\n , person(\"Timothy A.\", \"Davis\", role = \"ctb\",\n          comment = c(\"SuiteSparse and 'cs' C libraries, notably CHOLMOD and AMD\",\n\t              \"collaborators listed in dir(pattern=\\\"^[A-Z]+[.]txt$\\\", full.names=TRUE, system.file(\\\"doc\\\", \\\"SuiteSparse\\\", package=\\\"Matrix\\\"))\"))\n , person(\"Jens\", \"Oehlschlägel\", role = \"ctb\",\n          comment = \"initial nearPD()\")\n , person(\"Jason\", \"Riedy\", role = \"ctb\",\n          comment = c(\"condest() and onenormest() for octave\",\n \t  \t      \"Copyright: Regents of the University of California\"))\n , person(\"R Core Team\", role = \"ctb\",\n          comment = \"base R matrix implementation\")\n )",
+        "Description": "A rich hierarchy of matrix classes, including triangular,\n   symmetric, and diagonal matrices, both dense and sparse and with\n   pattern, logical and numeric entries.   Numerous methods for and\n   operations on these matrices, using 'LAPACK' and 'SuiteSparse' libraries.",
+        "Depends": "R (>= 3.5.0), methods",
+        "Imports": "graphics, grid, lattice, stats, utils",
+        "Suggests": "expm, MASS",
+        "Enhances": "MatrixModels, graph, SparseM, sfsmisc, igraph, maptools, sp,\nspdep",
+        "EnhancesNote": "line 2: for \"Rd xrefs\"",
+        "Encoding": "UTF-8",
+        "LazyData": "no",
+        "LazyDataNote": "not possible, since we use data/*.R *and* our classes",
+        "BuildResaveData": "no",
+        "License": "GPL (>= 2) | file LICENCE",
+        "URL": "https://Matrix.R-forge.R-project.org/,\nhttps://Matrix.R-forge.R-project.org/doxygen/",
+        "BugReports": "https://R-forge.R-project.org/tracker/?atid=294&group_id=61",
+        "NeedsCompilation": "yes",
+        "Packaged": "2022-11-10 14:57:57 UTC; maechler",
+        "Author": "Douglas Bates [aut],\n  Martin Maechler [aut, cre] (<https://orcid.org/0000-0002-8685-9910>),\n  Mikael Jagan [aut] (<https://orcid.org/0000-0002-3542-2938>),\n  Timothy A. Davis [ctb] (SuiteSparse and 'cs' C libraries, notably\n    CHOLMOD and AMD, collaborators listed in\n    dir(pattern=\"^[A-Z]+[.]txt$\", full.names=TRUE, system.file(\"doc\",\n    \"SuiteSparse\", package=\"Matrix\"))),\n  Jens Oehlschlägel [ctb] (initial nearPD()),\n  Jason Riedy [ctb] (condest() and onenormest() for octave, Copyright:\n    Regents of the University of California),\n  R Core Team [ctb] (base R matrix implementation)",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-11-11 08:30:10 UTC",
+        "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-03-15 09:05:18 UTC; unix"
       }
     },
     "R6": {
@@ -1000,6 +1033,64 @@
         "Built": "R 4.2.3; ; 2023-04-26 15:58:38 UTC; unix"
       }
     },
+    "ggQC": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "ggQC",
+        "Type": "Package",
+        "Title": "Quality Control Charts for 'ggplot'",
+        "Version": "0.0.31",
+        "Author": "Kenith Grey",
+        "Maintainer": "Kenith Grey <kenithgrey@r-bar.net>",
+        "Description": "Plot single and faceted type quality control charts\n  for 'ggplot'.  ",
+        "Depends": "R (>= 2.10)",
+        "License": "GPL-3 | file LICENSE",
+        "Encoding": "UTF-8",
+        "LazyData": "true",
+        "Suggests": "testthat, gridExtra, knitr, rmarkdown, reshape2, plyr",
+        "RoxygenNote": "6.1.1",
+        "Imports": "ggplot2, stats, dplyr, tidyr",
+        "VignetteBuilder": "knitr",
+        "NeedsCompilation": "no",
+        "Packaged": "2018-12-01 01:41:15 UTC; billy",
+        "Repository": "CRAN",
+        "Date/Publication": "2018-12-01 05:20:27 UTC",
+        "Built": "R 4.2.3; ; 2023-04-26 16:06:58 UTC; unix"
+      }
+    },
+    "ggplot2": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "ggplot2",
+        "Version": "3.4.2",
+        "Title": "Create Elegant Data Visualisations Using the Grammar of Graphics",
+        "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = \"aut\",\n           comment = c(ORCID = \"0000-0003-4757-117X\")),\n    person(\"Winston\", \"Chang\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-1576-2126\")),\n    person(\"Lionel\", \"Henry\", role = \"aut\"),\n    person(\"Thomas Lin\", \"Pedersen\", , \"thomas.pedersen@posit.co\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0002-5147-4711\")),\n    person(\"Kohske\", \"Takahashi\", role = \"aut\"),\n    person(\"Claus\", \"Wilke\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-7470-9261\")),\n    person(\"Kara\", \"Woo\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-5125-4188\")),\n    person(\"Hiroaki\", \"Yutani\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-3385-7233\")),\n    person(\"Dewey\", \"Dunnington\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-9415-4582\")),\n    person(\"Posit, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Description": "A system for 'declaratively' creating graphics, based on \"The\n    Grammar of Graphics\". You provide the data, tell 'ggplot2' how to map\n    variables to aesthetics, what graphical primitives to use, and it\n    takes care of the details.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://ggplot2.tidyverse.org,\nhttps://github.com/tidyverse/ggplot2",
+        "BugReports": "https://github.com/tidyverse/ggplot2/issues",
+        "Depends": "R (>= 3.3)",
+        "Imports": "cli, glue, grDevices, grid, gtable (>= 0.1.1), isoband,\nlifecycle (> 1.0.1), MASS, mgcv, rlang (>= 1.1.0), scales (>=\n1.2.0), stats, tibble, vctrs (>= 0.5.0), withr (>= 2.5.0)",
+        "Suggests": "covr, dplyr, ggplot2movies, hexbin, Hmisc, knitr, lattice,\nmapproj, maps, maptools, multcomp, munsell, nlme, profvis,\nquantreg, ragg, RColorBrewer, rgeos, rmarkdown, rpart, sf (>=\n0.7-3), svglite (>= 1.2.0.9001), testthat (>= 3.1.2), vdiffr\n(>= 1.0.0), xml2",
+        "Enhances": "sp",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "ggtext, tidyr, forcats, tidyverse/tidytemplate",
+        "Config/testthat/edition": "3",
+        "Encoding": "UTF-8",
+        "LazyData": "true",
+        "RoxygenNote": "7.2.3",
+        "Collate": "'ggproto.R' 'ggplot-global.R' 'aaa-.R'\n'aes-colour-fill-alpha.R' 'aes-evaluation.R'\n'aes-group-order.R' 'aes-linetype-size-shape.R'\n'aes-position.R' 'compat-plyr.R' 'utilities.R' 'aes.R'\n'utilities-checks.R' 'legend-draw.R' 'geom-.R'\n'annotation-custom.R' 'annotation-logticks.R' 'geom-polygon.R'\n'geom-map.R' 'annotation-map.R' 'geom-raster.R'\n'annotation-raster.R' 'annotation.R' 'autolayer.R' 'autoplot.R'\n'axis-secondary.R' 'backports.R' 'bench.R' 'bin.R' 'coord-.R'\n'coord-cartesian-.R' 'coord-fixed.R' 'coord-flip.R'\n'coord-map.R' 'coord-munch.R' 'coord-polar.R'\n'coord-quickmap.R' 'coord-sf.R' 'coord-transform.R' 'data.R'\n'facet-.R' 'facet-grid-.R' 'facet-null.R' 'facet-wrap.R'\n'fortify-lm.R' 'fortify-map.R' 'fortify-multcomp.R'\n'fortify-spatial.R' 'fortify.R' 'stat-.R' 'geom-abline.R'\n'geom-rect.R' 'geom-bar.R' 'geom-bin2d.R' 'geom-blank.R'\n'geom-boxplot.R' 'geom-col.R' 'geom-path.R' 'geom-contour.R'\n'geom-count.R' 'geom-crossbar.R' 'geom-segment.R'\n'geom-curve.R' 'geom-defaults.R' 'geom-ribbon.R'\n'geom-density.R' 'geom-density2d.R' 'geom-dotplot.R'\n'geom-errorbar.R' 'geom-errorbarh.R' 'geom-freqpoly.R'\n'geom-function.R' 'geom-hex.R' 'geom-histogram.R'\n'geom-hline.R' 'geom-jitter.R' 'geom-label.R'\n'geom-linerange.R' 'geom-point.R' 'geom-pointrange.R'\n'geom-quantile.R' 'geom-rug.R' 'geom-sf.R' 'geom-smooth.R'\n'geom-spoke.R' 'geom-text.R' 'geom-tile.R' 'geom-violin.R'\n'geom-vline.R' 'ggplot2-package.R' 'grob-absolute.R'\n'grob-dotstack.R' 'grob-null.R' 'grouping.R' 'guide-bins.R'\n'guide-colorbar.R' 'guide-colorsteps.R' 'guide-legend.R'\n'guides-.R' 'guides-axis.R' 'guides-grid.R' 'guides-none.R'\n'hexbin.R' 'import-standalone-obj-type.R'\n'import-standalone-types-check.R' 'labeller.R' 'labels.R'\n'layer.R' 'layer-sf.R' 'layout.R' 'limits.R' 'margins.R'\n'performance.R' 'plot-build.R' 'plot-construction.R'\n'plot-last.R' 'plot.R' 'position-.R' 'position-collide.R'\n'position-dodge.R' 'position-dodge2.R' 'position-identity.R'\n'position-jitter.R' 'position-jitterdodge.R' 'position-nudge.R'\n'position-stack.R' 'quick-plot.R' 'reshape-add-margins.R'\n'save.R' 'scale-.R' 'scale-alpha.R' 'scale-binned.R'\n'scale-brewer.R' 'scale-colour.R' 'scale-continuous.R'\n'scale-date.R' 'scale-discrete-.R' 'scale-expansion.R'\n'scale-gradient.R' 'scale-grey.R' 'scale-hue.R'\n'scale-identity.R' 'scale-linetype.R' 'scale-linewidth.R'\n'scale-manual.R' 'scale-shape.R' 'scale-size.R' 'scale-steps.R'\n'scale-type.R' 'scale-view.R' 'scale-viridis.R' 'scales-.R'\n'stat-align.R' 'stat-bin.R' 'stat-bin2d.R' 'stat-bindot.R'\n'stat-binhex.R' 'stat-boxplot.R' 'stat-contour.R'\n'stat-count.R' 'stat-density-2d.R' 'stat-density.R'\n'stat-ecdf.R' 'stat-ellipse.R' 'stat-function.R'\n'stat-identity.R' 'stat-qq-line.R' 'stat-qq.R'\n'stat-quantilemethods.R' 'stat-sf-coordinates.R' 'stat-sf.R'\n'stat-smooth-methods.R' 'stat-smooth.R' 'stat-sum.R'\n'stat-summary-2d.R' 'stat-summary-bin.R' 'stat-summary-hex.R'\n'stat-summary.R' 'stat-unique.R' 'stat-ydensity.R'\n'summarise-plot.R' 'summary.R' 'theme-elements.R' 'theme.R'\n'theme-defaults.R' 'theme-current.R' 'utilities-break.R'\n'utilities-grid.R' 'utilities-help.R' 'utilities-matrix.R'\n'utilities-resolution.R' 'utilities-table.R'\n'utilities-tidy-eval.R' 'zxx.R' 'zzz.R'",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-03-31 08:04:34 UTC; thomas",
+        "Author": "Hadley Wickham [aut] (<https://orcid.org/0000-0003-4757-117X>),\n  Winston Chang [aut] (<https://orcid.org/0000-0002-1576-2126>),\n  Lionel Henry [aut],\n  Thomas Lin Pedersen [aut, cre]\n    (<https://orcid.org/0000-0002-5147-4711>),\n  Kohske Takahashi [aut],\n  Claus Wilke [aut] (<https://orcid.org/0000-0002-7470-9261>),\n  Kara Woo [aut] (<https://orcid.org/0000-0002-5125-4188>),\n  Hiroaki Yutani [aut] (<https://orcid.org/0000-0002-3385-7233>),\n  Dewey Dunnington [aut] (<https://orcid.org/0000-0002-9415-4582>),\n  Posit, PBC [cph, fnd]",
+        "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-04-03 14:10:02 UTC",
+        "Built": "R 4.2.3; ; 2023-04-26 16:06:33 UTC; unix"
+      }
+    },
     "glue": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
@@ -1030,33 +1121,57 @@
         "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 16:56:53 UTC; unix"
       }
     },
-    "here": {
+    "gridExtra": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
       "description": {
-        "Package": "here",
-        "Title": "A Simpler Way to Find Your Files",
-        "Version": "1.0.1",
-        "Date": "2020-12-13",
-        "Authors@R": "\n    c(person(given = \"Kirill\",\n             family = \"M\\u00fcller\",\n             role = c(\"aut\", \"cre\"),\n             email = \"krlmlr+r@mailbox.org\",\n             comment = c(ORCID = \"0000-0002-1416-3412\")),\n      person(given = \"Jennifer\",\n             family = \"Bryan\",\n             role = \"ctb\",\n             email = \"jenny@rstudio.com\",\n             comment = c(ORCID = \"0000-0002-6983-2759\")))",
-        "Description": "Constructs paths to your project's files.\n    Declare the relative path of a file within your project with 'i_am()'.\n    Use the 'here()' function as a drop-in replacement for 'file.path()',\n    it will always locate the files relative to your project root.",
+        "Package": "gridExtra",
+        "Authors@R": "c(person(\"Baptiste\", \"Auguie\",\n    email = \"baptiste.auguie@gmail.com\",\n    role = c(\"aut\", \"cre\")), person(\"Anton\", \"Antonov\",\n    email = \"tonytonov@gmail.com\",\n    role = c(\"ctb\")))",
+        "License": "GPL (>= 2)",
+        "Title": "Miscellaneous Functions for \"Grid\" Graphics",
+        "Type": "Package",
+        "Description": "Provides a number of user-level functions to work with \"grid\"\n    graphics, notably to arrange multiple grid-based plots on a page, and draw\n    tables.",
+        "Version": "2.3",
+        "VignetteBuilder": "knitr",
+        "Imports": "gtable, grid, grDevices, graphics, utils",
+        "Suggests": "ggplot2, egg, lattice, knitr, testthat",
+        "RoxygenNote": "6.0.1",
+        "NeedsCompilation": "no",
+        "Packaged": "2017-09-08 22:52:09 UTC; baptiste",
+        "Author": "Baptiste Auguie [aut, cre],\n  Anton Antonov [ctb]",
+        "Maintainer": "Baptiste Auguie <baptiste.auguie@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2017-09-09 14:12:08 UTC",
+        "Built": "R 4.2.3; ; 2023-04-26 16:07:03 UTC; unix"
+      }
+    },
+    "gtable": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "gtable",
+        "Title": "Arrange 'Grobs' in Tables",
+        "Version": "0.3.3",
+        "Authors@R": "\n    c(person(given = \"Hadley\",\n             family = \"Wickham\",\n             role = \"aut\",\n             email = \"hadley@posit.co\"),\n      person(given = \"Thomas Lin\",\n             family = \"Pedersen\",\n             role = c(\"aut\", \"cre\"),\n             email = \"thomas.pedersen@posit.co\"),\n      person(given = \"Posit Software, PBC\",\n             role = \"cph\"))",
+        "Description": "Tools to make it easier to work with \"tables\" of\n    'grobs'. The 'gtable' package defines a 'gtable' grob class that specifies a\n    grid along with a list of grobs and their placement in the grid. Further the\n    package makes it easy to manipulate and combine 'gtable' objects so that \n    complex compositions can be built up sequentially.",
         "License": "MIT + file LICENSE",
-        "URL": "https://here.r-lib.org/, https://github.com/r-lib/here",
-        "BugReports": "https://github.com/r-lib/here/issues",
-        "Imports": "rprojroot (>= 2.0.2)",
-        "Suggests": "conflicted, covr, fs, knitr, palmerpenguins, plyr, readr,\nrlang, rmarkdown, testthat, uuid, withr",
+        "Depends": "R (>= 3.5)",
+        "Imports": "cli, glue, grid, lifecycle, rlang (>= 1.1.0)",
+        "Suggests": "covr, ggplot2, knitr, profvis, rmarkdown, testthat (>= 3.0.0)",
         "VignetteBuilder": "knitr",
         "Encoding": "UTF-8",
-        "LazyData": "true",
-        "RoxygenNote": "7.1.1.9000",
+        "RoxygenNote": "7.2.3",
+        "URL": "https://gtable.r-lib.org, https://github.com/r-lib/gtable",
+        "BugReports": "https://github.com/r-lib/gtable/issues",
         "Config/testthat/edition": "3",
+        "Config/Needs/website": "tidyverse/tidytemplate",
         "NeedsCompilation": "no",
-        "Packaged": "2020-12-13 06:59:33 UTC; kirill",
-        "Author": "Kirill Müller [aut, cre] (<https://orcid.org/0000-0002-1416-3412>),\n  Jennifer Bryan [ctb] (<https://orcid.org/0000-0002-6983-2759>)",
-        "Maintainer": "Kirill Müller <krlmlr+r@mailbox.org>",
+        "Packaged": "2023-03-21 13:17:30 UTC; thomas",
+        "Author": "Hadley Wickham [aut],\n  Thomas Lin Pedersen [aut, cre],\n  Posit Software, PBC [cph]",
+        "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
         "Repository": "CRAN",
-        "Date/Publication": "2020-12-13 07:30:02 UTC",
-        "Built": "R 4.2.3; ; 2023-04-26 16:43:36 UTC; unix"
+        "Date/Publication": "2023-03-21 14:00:05 UTC",
+        "Built": "R 4.2.3; ; 2023-04-26 16:06:19 UTC; unix"
       }
     },
     "highr": {
@@ -1203,6 +1318,35 @@
         "Built": "R 4.2.3; ; 2023-04-26 16:11:56 UTC; unix"
       }
     },
+    "isoband": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "isoband",
+        "Title": "Generate Isolines and Isobands from Regularly Spaced Elevation\nGrids",
+        "Version": "0.2.7",
+        "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0003-4757-117X\")),\n    person(\"Claus O.\", \"Wilke\", , \"wilke@austin.utexas.edu\", role = \"aut\",\n           comment = c(\"Original author\", ORCID = \"0000-0002-7470-9261\")),\n    person(\"Thomas Lin\", \"Pedersen\", , \"thomasp85@gmail.com\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-5147-4711\"))\n  )",
+        "Description": "A fast C++ implementation to generate contour lines\n    (isolines) and contour polygons (isobands) from regularly spaced grids\n    containing elevation data.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://isoband.r-lib.org",
+        "BugReports": "https://github.com/r-lib/isoband/issues",
+        "Imports": "grid, utils",
+        "Suggests": "covr, ggplot2, knitr, magick, microbenchmark, rmarkdown, sf,\ntestthat, xml2",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Config/testthat/edition": "3",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.2.3",
+        "SystemRequirements": "C++11",
+        "NeedsCompilation": "yes",
+        "Packaged": "2022-12-19 20:10:02 UTC; hadleywickham",
+        "Author": "Hadley Wickham [aut, cre] (<https://orcid.org/0000-0003-4757-117X>),\n  Claus O. Wilke [aut] (Original author,\n    <https://orcid.org/0000-0002-7470-9261>),\n  Thomas Lin Pedersen [aut] (<https://orcid.org/0000-0002-5147-4711>)",
+        "Maintainer": "Hadley Wickham <hadley@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-12-20 10:00:13 UTC",
+        "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 16:06:21 UTC; unix"
+      }
+    },
     "iterators": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
@@ -1225,6 +1369,34 @@
         "Date/Publication": "2022-02-05 00:50:08 UTC",
         "Encoding": "UTF-8",
         "Built": "R 4.2.0; ; 2022-04-22 21:15:43 UTC; unix"
+      }
+    },
+    "janitor": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "janitor",
+        "Title": "Simple Tools for Examining and Cleaning Dirty Data",
+        "Version": "2.2.0",
+        "Authors@R": "c(person(\"Sam\", \"Firke\", email = \"samuel.firke@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"Bill\", \"Denney\", email = \"wdenney@humanpredictions.com\", role = \"ctb\"),\n    person(\"Chris\", \"Haid\", email = \"chrishaid@gmail.com\", role = \"ctb\"),\n    person(\"Ryan\", \"Knight\", email = \"ryangknight@gmail.com\", role = \"ctb\"),\n    person(\"Malte\", \"Grosser\", email = \"malte.grosser@gmail.com\", role = \"ctb\"),\n    person(\"Jonathan\", \"Zadra\", email = \"jonathan.zadra@sorensonimpact.com\", role = \"ctb\"))",
+        "Description": "The main janitor functions can: perfectly format data.frame column\n    names; provide quick counts of variable combinations (i.e., frequency\n    tables and crosstabs); and explore duplicate records. Other janitor functions\n    nicely format the tabulation results. These tabulate-and-report functions\n    approximate popular features of SPSS and Microsoft Excel. This package\n    follows the principles of the \"tidyverse\" and works well with the pipe function\n    %>%. janitor was built with beginning-to-intermediate R users in mind and is\n    optimized for user-friendliness.",
+        "URL": "https://github.com/sfirke/janitor,\nhttps://sfirke.github.io/janitor/",
+        "BugReports": "https://github.com/sfirke/janitor/issues",
+        "Depends": "R (>= 3.1.2)",
+        "Imports": "dplyr (>= 1.0.0), hms, lifecycle, lubridate, magrittr, purrr,\nrlang, stringi, stringr, snakecase (>= 0.9.2), tidyselect (>=\n1.0.0), tidyr (>= 0.7.0)",
+        "License": "MIT + file LICENSE",
+        "RoxygenNote": "7.2.3",
+        "Suggests": "dbplyr, knitr, rmarkdown, RSQLite, sf, testthat (>= 3.0.0),\ntibble, tidygraph",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Config/testthat/edition": "3",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-02-02 16:00:15 UTC; samfi",
+        "Author": "Sam Firke [aut, cre],\n  Bill Denney [ctb],\n  Chris Haid [ctb],\n  Ryan Knight [ctb],\n  Malte Grosser [ctb],\n  Jonathan Zadra [ctb]",
+        "Maintainer": "Sam Firke <samuel.firke@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-02-02 16:50:06 UTC",
+        "Built": "R 4.2.3; ; 2023-04-26 16:41:38 UTC; unix"
       }
     },
     "jquerylib": {
@@ -1387,6 +1559,35 @@
         "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 16:09:15 UTC; unix"
       }
     },
+    "lattice": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "lattice",
+        "Version": "0.20-45",
+        "Date": "2021-09-18",
+        "Priority": "recommended",
+        "Title": "Trellis Graphics for R",
+        "Authors@R": "c(person(\"Deepayan\", \"Sarkar\", role = c(\"aut\", \"cre\"),\n\t            email = \"deepayan.sarkar@r-project.org\",\n\t\t    comment = c(ORCID = \"0000-0003-4107-1553\")),\n              person(\"Felix\", \"Andrews\", role = \"ctb\"),\n\t      person(\"Kevin\", \"Wright\", role = \"ctb\", comment = \"documentation\"),\n\t      person(\"Neil\", \"Klepeis\", role = \"ctb\"),\n\t      person(\"Johan\", \"Larsson\", role = \"ctb\", comment = \"colorkey title\"),\n              person(\"Paul\", \"Murrell\", role = \"ctb\", email = \"paul@stat.auckland.ac.nz\"))",
+        "Description": "A powerful and elegant high-level data visualization\n  system inspired by Trellis graphics, with an emphasis on\n  multivariate data. Lattice is sufficient for typical graphics needs,\n  and is also flexible enough to handle most nonstandard requirements.\n  See ?Lattice for an introduction.",
+        "Depends": "R (>= 3.0.0)",
+        "Suggests": "KernSmooth, MASS, latticeExtra",
+        "Imports": "grid, grDevices, graphics, stats, utils",
+        "Enhances": "chron",
+        "LazyLoad": "yes",
+        "LazyData": "yes",
+        "License": "GPL (>= 2)",
+        "URL": "http://lattice.r-forge.r-project.org/",
+        "BugReports": "https://github.com/deepayan/lattice/issues",
+        "NeedsCompilation": "yes",
+        "Packaged": "2021-09-22 09:17:07 UTC; deepayan",
+        "Author": "Deepayan Sarkar [aut, cre] (<https://orcid.org/0000-0003-4107-1553>),\n  Felix Andrews [ctb],\n  Kevin Wright [ctb] (documentation),\n  Neil Klepeis [ctb],\n  Johan Larsson [ctb] (colorkey title),\n  Paul Murrell [ctb]",
+        "Maintainer": "Deepayan Sarkar <deepayan.sarkar@r-project.org>",
+        "Repository": "CRAN",
+        "Date/Publication": "2021-09-22 12:10:02 UTC",
+        "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-03-15 09:05:09 UTC; unix"
+      }
+    },
     "lifecycle": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
@@ -1504,6 +1705,30 @@
         "Built": "R 4.2.3; ; 2023-04-26 16:11:23 UTC; unix"
       }
     },
+    "mgcv": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "mgcv",
+        "Version": "1.8-42",
+        "Author": "Simon Wood <simon.wood@r-project.org>",
+        "Maintainer": "Simon Wood <simon.wood@r-project.org>",
+        "Title": "Mixed GAM Computation Vehicle with Automatic Smoothness\nEstimation",
+        "Description": "Generalized additive (mixed) models, some of their extensions and \n             other generalized ridge regression with multiple smoothing \n             parameter estimation by (Restricted) Marginal Likelihood, \n             Generalized Cross Validation and similar, or using iterated \n             nested Laplace approximation for fully Bayesian inference. See \n             Wood (2017) <doi:10.1201/9781315370279> for an overview. \n             Includes a gam() function, a wide variety of smoothers, 'JAGS' \n             support and distributions beyond the exponential family. ",
+        "Priority": "recommended",
+        "Depends": "R (>= 3.6.0), nlme (>= 3.1-64)",
+        "Imports": "methods, stats, graphics, Matrix, splines, utils",
+        "Suggests": "parallel, survival, MASS",
+        "LazyLoad": "yes",
+        "ByteCompile": "yes",
+        "License": "GPL (>= 2)",
+        "NeedsCompilation": "yes",
+        "Packaged": "2023-02-25 13:11:36 UTC; sw283",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-03-02 12:20:05 UTC",
+        "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-03-15 09:08:13 UTC; unix"
+      }
+    },
     "mime": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
@@ -1550,6 +1775,36 @@
         "Repository": "CRAN",
         "Date/Publication": "2018-06-12 04:29:06 UTC",
         "Built": "R 4.2.3; ; 2023-04-26 16:06:26 UTC; unix"
+      }
+    },
+    "nlme": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "nlme",
+        "Version": "3.1-162",
+        "Date": "2023-01-30",
+        "Priority": "recommended",
+        "Title": "Linear and Nonlinear Mixed Effects Models",
+        "Authors@R": "c(person(\"José\", \"Pinheiro\", role = \"aut\", comment = \"S version\"),\n             person(\"Douglas\", \"Bates\", role = \"aut\", comment = \"up to 2007\"),\n             person(\"Saikat\", \"DebRoy\", role = \"ctb\", comment = \"up to 2002\"),\n             person(\"Deepayan\", \"Sarkar\", role = \"ctb\", comment = \"up to 2005\"),\n             person(\"EISPACK authors\", role = \"ctb\", comment = \"src/rs.f\"),\n\t     person(\"Siem\", \"Heisterkamp\", role = \"ctb\", comment = \"Author fixed sigma\"),\n             person(\"Bert\", \"Van Willigen\",role = \"ctb\", comment = \"Programmer fixed sigma\"),\n             person(\"Johannes\", \"Ranke\", role = \"ctb\", comment = \"varConstProp()\"),\n\t     person(\"R Core Team\", email = \"R-core@R-project.org\",\n                    role = c(\"aut\", \"cre\")))",
+        "Contact": "see 'MailingList'",
+        "Description": "Fit and compare Gaussian linear and nonlinear mixed-effects models.",
+        "Depends": "R (>= 3.5.0)",
+        "Imports": "graphics, stats, utils, lattice",
+        "Suggests": "Hmisc, MASS, SASmixed",
+        "LazyData": "yes",
+        "Encoding": "UTF-8",
+        "License": "GPL (>= 2)",
+        "BugReports": "https://bugs.r-project.org",
+        "MailingList": "R-help@r-project.org",
+        "URL": "https://svn.r-project.org/R-packages/trunk/nlme/",
+        "NeedsCompilation": "yes",
+        "Packaged": "2023-01-31 08:57:23 UTC; maechler",
+        "Author": "José Pinheiro [aut] (S version),\n  Douglas Bates [aut] (up to 2007),\n  Saikat DebRoy [ctb] (up to 2002),\n  Deepayan Sarkar [ctb] (up to 2005),\n  EISPACK authors [ctb] (src/rs.f),\n  Siem Heisterkamp [ctb] (Author fixed sigma),\n  Bert Van Willigen [ctb] (Programmer fixed sigma),\n  Johannes Ranke [ctb] (varConstProp()),\n  R Core Team [aut, cre]",
+        "Maintainer": "R Core Team <R-core@R-project.org>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-01-31 16:50:09 UTC",
+        "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-03-15 09:06:58 UTC; unix"
       }
     },
     "odbc": {
@@ -2035,33 +2290,6 @@
         "Built": "R 4.2.0; ; 2023-03-27 18:01:18 UTC; unix"
       }
     },
-    "rprojroot": {
-      "Source": "CRAN",
-      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
-      "description": {
-        "Package": "rprojroot",
-        "Title": "Finding Files in Project Subdirectories",
-        "Version": "2.0.3",
-        "Authors@R": "\n    person(given = \"Kirill\",\n           family = \"M\\u00fcller\",\n           role = c(\"aut\", \"cre\"),\n           email = \"krlmlr+r@mailbox.org\",\n           comment = c(ORCID = \"0000-0002-1416-3412\"))",
-        "Description": "Robust, reliable and flexible paths to files below\n    a project root. The 'root' of a project is defined as a directory that\n    matches a certain criterion, e.g., it contains a certain regular file.",
-        "License": "MIT + file LICENSE",
-        "URL": "https://rprojroot.r-lib.org/, https://github.com/r-lib/rprojroot",
-        "BugReports": "https://github.com/r-lib/rprojroot/issues",
-        "Depends": "R (>= 3.0.0)",
-        "Suggests": "covr, knitr, lifecycle, mockr, rmarkdown, testthat (>=\n3.0.0), withr",
-        "VignetteBuilder": "knitr",
-        "Config/testthat/edition": "3",
-        "Encoding": "UTF-8",
-        "RoxygenNote": "7.1.2",
-        "NeedsCompilation": "no",
-        "Packaged": "2022-04-02 16:14:00 UTC; kirill",
-        "Author": "Kirill Müller [aut, cre] (<https://orcid.org/0000-0002-1416-3412>)",
-        "Maintainer": "Kirill Müller <krlmlr+r@mailbox.org>",
-        "Repository": "CRAN",
-        "Date/Publication": "2022-04-02 16:40:02 UTC",
-        "Built": "R 4.2.3; ; 2023-04-26 16:30:51 UTC; unix"
-      }
-    },
     "rstudioapi": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
@@ -2199,6 +2427,34 @@
         "Repository": "CRAN",
         "Date/Publication": "2019-11-20 07:30:03 UTC",
         "Built": "R 4.2.3; ; 2023-04-26 16:12:36 UTC; unix"
+      }
+    },
+    "snakecase": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "snakecase",
+        "Version": "0.11.0",
+        "Date": "2019-05-25",
+        "Title": "Convert Strings into any Case",
+        "Description": "A consistent, flexible and easy to use tool to parse and convert strings into cases like snake or camel among others.",
+        "Authors@R": "c(\n    person(\"Malte\", \"Grosser\", , \"malte.grosser@gmail.com\", role = c(\"aut\", \"cre\")))",
+        "Maintainer": "Malte Grosser <malte.grosser@gmail.com>",
+        "Depends": "R (>= 3.2)",
+        "Imports": "stringr, stringi",
+        "Suggests": "testthat, covr, tibble, purrrlyr, knitr, rmarkdown, magrittr",
+        "URL": "https://github.com/Tazinho/snakecase",
+        "BugReports": "https://github.com/Tazinho/snakecase/issues",
+        "Encoding": "UTF-8",
+        "License": "GPL-3",
+        "RoxygenNote": "6.1.1",
+        "VignetteBuilder": "knitr",
+        "NeedsCompilation": "no",
+        "Packaged": "2019-05-25 21:16:42 UTC; MGO",
+        "Author": "Malte Grosser [aut, cre]",
+        "Repository": "CRAN",
+        "Date/Publication": "2019-05-25 22:50:03 UTC",
+        "Built": "R 4.2.3; ; 2023-04-26 16:41:37 UTC; unix"
       }
     },
     "stringi": {
@@ -2767,23 +3023,8 @@
     }
   },
   "files": {
-    "CONSTANTS.R": {
-      "checksum": "1c47d3068cb368caf766bf8348950028"
-    },
-    "CopyOfCP_Raw_Data_and_Summary_RepoConnect.R": {
-      "checksum": "04bed3f9dcaa19b80a55b7b794fcd2bd"
-    },
-    "CP_Raw_Data_and_Summary_Repov1.R": {
-      "checksum": "e111e12300a414b9659a1f4e52e8007c"
-    },
-    "Lab Data Database Push SCC.Rmd": {
-      "checksum": "69fe9ebfd5482c0d67dad462221e76d6"
-    },
-    "processing.R": {
-      "checksum": "4007211588a9d379ae8e72fde5b6d6ab"
-    },
-    "write_temporary_table_to_database_and_merge_updated.R": {
-      "checksum": "62c14330b806a53f68bedbae59ba4766"
+    "WeeklyDataMigration.Rmd": {
+      "checksum": "f4e534cee1e6fd60e1988d77e87d42db"
     }
   },
   "users": null
