@@ -1,0 +1,14 @@
+---
+title: "Email Document"
+output: blastula::blastula_email
+---
+
+Hello,
+
+Good afternoon and hope you had great weekend! Attached is the raw data for Monthly Capacity Management Report.
+
+
+Note: This is Privileged and Confidential Performance Improvement Correspondence in accordance with New York State Public Health Law 2805 j through m; & New York State Education Law 6527; and Federal Law 109-41.
+
+Best,  
+Dheeraj Tommandru
