@@ -1,0 +1,11 @@
+---
+title: "Top Level File for Rendering Weekly Laboratory ED Troponin KPI Dashboard"
+output:
+  html_document
+---
+
+```{r render test, echo = FALSE, warning = FALSE, message = FALSE}
+# Render daily dashboard and specify output file location
+
+rmarkdown::render("ED_Weekly_DashboardDB.Rmd", output_file = paste0("/SharedDrive/deans/Presidents/HSPI-PM/Operations Analytics and Optimization/Projects/Service Lines/Lab KPI/MSHS Lab OI Dashboards/", "System Lab ED PI Weekly Dashboard ", format(Sys.Date(),"%m-%d-%y")))
+```
