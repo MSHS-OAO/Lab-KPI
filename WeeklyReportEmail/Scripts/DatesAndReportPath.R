@@ -16,7 +16,7 @@ this_week_start <- todays_date - (wday(todays_date) - 1)
 lookback_period <- 12
 dashboard_start <- this_week_start - lookback_period*7
 dashboard_start_sql <- format(dashboard_start, '%Y-%m-%d')
-dashboard_end <- dashboard_start  + 84
+dashboard_end <- dashboard_start  + 77
 
 
 
