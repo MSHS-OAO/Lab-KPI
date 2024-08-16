@@ -22,4 +22,5 @@ dashboard_end <- dashboard_start  + 84
 
 report_path <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/Operations Analytics and Optimization/Projects/Service Lines/Lab KPI/MSHS Lab OI Dashboards/", 
                       "System Lab ED PI Weekly Dashboard ", 
-                      format(Sys.Date(),"%m-%d-%y"))
+                      format(Sys.Date(),"%m-%d-%y"),
+                      ".html")
