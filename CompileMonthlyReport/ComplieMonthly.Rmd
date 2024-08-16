@@ -93,7 +93,9 @@ cp_hist <- tbl(conn,"LAB_KPI_CP_MONTHLY_VIEW") %>%
          ReceiveResult_Avg = RECEIVERESULT_AVG,
          ReceiveResult_Median = RECEIVERESULT_MEDIAN,
          CollectResult_Avg = COLLECTRESULT_AVG,
-         CollectResult_Median = COLLECTRESULT_MEDIAN)
+         CollectResult_Median = COLLECTRESULT_MEDIAN) %>%
+  mutate(MonthRollUp = format(MonthRollUp, "%Y-%m-%d"))%>%
+  arrange(MonthRollUp)
 dbDisconnect(conn)
 
 # monthly_repo_file <- choose.files(default = paste0(user_directory,
