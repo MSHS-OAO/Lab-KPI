@@ -8,5 +8,7 @@ Hello,
 Please see attached for this week’s System Lab ED PI Committee Dashboard monitoring weekly ED troponin turnaround times for the weeks of `r dashboard_start` to `r dashboard_end`. Please let us know if you have any questions or comments.
 
 
+Note: This is Privileged and Confidential Performance Improvement Correspondence in accordance with New York State Public Health Law 2805 j through m; & New York State Education Law 6527; and Federal Law 109-41.
+
 Best,  
 Dheeraj Tommandru
