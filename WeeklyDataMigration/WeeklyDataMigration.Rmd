@@ -852,7 +852,7 @@ dsn <- "OAO Cloud DB Production"
 conn <- dbConnect(odbc(), dsn)
 get_max_date_scc <- glue("SELECT TO_CHAR(MAX(RESULTDATE),'YYYY-MM-DD') AS MAXDATE
                           FROM LAB_KPI_PREPROCESSED_DAILY
-                          WHERE SITE IN ('MSH','MSQ');")
+                          WHERE SITE IN ('MSH','MSQ','MSUS','MSC');")
 
 get_max_date_sun <- glue("SELECT TO_CHAR(MAX(RESULTDATE),'YYYY-MM-DD') AS MAXDATE
                           FROM LAB_KPI_PREPROCESSED_DAILY
@@ -877,9 +877,12 @@ dbDisconnect(conn)
 scc_date_range <- seq(from = as.Date(max_date_scc)+2,
                       to = todays_date,
                       by = "day")
+
+
 sun_date_range <- seq(from = as.Date(max_date_sun)+2,
                       to = todays_date,
                       by = "day")
+
 
 # Extract SCC pattern and files ----
 pattern_scc = paste0("^(Doc){1}.+",
@@ -946,3 +949,104 @@ for (file in file_list_sun){
 }
 ```
 
+```{r Check for Missing Days in Database}
+
+dates_check <- seq(from = floor_date(todays_date,"month"),
+                      to = todays_date-1,
+                      by = "day")
+
+scc_dates <- glue("SELECT DISTINCT RESULTDATE
+                   FROM LAB_KPI_PREPROCESSED_DAILY
+                   WHERE SITE IN ('MSH','MSQ','MSUS','MSC') AND
+                   RESULTDATE >=  TRUNC(SYSDATE,'mm')
+                   ORDER BY RESULTDATE;")
+
+sun_dates <- glue("SELECT DISTINCT RESULTDATE
+                   FROM LAB_KPI_PREPROCESSED_DAILY
+                   WHERE SITE NOT IN ('MSH','MSQ','MSUS','MSC') AND
+                   RESULTDATE >=  TRUNC(SYSDATE,'mm')
+                   ORDER BY RESULTDATE;")
+
+dsn <- "OAO Cloud DB Production"
+conn <- dbConnect(odbc(), dsn)
+scc_dates_db <- dbGetQuery(conn,
+                           scc_dates)
+scc_dates_db <- as.Date(scc_dates_db$RESULTDATE)
+
+sun_dates_db <- dbGetQuery(conn,
+                           sun_dates)
+sun_dates_db <- as.Date(sun_dates_db$RESULTDATE)
+
+dbDisconnect(conn)
+
+
+# Check missing dates
+missing_scc_dates <- dates_check[!(dates_check %in% scc_dates_db)]
+missing_scc_dates_file_dates <- missing_scc_dates+1
+missing_sun_dates <- dates_check[!(dates_check %in% sun_dates_db)]
+missing_sun_dates_file_dates <- missing_sun_dates+1
+
+missing_pattern_scc <- paste0("^(Doc){1}.+",
+                              missing_scc_dates_file_dates,
+                              ".xlsx")
+
+missing_pattern_sun <-  paste0("^(KPI_Daily_TAT_Report){1}.*",
+                       sun_date_range,
+                       ".xls")
+
+
+
+for (file_name_scc in missing_pattern_scc){
+  scc_file <- list.files(
+  path = paste0(user_directory, "/SCC CP Reports"),
+  pattern = file_name_scc)
+  if(identical(scc_file, character(0))){
+    print(paste("Missing File",file_name_scc))
+  }else{
+      scc_data <- read_excel(path = paste0(user_directory, "/SCC CP Reports/", scc_file))
+      scc_daily_preprocessed <- preprocess_scc(scc_data)
+      key_cols <- c("ORDERID","TEST", "RESULTTIME","TESTNAME")
+      update_cols <- names(scc_daily_preprocessed)
+      update_cols <- update_cols[! update_cols %in% key_cols]
+      write_temporary_table_to_database_and_merge_updated(scc_daily_preprocessed,
+                                                          key_columns = key_cols,
+                                                          update_columns = update_cols,
+                                                          source_table_name="LAB_KPI_PREPROCESSED_DAILY_ST",
+                                                          destination_table_name="LAB_KPI_PREPROCESSED_DAILY")
+
+  }
+}
+
+
+for (file_name_sun in missing_pattern_sun){
+  sun_file <- list.files(
+    path = paste0(user_directory, "/SUN CP Reports"),
+    pattern = file_name_sun)
+  if(identical(scc_file, character(0))){
+    print(paste("Missing File",file_name_sun))
+  }else{
+    sun_data <- read_excel(
+      path = paste0(user_directory, "/SUN CP Reports/", sun_file),
+      col_types = c("text", "text", "text", "text", "text",
+                    "text", "text", "text", "text",
+                    "numeric", "numeric", "numeric", "numeric", "numeric",
+                    "text", "text", "text", "text", "text",
+                    "text", "text", "text", "text", "text",
+                    "text", "text", "text", "text", "text",
+                    "text", "text", "text", "text", "text", "text"))
+    sun_daily_preprocessed <- preprocess_daily_sun(sun_data)
+    key_cols <- c("ORDERID","TEST","RESULTTIME", "TESTNAME")
+    update_cols <-  names(sun_daily_preprocessed)
+    update_cols <- update_cols[! update_cols %in% key_cols]
+    write_temporary_table_to_database_and_merge_updated(data =sun_daily_preprocessed,
+                                                        key_columns = key_cols,
+                                                        update_columns = update_cols,
+                                                        source_table_name="LAB_KPI_PREPROCESSED_DAILY_ST",
+                                                        destination_table_name="LAB_KPI_PREPROCESSED_DAILY")
+
+  }
+}
+
+
+
+```
