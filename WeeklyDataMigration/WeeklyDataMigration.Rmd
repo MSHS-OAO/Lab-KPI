@@ -941,11 +941,11 @@ if(file_list_scc_flag){
                                                         destination_table_name="LAB_KPI_PREPROCESSED_DAILY")
 
   
-  }else{
-  print("Data SCC up to date")
+  }
+}else{
+  print("SUN Data up to date")
 }
-  
-}
+
 ```
 
 ```{r Process and Migrate SUNQUEST Data}
@@ -975,11 +975,11 @@ if(file_list_sun_flag){
                                                         update_columns = update_cols,
                                                         source_table_name="LAB_KPI_PREPROCESSED_DAILY_ST",
                                                         destination_table_name="LAB_KPI_PREPROCESSED_DAILY")
-  }else{
+  }
+}else{
   print("SUN Data up to date")
 }
   
-}
 ```
 
 ```{r Check for Missing Days in Database}
