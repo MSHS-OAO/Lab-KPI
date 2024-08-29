@@ -856,7 +856,7 @@ get_max_date_scc <- glue("SELECT TO_CHAR(MAX(RESULTDATE),'YYYY-MM-DD') AS MAXDAT
 
 get_max_date_sun <- glue("SELECT TO_CHAR(MAX(RESULTDATE),'YYYY-MM-DD') AS MAXDATE
                           FROM LAB_KPI_PREPROCESSED_DAILY
-                          WHERE SITE NOT IN ('MSH','MSQ');")
+                          WHERE SITE IN ('MSSN','MSBI','MSM','MSW');")
 max_date_scc <- dbGetQuery(conn,
                            get_max_date_scc)
 max_date_scc <- max_date_scc$MAXDATE[[1]]
@@ -873,49 +873,77 @@ max_date_sun <- max_date_sun$MAXDATE[[1]]
 
 dbDisconnect(conn)
 
-# Compute dates to add to database based on Max dates ----
-scc_date_range <- seq(from = as.Date(max_date_scc)+2,
+
+if(as.Date(max_date_scc)+2 >= todays_date){
+  
+  file_list_scc_flag <- FALSE
+  
+}else{
+  
+  # Compute dates to add to database based on Max dates ----
+  scc_date_range <- seq(from = as.Date(max_date_scc)+2,
+                        to = todays_date,
+                        by = "day")
+
+  # Extract SCC pattern and files ----
+  pattern_scc = paste0("^(Doc){1}.+",
+                       scc_date_range,
+                       ".xlsx",
+                       collapse = "|")
+  file_list_scc <- list.files(
+    path = paste0(user_directory, "/SCC CP Reports"),
+    pattern = pattern_scc)
+
+  file_list_scc_flag <- TRUE
+
+}
+
+
+if(as.Date(max_date_sun)+2 >= todays_date){
+  
+  file_list_sun_flag <- FALSE
+  
+}else{
+  sun_date_range <- seq(from = as.Date(max_date_sun)+2,
                       to = todays_date,
                       by = "day")
 
 
-sun_date_range <- seq(from = as.Date(max_date_sun)+2,
-                      to = todays_date,
-                      by = "day")
+  # Extract SUN pattern and files ----
+  pattern_sun <-  paste0("^(KPI_Daily_TAT_Report){1}.*",
+                         sun_date_range,
+                         ".xls", collapse = "|")
+  file_list_sun <- list.files(
+    path = paste0(user_directory, "/SUN CP Reports"),
+    pattern = pattern_sun)
 
+  file_list_sun_flag <- TRUE
 
-# Extract SCC pattern and files ----
-pattern_scc = paste0("^(Doc){1}.+",
-                     scc_date_range,
-                     ".xlsx",
-                     collapse = "|")
-file_list_scc <- list.files(
-  path = paste0(user_directory, "/SCC CP Reports"),
-  pattern = pattern_scc)
+}
 
-# Extract SUN pattern and files ----
-pattern_sun <-  paste0("^(KPI_Daily_TAT_Report){1}.*",
-                       sun_date_range,
-                       ".xls", collapse = "|")
-file_list_sun <- list.files(
-  path = paste0(user_directory, "/SUN CP Reports"),
-  pattern = pattern_sun)
 ```
 
 ```{r Process and Migrate SCC Data}
-# Process SCC files and push the data to DB -----
-for (file in file_list_scc){
-  print(file)
-  scc_data <- read_excel(path = paste0(user_directory, "/SCC CP Reports/", file))
-  scc_daily_preprocessed <- preprocess_scc(scc_data)
-  key_cols <- c("ORDERID","TEST", "RESULTTIME","TESTNAME")
-  update_cols <- names(scc_daily_preprocessed)
-  update_cols <- update_cols[! update_cols %in% key_cols]
-  write_temporary_table_to_database_and_merge_updated(scc_daily_preprocessed,
-                                                      key_columns = key_cols,
-                                                      update_columns = update_cols,
-                                                      source_table_name="LAB_KPI_PREPROCESSED_DAILY_ST",
-                                                      destination_table_name="LAB_KPI_PREPROCESSED_DAILY")
+
+if(file_list_scc_flag){
+  # Process SCC files and push the data to DB -----
+  for (file in file_list_scc){
+    print(file)
+    scc_data <- read_excel(path = paste0(user_directory, "/SCC CP Reports/", file))
+    scc_daily_preprocessed <- preprocess_scc(scc_data)
+    key_cols <- c("ORDERID","TEST", "RESULTTIME","TESTNAME")
+    update_cols <- names(scc_daily_preprocessed)
+    update_cols <- update_cols[! update_cols %in% key_cols]
+    write_temporary_table_to_database_and_merge_updated(scc_daily_preprocessed,
+                                                        key_columns = key_cols,
+                                                        update_columns = update_cols,
+                                                        source_table_name="LAB_KPI_PREPROCESSED_DAILY_ST",
+                                                        destination_table_name="LAB_KPI_PREPROCESSED_DAILY")
+
+  
+  }else{
+  print("Data SCC up to date")
+}
   
 }
 ```
@@ -925,26 +953,31 @@ for (file in file_list_scc){
 
 # Process SUNQUEST files and push the data to DB
 
-for (file in file_list_sun){
-  print(file)
-  sun_data <- read_excel(
-    path = paste0(user_directory, "/SUN CP Reports/", file),
-    col_types = c("text", "text", "text", "text", "text",
-                  "text", "text", "text", "text",
-                  "numeric", "numeric", "numeric", "numeric", "numeric",
-                  "text", "text", "text", "text", "text",
-                  "text", "text", "text", "text", "text",
-                  "text", "text", "text", "text", "text",
-                  "text", "text", "text", "text", "text", "text"))
-  sun_daily_preprocessed <- preprocess_daily_sun(sun_data)
-  key_cols <- c("ORDERID","TEST","RESULTTIME", "TESTNAME")
-  update_cols <-  names(sun_daily_preprocessed)
-  update_cols <- update_cols[! update_cols %in% key_cols]
-  write_temporary_table_to_database_and_merge_updated(data =sun_daily_preprocessed,
-                                                      key_columns = key_cols,
-                                                      update_columns = update_cols,
-                                                      source_table_name="LAB_KPI_PREPROCESSED_DAILY_ST",
-                                                      destination_table_name="LAB_KPI_PREPROCESSED_DAILY")
+if(file_list_sun_flag){
+
+  for (file in file_list_sun){
+    print(file)
+    sun_data <- read_excel(
+      path = paste0(user_directory, "/SUN CP Reports/", file),
+      col_types = c("text", "text", "text", "text", "text",
+                    "text", "text", "text", "text",
+                    "numeric", "numeric", "numeric", "numeric", "numeric",
+                    "text", "text", "text", "text", "text",
+                    "text", "text", "text", "text", "text",
+                    "text", "text", "text", "text", "text",
+                    "text", "text", "text", "text", "text", "text"))
+    sun_daily_preprocessed <- preprocess_daily_sun(sun_data)
+    key_cols <- c("ORDERID","TEST","RESULTTIME", "TESTNAME")
+    update_cols <-  names(sun_daily_preprocessed)
+    update_cols <- update_cols[! update_cols %in% key_cols]
+    write_temporary_table_to_database_and_merge_updated(data =sun_daily_preprocessed,
+                                                        key_columns = key_cols,
+                                                        update_columns = update_cols,
+                                                        source_table_name="LAB_KPI_PREPROCESSED_DAILY_ST",
+                                                        destination_table_name="LAB_KPI_PREPROCESSED_DAILY")
+  }else{
+  print("SUN Data up to date")
+}
   
 }
 ```
@@ -963,7 +996,7 @@ scc_dates <- glue("SELECT DISTINCT RESULTDATE
 
 sun_dates <- glue("SELECT DISTINCT RESULTDATE
                    FROM LAB_KPI_PREPROCESSED_DAILY
-                   WHERE SITE NOT IN ('MSH','MSQ','MSUS','MSC') AND
+                   WHERE SITE IN ('MSSN','MSBI','MSM','MSW') AND
                    RESULTDATE >=  TRUNC(SYSDATE,'mm')
                    ORDER BY RESULTDATE;")
 
