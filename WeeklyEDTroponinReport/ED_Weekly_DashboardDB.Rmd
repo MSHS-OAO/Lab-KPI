@@ -108,8 +108,6 @@ cp_hist <- tbl(conn,"LAB_KPI_CP_WEEKLY_VIEW") %>%
          MasterSetting = MASTERSETTING,
          DashboardSetting = DASHBOARDSETTING,
          DashboardPriority = DASHBOARDPRIORITY,
-         ReceiveResultTarget = RECEIVERESULTTARGET,
-         CollectResultTarget = COLLECTRESULTTARGET,
          TotalResulted = TOTALRESULTED,
          ReceiveTime_VolIncl = RECEIVETIME_VOLINCL,
          CollectTime_VolIncl = COLLECTTIME_VOLINCL,
@@ -124,6 +122,8 @@ cp_hist <- tbl(conn,"LAB_KPI_CP_WEEKLY_VIEW") %>%
          CollectResult_Avg = COLLECTRESULT_AVG,
          CollectResult_Median = COLLECTRESULT_MEDIAN)
 dbDisconnect(conn)
+
+# Remove the Receive to Result <= 60   and Collect to Result <=  70 min for the week of 12/29/24-01/04/25
 
 
 # Specify tests and patient settings in scope for the dashboard
@@ -496,6 +496,43 @@ Add on orders are defined as labs with an order time more than 5 minutes after r
 <h5><i>Turnaround Time Exclusions</i></h5>
   
 Turnaround time analysis excludes labs with out of order steps (ie, collect after receive), missing timestamps, add-on orders, and labs not originating in IP, ED, or ambulatory settings (ie, Outreach). Labs with missing collections are excluded from Collect-to-Receive and Collect-to-Result turnaround time analysis. Resulted volume includes all resulted specimens, including add-on orders, labs with missing timestamps, etc.
+
+<h5><i>Target Update 10/01/2025</i></h5>
+
+Troponin targets as of 12/31/2024
+<table>
+  <tr>
+    <th>Metric</th>
+    <th>Target</th>
+  </tr>
+  <tr>
+    <td>Received to Result</td>
+    <td>Collect to Result</td>
+  </tr>
+  <tr>
+    <td><=50 mins</td>
+    <td><=60 mins </td>
+  </tr>
+</table>
+
+
+Troponin targets as of 01/01/2025
+<table>
+  <tr>
+    <th>Metric</th>
+    <th>Target</th>
+  </tr>
+  <tr>
+    <td>Received to Result</td>
+    <td>Collect to Result</td>
+  </tr>
+  <tr>
+    <td><=60 mins</td>
+    <td><=70 mins </td>
+  </tr>
+</table>
+
+
 
 <br>
   
