@@ -83,7 +83,7 @@ if ("Presidents" %in% list.files("J://")) {
 todays_date <- Sys.Date()
 current_year <- format(todays_date, "%Y")
 previous_year <- as.numeric(current_year)-1
-previous_year_start <- paste0(current_year,'-01','-01')
+previous_year_start <- paste0(previous_year,'-01','-01')
 # todays_date <- as.Date('2024-08-05') #comment later
 this_week_no <- format(todays_date, "%U")
 this_week_start <- todays_date - (wday(todays_date) - 1)
