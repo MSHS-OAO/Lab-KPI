@@ -18,7 +18,7 @@ source("Scripts/DatesAndReportPath.R", local = knitr::knit_global())
 
 ```{r pressure, echo=FALSE}
 email_credential_location <- "/SharedDrive/deans/Presidents/HSPI-PM/Operations Analytics and Optimization/Administrative/Workgroups/R Workbench/Working Area/Data Connections/email_creds"
-cc_list <- c("greg.servis@mssm.edu","armando.villegas@mssm.edu","dheeraj.tommandru@mssm.edu")
+cc_list <- c("greg.servis@mssm.edu","dheeraj.tommandru@mssm.edu")
 send_list <- c("dayanandan.adhimoolam@mountsinai.org")
 email_subject <- glue("MSH-LAB_Capacity Management Data.xlsx")
 
