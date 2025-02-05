@@ -101,7 +101,7 @@ user_directory <- paste0("/Pathology/")
 
 # Import analysis reference data
 reference_file <- paste0(user_directory,
-                         "/Code Reference/",
+                         "Code Reference/",
                          "Analysis Reference 2025-02-05.xlsx")
 
 # CP and Micro --------------------------------
