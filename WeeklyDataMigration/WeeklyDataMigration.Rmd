@@ -1125,7 +1125,7 @@ if(length(missing_sun_dates_file_dates)>1){
     path = paste0(user_directory, "/SUN CP Reports"),
     pattern = missing_pattern_sun)
   if(identical(sun_file, character(0))){
-    print(paste("Missing File",file_name_sun))
+    print(paste("Missing File",sun_file))
   }else{
     print(sun_file)
     sun_data <- read_excel(
