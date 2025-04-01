@@ -984,9 +984,12 @@ if(file_list_sun_flag){
 
 ```{r Check for Missing Days in Database}
 
-dates_check <- seq(from = floor_date(todays_date,"month"),
+dates_check <- NA
+if(todays_date-1 > floor_date(todays_date,"month")){
+  dates_check <- seq.Date(from = floor_date(todays_date,"month"),
                       to = todays_date-1,
                       by = "day")
+}
 
 scc_dates <- glue("SELECT DISTINCT RESULTDATE
                    FROM LAB_KPI_PREPROCESSED_DAILY
