@@ -943,7 +943,7 @@ if(file_list_scc_flag){
   
   }
 }else{
-  print("SUN Data up to date")
+  print("SCC Data up to date")
 }
 
 ```
