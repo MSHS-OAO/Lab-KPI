@@ -89,28 +89,8 @@ scc_test_code <- tbl(conn,"LAB_KPI_SCC_TEST_CODES") %>%
 sun_test_code <- tbl(conn,"LAB_KPI_SUN_TEST_CODES") %>%
   collect()
 
-todays_date <- as.Date(Sys.Date(), format = "%Y-%m-%d")
-yesterday <- todays_date -1
 # scc_test_code <- read_excel(reference_file, sheet = "SCC_TestCodes")
 # sun_test_code <- read_excel(reference_file, sheet = "SUN_TestCodes")
-
-#Remove Good Friday from MSHS Holidays for Biopsies and Cytology
-nyse_holidays <- as.Date(holidayNYSE(year = 1990:2100))
-good_friday <- as.Date(GoodFriday())
-mshs_holiday <- nyse_holidays[good_friday != nyse_holidays]
-#Determine whether yesterday was a holiday/weekend
-holiday_det <- isHoliday(as.timeDate(yesterday), holidays = mshs_holiday)
-
-#Set up a calendar for collect to received TAT calculations for Path & Cyto
-create.calendar("MSHS_working_days", mshs_holiday,
-                weekdays = c("saturday", "sunday"))
-bizdays.options$set(default.calendar = "MSHS_working_days")
-
-# Power path patient settings
-patient_setting <- tbl(conn,"LAB_KPI_AP_PATIENT_SETTING") %>%
-  collect()
-
-
 
 # tat_targets <- read_excel(reference_file, sheet = "Turnaround Targets")
 tat_targets <- tbl(conn,"LAB_KPI_TURNAROUND_TARGETS") %>%
@@ -181,11 +161,7 @@ get_values_updated <- function(x, columns,table_name){
 
 write_temporary_table_to_database_and_merge_updated <- function(data, key_columns, destination_table_name, source_table_name, update_columns) {
   
-  
-  if(destination_table_name == "LAB_KPI_PREPROCESSED_DAILY"){
-    
-    
-    process_data <- data %>% mutate_if(is.factor, as.character) %>%
+  process_data <- data %>% mutate_if(is.factor, as.character) %>%
     mutate_if(is.character, function(x) gsub("\'", "''", x)) %>%
     mutate_if(is.character, function(x) gsub("&", "' || chr(38) || '", x)) %>%
     mutate_if(is.character, function(x) paste0("'", x, "'")) %>%
@@ -195,23 +171,6 @@ write_temporary_table_to_database_and_merge_updated <- function(data, key_column
            RECEIVETIME = paste0("TO_TIMESTAMP('", RECEIVETIME, "', 'YYYY-MM-DD HH24:MI:SS')"),
            RESULTTIME = paste0("TO_TIMESTAMP('", RESULTTIME, "', 'YYYY-MM-DD HH24:MI:SS')")) %>%
     mutate(across(where(is.numeric),~ replace_na(as.character(.x), "''")))
-
-    
-  } else{
-    
-    process_data <- data %>% mutate_if(is.factor, as.character) %>%
-    mutate_if(is.character, function(x) gsub("\'", "''", x)) %>%
-    mutate_if(is.character, function(x) gsub("&", "' || chr(38) || '", x)) %>%
-    mutate_if(is.character, function(x) paste0("'", x, "'")) %>%
-    mutate_if(is.Date, function(x) paste0("TO_DATE('", x, "', 'YYYY-MM-DD')")) %>%
-    mutate(CASE_CREATED_DATE = paste0("TO_TIMESTAMP('", CASE_CREATED_DATE, "', 'YYYY-MM-DD HH24:MI:SS')"),
-           COLLECTION_DATE = paste0("TO_TIMESTAMP('", COLLECTION_DATE, "', 'YYYY-MM-DD HH24:MI:SS')"),
-           RECEIVED_DATE = paste0("TO_TIMESTAMP('", RECEIVED_DATE, "', 'YYYY-MM-DD HH24:MI:SS')"),
-           SIGNED_OUT_DATE = paste0("TO_TIMESTAMP('", SIGNED_OUT_DATE, "', 'YYYY-MM-DD HH24:MI:SS')")) %>%
-    mutate(across(where(is.numeric),~ replace_na(as.character(.x), "''")))
-
-  }
-  
   
   columns <- paste(colnames(process_data), collapse = ",")
   
@@ -886,194 +845,6 @@ preprocess_scc <- function(raw_scc)  {
 
 ```
 
-```{r Powerpath data processing}
-
-# Copied from Automated Daily Dashboard/AP_functions_data_preprocessing.R
-site_mapping <- function(data){
-  
-  
-  data <- data %>%
-    mutate(Facility = case_when(Facility == "KH" ~ "MSB",
-                                Facility == "R" ~ "MSW",
-                                Facility == "STL" ~ "MSM",
-                                Facility == "BIMC" ~ "MSBI",
-                                Facility == "SNCH" ~ "MSSN",
-                                Facility == "MSS" ~ "MSH",
-                                Facility == "SL" ~ "MSM",
-                                Facility == "PACC" ~ "MSUS",
-                                TRUE ~ Facility ))
-  
-  
-  
-}
-
-
-format_dates <- function(data){
-  
-  data[c("Case_created_date",
-                 "Collection_Date",
-                 "Received_Date",
-                 "signed_out_date")] <-
-    lapply(data[c("Case_created_date",
-                          "Collection_Date",
-                          "Received_Date",
-                          "signed_out_date")],
-           as.POSIXct, tz = "", format = "%m/%d/%y %I:%M %p" ,origin = "1970-01-01")
-  
-  data
-  
-}
-
-
-# Function to preprate prepare cytology data for pre-processing by crosswalking
-# Epic and PowerPath data
-# combines orginal cyto_prep, pre_processing_pp in Daily_Run_AP_Custom_Functions
-
-cyto_prep <- function(pp_data) {
-  if (is.null(pp_data) ||  nrow(pp_data) == 0) {
-    summarized_table <- NULL
-    return(summarized_table)
-  } else {
-    
-    pp_data <- pp_data %>%
-      mutate(Case_no =  str_replace_all(Case_no,"\\*failed to decode utf16\\*",""))
-      
-
-    # Subset PowerPath data to keep Cyto Gyn and Cyto NonGyn and primary
-    # specimens only
-    cyto_data <- pp_data %>%
-      filter(spec_group %in% c("CYTO NONGYN","CYTO GYN","BREAST"),
-             spec_sort_order == 'A')
-    
-    cyto_data <- cyto_data %>%
-      mutate(TEST_NAME =  case_when(Spec_code == 'BREA1' & spec_group == 'BREAST' ~ 'Breast Biopsy',
-                                    spec_group == 'CYTO NONGYN' ~ 'Cytology NONGYN',
-                                    spec_group == 'CYTO GYN' ~ 'Cytology GYN',
-                                    TRUE ~ 'Breast Large/Resection'))
-
-    
-    # cyto_data <- merge(x = cyto_data, y = epic_data_specimens,
-    #                     by.x = "Case_no",
-    #                     by.y = "SPECIMEN_ID")
-    
-    
-    
-    # Crosswalk Rev_ctr and patient setting for PowerPath data
-    cyto_data <- left_join(cyto_data,
-                           patient_setting,
-                           by = c('Rev_ctr' = 'REV_CTR'))
-    
-    # update sites/facilities
-    cyto_data <- site_mapping(cyto_data)
-    
-    # Update MSB patient setting based on patient type column
-    cyto_data <- cyto_data %>%
-      mutate(PATIENT_SETTING = case_when(Rev_ctr == "MSBK" & (patient_type == "A" | patient_type == "O") ~ "Amb",
-                                         Rev_ctr == "MSBK" &  patient_type == "IN" ~ "IP",
-                                         TRUE ~ PATIENT_SETTING))
-    
-    # Crosswalk TAT targets based on spec_group and patient setting
-    # cyto_data <- left_join(cyto_data,
-    #                        tat_targets_ap,
-    #                        by = c('spec_group' = 'SPEC_GROUP', 'PATIENT_SETTING' = 'PATIENT_SETTING'))
-
-    #Change all Dates into POSIXct format to start the calculations
-    cyto_data <- format_dates(cyto_data)
-    
-    # Add columns for turnaround time calculations:
-    # Collection to signed out (in calendar days) and
-    # received to signed out (in business days)
-    cyto_data <- cyto_data %>%
-      mutate(
-        # Add column for collected to signed out turnaround time in calendar days
-        Collection_to_signed_out =
-          as.numeric(difftime(signed_out_date,Collection_Date,units="days")),
-        # Add column for received to signed out turnaround time in business days
-        Received_to_signed_out = bizdays(Received_Date, signed_out_date),
-        # Prepare data for accessioned volume analysis
-        # First find the date of the last weekday and add 1 for report date
-        report_date_only = as.Date(signed_out_date) + 1,
-        MONTH_ROLLUP = floor_date(signed_out_date, "month"),
-        #  Find the accessioned date and use this for determining accessioned volume
-        acc_date_only = as.Date(Received_Date),
-        TAT_TARGET =  case_when(TEST_NAME == 'Breast Biopsy' ~ 3,
-                                TEST_NAME == 'Breast Large/Resection' ~ 5,
-                                TEST_NAME == 'Cytology GYN' ~ 8,
-                                TRUE ~ 8),
-        IS_TAT_WITHIN_TARGET =  if_else(Received_to_signed_out <= TAT_TARGET,1,0)) 
-    
-    cyto_data <- cyto_data %>%
-      select(Facility,
-             Priority,
-             Spec_code,
-             Specimen_description,
-             CPT_code,
-             Rev_ctr,
-             Encounter_no,
-             MRN,
-             Case_no,
-             Case_created_date,
-             Collection_Date,
-             Received_Date,
-             signed_out_date,
-             Refmd_code,
-             spec_sort_order,
-             TEST_NAME,
-             PATIENT_SETTING,
-             Collection_to_signed_out,
-             Received_to_signed_out,
-             TAT_TARGET,
-             IS_TAT_WITHIN_TARGET,
-             spec_group,
-             Refmd_name)
-    names(cyto_data) <- toupper(names(cyto_data))
-    
-
-    #summarize the data to be used for analysis and to be stored as historical
-    #repo
-    # summarized_table <- cyto_data %>%
-    #   group_by(Spec_code,
-    #            spec_group,
-    #            Facility,
-    #            Patient.Setting,
-    #            Rev_ctr,
-    #            as.Date(signed_out_date),
-    #            weekdays(as.Date(signed_out_date)),
-    #            Received.to.signed.out.target..Days.,
-    #            Collected.to.signed.out.target..Days.,
-    #            acc_date_only,
-    #            weekdays(acc_date_only),
-    #            report_date_only,
-    #            weekdays(report_date_only)) %>%
-    #   summarise(no_cases_signed = n(),
-    #             lab_metric_tat_avg = round(mean(Received_to_signed_out,
-    #                                             na.rm = TRUE), 0),
-    #             lab_metric_tat_med = round(median(Received_to_signed_out,
-    #                                               na.rm = TRUE), 0),
-    #             lab_metric_tat_sd = round(sd(Received_to_signed_out, na.rm = TRUE), 1),
-    #             lab_metric_within_target = as.numeric(format(
-    #               round(
-    #                 sum(Received_to_signed_out <= Received.to.signed.out.target..Days.,
-    #                     na.rm = TRUE) / sum(
-    #                       Received_to_signed_out >= 0, na.rm = TRUE), 2))),
-    #             patient_metric_tat_avg = as.numeric(format(
-    #               ceiling(mean(Collection_to_signed_out, na.rm = TRUE)))),
-    #             patient_metric_tat_med = round(median(Collection_to_signed_out,
-    #                                                   na.rm = TRUE), 0),
-    #             patient_metric_tat_sd = round(sd(Collection_to_signed_out,
-    #                                              na.rm = TRUE), 1),
-    #             cyto_acc_vol = as.numeric(sum((report_date_only - 1) == acc_date_only,
-    #                                           na.rm = TRUE)))
-    
-    
-    
-    return(cyto_data)
-  }
-}
-
-```
-
-
 ```{r Extract Files}
 # Get Max Date from Database ----
 todays_date <- as.Date(Sys.Date(), format = "%Y-%m-%d")
@@ -1086,10 +857,6 @@ get_max_date_scc <- glue("SELECT TO_CHAR(MAX(RESULTDATE),'YYYY-MM-DD') AS MAXDAT
 get_max_date_sun <- glue("SELECT TO_CHAR(MAX(RESULTDATE),'YYYY-MM-DD') AS MAXDATE
                           FROM LAB_KPI_PREPROCESSED_DAILY
                           WHERE SITE IN ('MSSN','MSBI','MSM','MSW');")
-
-get_max_date_pp <- glue("SELECT TO_CHAR(MAX(SIGNED_OUT_DATE),'YYYY-MM-DD') AS MAXDATE
-                          FROM LAB_KPI_POWERPATH_CYTO_BIOPSY;")
-
 max_date_scc <- dbGetQuery(conn,
                            get_max_date_scc)
 max_date_scc <- max_date_scc$MAXDATE[[1]]
@@ -1103,9 +870,6 @@ max_date_sun <- max_date_sun$MAXDATE[[1]]
 
 # max_date_sun < - as.Date(max_date_sun)
 
-max_date_pp <- dbGetQuery(conn,
-                           get_max_date_pp)
-max_date_pp <- max_date_pp$MAXDATE[[1]]
 
 dbDisconnect(conn)
 
@@ -1157,69 +921,7 @@ if(as.Date(max_date_sun)+2 >= todays_date){
 
 }
 
-
-
-if(as.Date(max_date_pp)+2 >= todays_date){
-  
-  file_list_pp_flag <- FALSE
-  
-}else{
-  
-  # Compute dates to add to database based on Max dates ----
-  pp_date_range <- seq(from = as.Date(max_date_pp)+2,
-                        to = todays_date,
-                        by = "day")
-
-  
-  
-
-  # Extract pp pattern and files ----
-  pattern_kpi = paste0("^(KPI REPORT - RAW DATA V4_V2){1}.*",
-                     pp_date_range,
-                     ".xls",
-                     collapse = "|")
-  file_list_pp <- list.files(
-    path = paste0(user_directory, "/AP & Cytology Signed Cases Reports"),
-    pattern = pattern_kpi)
-
-  file_list_pp_flag <- TRUE
-
-}
-
-
 ```
-
-```{r Process power path data}
-if(file_list_pp_flag){
-  for (file in file_list_pp){
-  print(file)
-  pp_data_raw <- read_excel(path =
-                              paste0(user_directory,
-                                     "/AP & Cytology Signed Cases Reports/",
-                                     file),
-                            skip = 1, 1)
-  
-  pp_data_raw <- data.frame(pp_data_raw[-nrow(pp_data_raw), ],
-                            stringsAsFactors = FALSE)
-  preprocessed_cyto <- cyto_prep(pp_data_raw)
-  key_cols <- c("CASE_NO","SPEC_CODE")
-  update_cols <- names(preprocessed_cyto)
-  update_cols <- update_cols[! update_cols %in% key_cols]
-  if(nrow(preprocessed_cyto)!=0){
-      write_temporary_table_to_database_and_merge_updated(preprocessed_cyto,
-                                                      key_columns = key_cols,
-                                                      update_columns = update_cols,
-                                                      source_table_name="LAB_KPI_POWERPATH_CYTO_BIOPSY_ST",
-                                                      destination_table_name="LAB_KPI_POWERPATH_CYTO_BIOPSY")
-    }
-  }
-
-}else{
-  print("Powerpath Data up to date")
-}
-
-```
-
 
 ```{r Process and Migrate SCC Data}
 
@@ -1301,11 +1003,6 @@ sun_dates <- glue("SELECT DISTINCT RESULTDATE
                    RESULTDATE >=  TRUNC(SYSDATE,'mm')
                    ORDER BY RESULTDATE;")
 
-pp_dates <- glue("SELECT DISTINCT SIGNED_OUT_DATE
-                   FROM LAB_KPI_POWERPATH_CYTO_BIOPSY
-                   WHERE SIGNED_OUT_DATE >=  TRUNC(SYSDATE,'mm')
-                   ORDER BY SIGNED_OUT_DATE;")
-
 dsn <- "OAO Cloud DB Production"
 conn <- dbConnect(odbc(), dsn)
 scc_dates_db <- dbGetQuery(conn,
@@ -1316,11 +1013,6 @@ sun_dates_db <- dbGetQuery(conn,
                            sun_dates)
 sun_dates_db <- as.Date(sun_dates_db$RESULTDATE)
 
-pp_dates_db <- dbGetQuery(conn,
-                           pp_dates)
-pp_dates_db <- as.Date(pp_dates_db$SIGNED_OUT_DATE)
-
-
 dbDisconnect(conn)
 
 
@@ -1329,11 +1021,9 @@ missing_scc_dates <- dates_check[!(dates_check %in% scc_dates_db)]
 missing_scc_dates_file_dates <- missing_scc_dates+1
 missing_sun_dates <- dates_check[!(dates_check %in% sun_dates_db)]
 missing_sun_dates_file_dates <- missing_sun_dates+1
-missing_pp_dates <- dates_check[!(dates_check %in% pp_dates_db)]
-missing_pp_dates_file_dates <- missing_pp_dates+1
 
 
-# Check for SCC files
+
 if(length(missing_scc_dates_file_dates)>1){
   missing_pattern_scc <- paste0("^(Doc){1}.+",
                                 missing_scc_dates_file_dates,
@@ -1393,7 +1083,6 @@ if(length(missing_scc_dates_file_dates)>1){
   print("All SCC Result Dates in DB")
 }
 
-# Check for SUN files
 if(length(missing_sun_dates_file_dates)>1){
 
   missing_pattern_sun <-  paste0("^(KPI_Daily_TAT_Report){1}.*",
@@ -1405,7 +1094,7 @@ if(length(missing_sun_dates_file_dates)>1){
       path = paste0(user_directory, "/SUN CP Reports"),
       pattern = file_name_sun)
     if(identical(sun_file, character(0))){
-      print(paste("Missing File",file_name_sun))
+      print(paste("Missing File",sun_file))
     }else{
       print(sun_file)
       sun_data <- read_excel(
@@ -1439,7 +1128,7 @@ if(length(missing_sun_dates_file_dates)>1){
     path = paste0(user_directory, "/SUN CP Reports"),
     pattern = missing_pattern_sun)
   if(identical(sun_file, character(0))){
-    print(paste("Missing File",missing_pattern_sun))
+    print(paste("Missing File",sun_file))
   }else{
     print(sun_file)
     sun_data <- read_excel(
@@ -1468,7 +1157,5 @@ if(length(missing_sun_dates_file_dates)>1){
   print("All SUN Result Dates in DB")
 }
 
-
-# Check for PP files
 
 ```
