@@ -9,7 +9,6 @@ output:
 
 
 rmarkdown::render("Lab KPI Daily Dashboard Prelim Run.Rmd", 
-                  output_file = paste0("/SharedDrive/deans/Presidents/HSPI-PM/Operations Analytics andOptimization/Projects/Service Lines/Lab Kpi/Data/Prelim Dashboard Output/", 
-                                                                                 "Lab KPI Prelim Dashboard ", 
-                                                                                 format(Sys.time(),format = "%m/%d/%y")))
+                  output_dir = "/SharedDrive/deans/Presidents/HSPI-PM/Operations Analytics andOptimization/Projects/Service Lines/Lab KPI/Data/Prelim Dashboard Output/",
+                  output_file = paste0("Lab KPI Prelim Dashboard ", format(Sys.time(),format = "%m/%d/%y")))
 ```
