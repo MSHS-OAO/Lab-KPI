@@ -9,11 +9,11 @@ output:
 if ("Presidents" %in% list.files("/SharedDrive/")) {
   user_directory <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/",
                            "Operations Analytics and Optimization/Projects/",
-                           "Service Lines/Lab Kpi/Data")
+                           "Service Lines/Lab KPI/Data")
 } else {
   user_directory <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/",
                            "Operations Analytics and Optimization/Projects/",
-                           "Service Lines/Lab Kpi/Data")
+                           "Service Lines/Lab KPI/Data")
 }
 
 rmarkdown::render("Lab KPI Daily Dashboard Prelim Run.Rmd", 
