@@ -77,6 +77,11 @@ library(dbplyr)
 library(glue)
 library(assertr)
 library(doParallel)
+library(blastula)
+library(readr)
+library(zip)
+library(here)
+
 
 #-------------------------------holiday/weekend-------------------------------#
 # Get today and yesterday's date

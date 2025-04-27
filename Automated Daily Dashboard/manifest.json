@@ -4,7 +4,7 @@
   "platform": "4.2.3",
   "metadata": {
     "appmode": "rmd-static",
-    "primary_rmd": "Top Level Markdown Render.Rmd",
+    "primary_rmd": "Lab KPI Daily Dashboard Prelim Run.Rmd",
     "primary_html": null,
     "content_category": null,
     "has_parameters": false
@@ -301,6 +301,36 @@
         "Built": "R 4.2.3; ; 2023-04-26 15:59:17 UTC; unix"
       }
     },
+    "blastula": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Type": "Package",
+        "Package": "blastula",
+        "Version": "0.3.5",
+        "Title": "Easily Send HTML Email Messages",
+        "Description": "Compose and send out responsive HTML email messages that render\n    perfectly across a range of email clients and device sizes. Helper functions\n    let the user insert embedded images, web link buttons, and 'ggplot2' plot\n    objects into the message body. Messages can be sent through an 'SMTP'\n    server, through the 'RStudio Connect' service, or through the 'Mailgun' API\n    service <https://www.mailgun.com/>.",
+        "Authors@R": "c(\n    person(\"Richard\", \"Iannone\", role = c(\"aut\", \"cre\"), email = \"rich@posit.co\",\n           comment = c(ORCID = \"0000-0003-3925-190X\")),\n    person(\"Joe\", \"Cheng\", role = \"aut\", email = \"joe@posit.co\"),\n    person(\"Jeroen\", \"Ooms\", role = \"ctb\", email = \"jeroen@berkeley.edu\",\n           comment = c(ORCID = \"0000-0002-4035-0289\")),\n    person(\"Ted\", \"Goas\", role = \"cph\", comment = \"cerberus-meta.html\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n    )",
+        "License": "MIT + file LICENSE",
+        "URL": "https://github.com/rstudio/blastula,\nhttps://pkgs.rstudio.com/blastula/",
+        "BugReports": "https://github.com/rstudio/blastula/issues",
+        "Depends": "R (>= 3.6)",
+        "Imports": "base64enc (>= 0.1-3), commonmark (>= 1.7), curl (>= 5.2),\ndigest, dplyr (>= 1.1.0), fs (>= 1.3.1), getPass (>= 0.2-2),\nhere (>= 1.0.0), htmltools (>= 0.5.7), httr (>= 1.4.0),\njsonlite (>= 1.8.0), magrittr (>= 1.5), mime (>= 0.6), rlang\n(>= 1.0), rmarkdown, stringr (>= 1.4.0), uuid (>= 0.1-2)",
+        "Suggests": "covr, ggplot2, glue, testthat (>= 3.0.0), keyring, knitr,\nxml2, openxlsx, withr",
+        "SystemRequirements": "pandoc (>= 1.12.3) - http://pandoc.org",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.2.3",
+        "Config/testthat/edition": "3",
+        "Language": "en-US",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-02-24 21:09:15 UTC; riannone",
+        "Author": "Richard Iannone [aut, cre] (<https://orcid.org/0000-0003-3925-190X>),\n  Joe Cheng [aut],\n  Jeroen Ooms [ctb] (<https://orcid.org/0000-0002-4035-0289>),\n  Ted Goas [cph] (cerberus-meta.html),\n  Posit Software, PBC [cph, fnd]",
+        "Maintainer": "Richard Iannone <rich@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2024-02-24 21:30:03 UTC",
+        "Built": "R 4.2.3; ; 2024-08-16 21:23:32 UTC; unix"
+      }
+    },
     "blob": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
@@ -471,6 +501,35 @@
         "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 15:59:52 UTC; unix"
       }
     },
+    "clipr": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Type": "Package",
+        "Package": "clipr",
+        "Title": "Read and Write from the System Clipboard",
+        "Version": "0.8.0",
+        "Authors@R": "c(\n    person(\"Matthew\", \"Lincoln\", , \"matthew.d.lincoln@gmail.com\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0002-4387-3384\")),\n    person(\"Louis\", \"Maddox\", role = \"ctb\"),\n    person(\"Steve\", \"Simpson\", role = \"ctb\"),\n    person(\"Jennifer\", \"Bryan\", role = \"ctb\")\n  )",
+        "Description": "Simple utility functions to read from and write to\n    the Windows, OS X, and X11 clipboards.",
+        "License": "GPL-3",
+        "URL": "https://github.com/mdlincoln/clipr,\nhttp://matthewlincoln.net/clipr/",
+        "BugReports": "https://github.com/mdlincoln/clipr/issues",
+        "Imports": "utils",
+        "Suggests": "covr, knitr, rmarkdown, rstudioapi (>= 0.5), testthat (>=\n2.0.0)",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "RoxygenNote": "7.1.2",
+        "SystemRequirements": "xclip (https://github.com/astrand/xclip) or xsel\n(http://www.vergenet.net/~conrad/software/xsel/) for accessing\nthe X11 clipboard, or wl-clipboard\n(https://github.com/bugaevc/wl-clipboard) for systems using\nWayland.",
+        "NeedsCompilation": "no",
+        "Packaged": "2022-02-19 02:20:21 UTC; mlincoln",
+        "Author": "Matthew Lincoln [aut, cre] (<https://orcid.org/0000-0002-4387-3384>),\n  Louis Maddox [ctb],\n  Steve Simpson [ctb],\n  Jennifer Bryan [ctb]",
+        "Maintainer": "Matthew Lincoln <matthew.d.lincoln@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-02-22 00:58:45 UTC",
+        "Built": "R 4.2.3; ; 2023-04-26 16:00:01 UTC; unix"
+      }
+    },
     "codetools": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
@@ -519,6 +578,32 @@
         "Repository": "CRAN",
         "Date/Publication": "2023-01-23 11:40:02 UTC",
         "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 16:05:43 UTC; unix"
+      }
+    },
+    "commonmark": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "commonmark",
+        "Type": "Package",
+        "Title": "High Performance CommonMark and Github Markdown Rendering in R",
+        "Version": "1.9.0",
+        "Authors@R": "c(\n    person(\"Jeroen\", \"Ooms\", ,\"jeroen@berkeley.edu\", role = c(\"aut\", \"cre\"),\n        comment = c(ORCID = \"0000-0002-4035-0289\")),\n    person(\"John MacFarlane\", role = \"cph\", comment = \"Author of cmark\"))",
+        "URL": "https://docs.ropensci.org/commonmark/\nhttps://r-lib.r-universe.dev/commonmark\nhttps://github.github.com/gfm/ (spec)",
+        "BugReports": "https://github.com/r-lib/commonmark/issues",
+        "Description": "The CommonMark specification defines a rationalized version of markdown\n    syntax. This package uses the 'cmark' reference implementation for converting\n    markdown text into various formats including html, latex and groff man. In\n    addition it exposes the markdown parse tree in xml format. Also includes opt-in\n    support for GFM extensions including tables, autolinks, and strikethrough text.",
+        "License": "BSD_2_clause + file LICENSE",
+        "Suggests": "curl, testthat, xml2",
+        "RoxygenNote": "7.2.3",
+        "Language": "en-US",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "yes",
+        "Packaged": "2023-03-17 18:02:44 UTC; jeroen",
+        "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>),\n  John MacFarlane [cph] (Author of cmark)",
+        "Maintainer": "Jeroen Ooms <jeroen@berkeley.edu>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-03-17 18:40:02 UTC",
+        "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 16:16:52 UTC; unix"
       }
     },
     "cpp11": {
@@ -974,6 +1059,32 @@
         "Built": "R 4.2.3; ; 2023-04-26 15:58:38 UTC; unix"
       }
     },
+    "getPass": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "getPass",
+        "Type": "Package",
+        "Title": "Masked User Input",
+        "Version": "0.2-4",
+        "Description": "A micro-package for reading \"passwords\", i.e.  reading\n    user input with masking, so that the input is not displayed as it \n    is typed.  Currently we have support for 'RStudio', the command line\n    (every OS), and any platform where 'tcltk' is present.  ",
+        "License": "BSD 2-clause License + file LICENSE",
+        "Depends": "R (>= 3.0.0)",
+        "Imports": "utils, rstudioapi (>= 0.5)",
+        "NeedsCompilation": "yes",
+        "ByteCompile": "yes",
+        "Authors@R": "c(\n    person(\"Drew\", \"Schmidt\", role=c(\"aut\", \"cre\"), email=\"wrathematics@gmail.com\"),\n    person(\"Wei-Chen\", \"Chen\", role=\"aut\"),\n    person(\"Gabor\", \"Csardi\", role=\"ctb\", comment=\"Improved terminal detection\"),\n    person(\"Rich\", \"FitzJohn\", role=\"ctb\")\n    )",
+        "URL": "https://github.com/wrathematics/getPass",
+        "BugReports": "https://github.com/wrathematics/getPass/issues",
+        "Maintainer": "Drew Schmidt <wrathematics@gmail.com>",
+        "RoxygenNote": "6.0.1",
+        "Packaged": "2023-12-10 21:24:35 UTC; mschmid3",
+        "Author": "Drew Schmidt [aut, cre],\n  Wei-Chen Chen [aut],\n  Gabor Csardi [ctb] (Improved terminal detection),\n  Rich FitzJohn [ctb]",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-12-10 21:50:02 UTC",
+        "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2024-08-16 21:23:17 UTC; unix"
+      }
+    },
     "glue": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
@@ -1026,6 +1137,35 @@
         "Date/Publication": "2018-03-16 08:58:03 UTC",
         "Encoding": "UTF-8",
         "Built": "R 4.2.0; ; 2022-05-07 00:04:00 UTC; unix"
+      }
+    },
+    "here": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "here",
+        "Title": "A Simpler Way to Find Your Files",
+        "Version": "1.0.1",
+        "Date": "2020-12-13",
+        "Authors@R": "\n    c(person(given = \"Kirill\",\n             family = \"M\\u00fcller\",\n             role = c(\"aut\", \"cre\"),\n             email = \"krlmlr+r@mailbox.org\",\n             comment = c(ORCID = \"0000-0002-1416-3412\")),\n      person(given = \"Jennifer\",\n             family = \"Bryan\",\n             role = \"ctb\",\n             email = \"jenny@rstudio.com\",\n             comment = c(ORCID = \"0000-0002-6983-2759\")))",
+        "Description": "Constructs paths to your project's files.\n    Declare the relative path of a file within your project with 'i_am()'.\n    Use the 'here()' function as a drop-in replacement for 'file.path()',\n    it will always locate the files relative to your project root.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://here.r-lib.org/, https://github.com/r-lib/here",
+        "BugReports": "https://github.com/r-lib/here/issues",
+        "Imports": "rprojroot (>= 2.0.2)",
+        "Suggests": "conflicted, covr, fs, knitr, palmerpenguins, plyr, readr,\nrlang, rmarkdown, testthat, uuid, withr",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "LazyData": "true",
+        "RoxygenNote": "7.1.1.9000",
+        "Config/testthat/edition": "3",
+        "NeedsCompilation": "no",
+        "Packaged": "2020-12-13 06:59:33 UTC; kirill",
+        "Author": "Kirill Müller [aut, cre] (<https://orcid.org/0000-0002-1416-3412>),\n  Jennifer Bryan [ctb] (<https://orcid.org/0000-0002-6983-2759>)",
+        "Maintainer": "Kirill Müller <krlmlr+r@mailbox.org>",
+        "Repository": "CRAN",
+        "Date/Publication": "2020-12-13 07:30:02 UTC",
+        "Built": "R 4.2.3; ; 2023-04-26 16:43:36 UTC; unix"
       }
     },
     "highr": {
@@ -1898,6 +2038,38 @@
         "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 16:07:44 UTC; unix"
       }
     },
+    "readr": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "readr",
+        "Title": "Read Rectangular Text Data",
+        "Version": "2.1.4",
+        "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = \"aut\"),\n    person(\"Jim\", \"Hester\", role = \"aut\"),\n    person(\"Romain\", \"Francois\", role = \"ctb\"),\n    person(\"Jennifer\", \"Bryan\", , \"jenny@posit.co\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0002-6983-2759\")),\n    person(\"Shelby\", \"Bearrows\", role = \"ctb\"),\n    person(\"Posit, PBC\", role = c(\"cph\", \"fnd\")),\n    person(\"https://github.com/mandreyel/\", role = \"cph\",\n           comment = \"mio library\"),\n    person(\"Jukka\", \"Jylänki\", role = c(\"ctb\", \"cph\"),\n           comment = \"grisu3 implementation\"),\n    person(\"Mikkel\", \"Jørgensen\", role = c(\"ctb\", \"cph\"),\n           comment = \"grisu3 implementation\")\n  )",
+        "Description": "The goal of 'readr' is to provide a fast and friendly way to\n    read rectangular data (like 'csv', 'tsv', and 'fwf').  It is designed\n    to flexibly parse many types of data found in the wild, while still\n    cleanly failing when data unexpectedly changes.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://readr.tidyverse.org, https://github.com/tidyverse/readr",
+        "BugReports": "https://github.com/tidyverse/readr/issues",
+        "Depends": "R (>= 3.5)",
+        "Imports": "cli (>= 3.2.0), clipr, crayon, hms (>= 0.4.1), lifecycle (>=\n0.2.0), methods, R6, rlang, tibble, utils, vroom (>= 1.6.0)",
+        "Suggests": "covr, curl, datasets, knitr, rmarkdown, spelling, stringi,\ntestthat (>= 3.1.2), tzdb (>= 0.1.1), waldo, withr, xml2",
+        "LinkingTo": "cpp11, tzdb (>= 0.1.1)",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "tidyverse, tidyverse/tidytemplate",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "false",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "RoxygenNote": "7.2.3",
+        "NeedsCompilation": "yes",
+        "Packaged": "2023-02-10 00:05:55 UTC; jenny",
+        "Author": "Hadley Wickham [aut],\n  Jim Hester [aut],\n  Romain Francois [ctb],\n  Jennifer Bryan [aut, cre] (<https://orcid.org/0000-0002-6983-2759>),\n  Shelby Bearrows [ctb],\n  Posit, PBC [cph, fnd],\n  https://github.com/mandreyel/ [cph] (mio library),\n  Jukka Jylänki [ctb, cph] (grisu3 implementation),\n  Mikkel Jørgensen [ctb, cph] (grisu3 implementation)",
+        "Maintainer": "Jennifer Bryan <jenny@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-02-10 09:20:02 UTC",
+        "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 16:02:32 UTC; unix"
+      }
+    },
     "readxl": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
@@ -2039,6 +2211,33 @@
         "Repository": "RSPM",
         "Date/Publication": "2023-03-26 22:00:03 UTC",
         "Built": "R 4.2.0; ; 2023-03-27 18:01:18 UTC; unix"
+      }
+    },
+    "rprojroot": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "rprojroot",
+        "Title": "Finding Files in Project Subdirectories",
+        "Version": "2.0.3",
+        "Authors@R": "\n    person(given = \"Kirill\",\n           family = \"M\\u00fcller\",\n           role = c(\"aut\", \"cre\"),\n           email = \"krlmlr+r@mailbox.org\",\n           comment = c(ORCID = \"0000-0002-1416-3412\"))",
+        "Description": "Robust, reliable and flexible paths to files below\n    a project root. The 'root' of a project is defined as a directory that\n    matches a certain criterion, e.g., it contains a certain regular file.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://rprojroot.r-lib.org/, https://github.com/r-lib/rprojroot",
+        "BugReports": "https://github.com/r-lib/rprojroot/issues",
+        "Depends": "R (>= 3.0.0)",
+        "Suggests": "covr, knitr, lifecycle, mockr, rmarkdown, testthat (>=\n3.0.0), withr",
+        "VignetteBuilder": "knitr",
+        "Config/testthat/edition": "3",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.1.2",
+        "NeedsCompilation": "no",
+        "Packaged": "2022-04-02 16:14:00 UTC; kirill",
+        "Author": "Kirill Müller [aut, cre] (<https://orcid.org/0000-0002-1416-3412>)",
+        "Maintainer": "Kirill Müller <krlmlr+r@mailbox.org>",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-04-02 16:40:02 UTC",
+        "Built": "R 4.2.3; ; 2023-04-26 16:30:51 UTC; unix"
       }
     },
     "rstudioapi": {
@@ -2498,6 +2697,36 @@
         "Built": "R 4.2.3; ; 2023-04-26 16:09:14 UTC; unix"
       }
     },
+    "tzdb": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "tzdb",
+        "Title": "Time Zone Database Information",
+        "Version": "0.3.0",
+        "Authors@R": "c(\n    person(\"Davis\", \"Vaughan\", , \"davis@rstudio.com\", role = c(\"aut\", \"cre\")),\n    person(\"Howard\", \"Hinnant\", role = \"cph\",\n           comment = \"Author of the included date library\"),\n    person(\"RStudio\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Description": "Provides an up-to-date copy of the Internet Assigned Numbers\n    Authority (IANA) Time Zone Database. It is updated periodically to\n    reflect changes made by political bodies to time zone boundaries, UTC\n    offsets, and daylight saving time rules. Additionally, this package\n    provides a C++ interface for working with the 'date' library. 'date'\n    provides comprehensive support for working with dates and date-times,\n    which this package exposes to make it easier for other R packages to\n    utilize. Headers are provided for calendar specific calculations,\n    along with a limited interface for time zone manipulations.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://tzdb.r-lib.org, https://github.com/r-lib/tzdb",
+        "BugReports": "https://github.com/r-lib/tzdb/issues",
+        "Depends": "R (>= 3.4.0)",
+        "Suggests": "covr, testthat (>= 3.0.0)",
+        "LinkingTo": "cpp11 (>= 0.4.2)",
+        "Biarch": "yes",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Config/testthat/edition": "3",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.1.2",
+        "SystemRequirements": "C++11",
+        "NeedsCompilation": "yes",
+        "Packaged": "2022-03-28 13:59:28 UTC; davis",
+        "Author": "Davis Vaughan [aut, cre],\n  Howard Hinnant [cph] (Author of the included date library),\n  RStudio [cph, fnd]",
+        "Maintainer": "Davis Vaughan <davis@rstudio.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-03-28 15:00:02 UTC",
+        "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 16:00:18 UTC; unix"
+      }
+    },
     "utf8": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
@@ -2523,6 +2752,27 @@
         "Repository": "CRAN",
         "Date/Publication": "2023-01-31 18:00:02 UTC",
         "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 15:59:30 UTC; unix"
+      }
+    },
+    "uuid": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "uuid",
+        "Version": "1.1-0",
+        "Title": "Tools for Generating and Handling of UUIDs",
+        "Author": "Simon Urbanek <Simon.Urbanek@r-project.org> (R package), Theodore Ts'o <tytso@thunk.org> (libuuid)",
+        "Maintainer": "Simon Urbanek <Simon.Urbanek@r-project.org>",
+        "Depends": "R (>= 2.9.0)",
+        "Description": "Tools for generating and handling of UUIDs (Universally Unique Identifiers).",
+        "License": "MIT + file LICENSE",
+        "URL": "https://www.rforge.net/uuid",
+        "BugReports": "https://github.com/s-u/uuid",
+        "NeedsCompilation": "yes",
+        "Packaged": "2022-04-19 04:03:46 UTC; rforge",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-04-19 06:11:27 UTC",
+        "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 16:17:17 UTC; unix"
       }
     },
     "vctrs": {
@@ -2579,6 +2829,40 @@
         "Repository": "CRAN",
         "Date/Publication": "2022-08-22 14:20:03 UTC",
         "Built": "R 4.2.3; ; 2023-04-26 16:06:18 UTC; unix"
+      }
+    },
+    "vroom": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "vroom",
+        "Title": "Read and Write Rectangular Text Data Quickly",
+        "Version": "1.6.1",
+        "Authors@R": "c(\n    person(\"Jim\", \"Hester\", , \"jim.hester@rstudio.com\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-2739-7082\")),\n    person(\"Hadley\", \"Wickham\", , \"hadley@rstudio.com\", role = \"aut\",\n           comment = c(ORCID = \"0000-0003-4757-117X\")),\n    person(\"Jennifer\", \"Bryan\", , \"jenny@rstudio.com\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0002-6983-2759\")),\n    person(\"Shelby\", \"Bearrows\", role = \"ctb\"),\n    person(\"https://github.com/mandreyel/\", role = \"cph\",\n           comment = \"mio library\"),\n    person(\"Jukka\", \"Jylänki\", role = \"cph\",\n           comment = \"grisu3 implementation\"),\n    person(\"Mikkel\", \"Jørgensen\", role = \"cph\",\n           comment = \"grisu3 implementation\"),\n    person(\"RStudio\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Description": "The goal of 'vroom' is to read and write data (like 'csv',\n    'tsv' and 'fwf') quickly. When reading it uses a quick initial\n    indexing step, then reads the values lazily , so only the data you\n    actually use needs to be read.  The writer formats the data in\n    parallel and writes to disk asynchronously from formatting.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://vroom.r-lib.org, https://github.com/tidyverse/vroom",
+        "BugReports": "https://github.com/tidyverse/vroom/issues",
+        "Depends": "R (>= 3.4)",
+        "Imports": "bit64, cli (>= 3.2.0), crayon, glue, hms, lifecycle (>=\n1.0.3), methods, rlang (>= 0.4.2), stats, tibble (>= 2.0.0),\ntidyselect, tzdb (>= 0.1.1), vctrs (>= 0.2.0), withr",
+        "Suggests": "archive, bench (>= 1.1.0), covr, curl, dplyr, forcats, fs,\nggplot2, knitr, patchwork, prettyunits, purrr, rmarkdown,\nrstudioapi, scales, spelling, testthat (>= 2.1.0), tidyr,\nutils, waldo, xml2",
+        "LinkingTo": "cpp11 (>= 0.2.0), progress (>= 1.2.1), tzdb (>= 0.1.1)",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "nycflights13, tidyverse/tidytemplate",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "false",
+        "Copyright": "file COPYRIGHTS",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "RoxygenNote": "7.2.3",
+        "SystemRequirements": "C++11",
+        "NeedsCompilation": "yes",
+        "Packaged": "2023-01-22 17:14:29 UTC; jenny",
+        "Author": "Jim Hester [aut] (<https://orcid.org/0000-0002-2739-7082>),\n  Hadley Wickham [aut] (<https://orcid.org/0000-0003-4757-117X>),\n  Jennifer Bryan [aut, cre] (<https://orcid.org/0000-0002-6983-2759>),\n  Shelby Bearrows [ctb],\n  https://github.com/mandreyel/ [cph] (mio library),\n  Jukka Jylänki [cph] (grisu3 implementation),\n  Mikkel Jørgensen [cph] (grisu3 implementation),\n  RStudio [cph, fnd]",
+        "Maintainer": "Jennifer Bryan <jenny@rstudio.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-01-22 21:00:01 UTC",
+        "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 16:41:49 UTC; unix"
       }
     },
     "webshot": {
@@ -2743,14 +3027,38 @@
         "Date/Publication": "2023-01-23 18:40:02 UTC",
         "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 16:08:03 UTC; unix"
       }
+    },
+    "zip": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/__linux__/focal/2023-04-14",
+      "description": {
+        "Package": "zip",
+        "Title": "Cross-Platform 'zip' Compression",
+        "Version": "2.3.0",
+        "Author": "Gábor Csárdi, Kuba Podgórski, Rich Geldreich",
+        "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+        "Description": "Cross-Platform 'zip' Compression Library. A replacement\n    for the 'zip' function, that does not require any additional\n    external tools on any platform.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://github.com/r-lib/zip#readme",
+        "BugReports": "https://github.com/r-lib/zip/issues",
+        "RoxygenNote": "7.2.1.9000",
+        "Config/testthat/edition": "3",
+        "Suggests": "covr, processx, R6, testthat, withr",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "yes",
+        "Packaged": "2023-04-17 13:48:47 UTC; gaborcsardi",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-04-17 15:30:02 UTC",
+        "Built": "R 4.2.3; x86_64-pc-linux-gnu; 2023-04-26 16:17:05 UTC; unix"
+      }
     }
   },
   "files": {
     "Lab KPI Daily Dashboard Prelim Run.Rmd": {
-      "checksum": "552cdcb14879c8816fc21600f0757486"
+      "checksum": "a1121f44eb4fc31c3e555fb2eda7dac2"
     },
     "Top Level Markdown Render.Rmd": {
-      "checksum": "aed0e8a70670e8ac106e493906f0259b"
+      "checksum": "f65d0c80a33ba20aa4404d7d4f89f198"
     }
   },
   "users": null

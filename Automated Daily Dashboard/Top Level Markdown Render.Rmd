@@ -4,6 +4,7 @@ output:
   html_document
 ---
 
+
 ```{r render test, echo = FALSE, warning = FALSE, message = FALSE}
 # Render daily dashboard and specify output file location
 if ("Presidents" %in% list.files("/SharedDrive/")) {
@@ -18,5 +19,32 @@ if ("Presidents" %in% list.files("/SharedDrive/")) {
 
 rmarkdown::render("Lab KPI Daily Dashboard Prelim Run.Rmd", 
                   output_dir = paste0(user_directory,"/Prelim Dashboard Output/"),
-                  output_file = paste0("Lab KPI Prelim Dashboard ", format(Sys.time(),format = "%m/%d/%y")))
+                  output_file = paste0("Lab KPI Prelim Dashboard ", format(Sys.time(),format = "%m-%d-%y"),'.html'))
+```
+
+
+```{r pressure, echo=FALSE}
+email_credential_location <- "/SharedDrive/deans/Presidents/HSPI-PM/Operations Analytics and Optimization/Administrative/Workgroups/R Workbench/Working Area/Data Connections/email_creds"
+cc_list <- c("greg.servis@mssm.edu","dheeraj.tommandru@mssm.edu")
+send_list <- c("dayanandan.adhimoolam@mountsinai.org")
+email_subject <- glue("MSH-LAB_Capacity Management Data.xlsx")
+
+sinai_logo <- add_image(file = "www/Sinai_logo_color.png",
+                        width = 200)
+
+##Use blastula to construct email to send
+compose_email(header = sinai_logo,
+              body = render_email("Scripts/email_body.Rmd")$html_html,
+              footer = "This is an auto generated email") %>%
+  add_attachment(
+    file = paste0(user_directory,"/Prelim Dashboard Output/"),
+    filename =paste0("Lab KPI Prelim Dashboard ", format(Sys.time(),format = "%m-%d-%y"),'.html')
+  ) %>%
+  smtp_send(
+    from = "dheeraj.tommandru@mssm.edu",
+    to = send_list,
+    cc = cc_list,
+    credentials = creds_file(file = email_credential_location),
+    subject = email_subject
+  )
 ```
