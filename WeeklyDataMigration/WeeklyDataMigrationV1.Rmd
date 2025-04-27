@@ -60,6 +60,8 @@ dsn_oracle <- paste0(dsn, " Oracle")
 
 conn <- dbConnect(odbc(), dsn)
 
+todays_date <-  as.Date(Sys.Date(), format = "%m/%d/%Y")
+yesterday <- todays_date -1
 
 if ("Presidents" %in% list.files("/SharedDrive/")) {
   user_directory <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/",
@@ -73,6 +75,18 @@ if ("Presidents" %in% list.files("/SharedDrive/")) {
 
 user_path <- paste0(user_directory, "\\*.*")
 
+#Remove Good Friday from MSHS Holidays
+nyse_holidays <- as.Date(holidayNYSE(year = 1990:2100))
+good_friday <- as.Date(GoodFriday())
+mshs_holiday <- nyse_holidays[good_friday != nyse_holidays]
+
+#Determine whether yesterday was a holiday/weekend
+holiday_det <- isHoliday(as.timeDate(yesterday), holidays = mshs_holiday)
+
+#Set up a calendar for collect to received TAT calculations for Path & Cyto
+create.calendar("MSHS_working_days", mshs_holiday,
+                weekdays = c("saturday", "sunday"))
+bizdays.options$set(default.calendar = "MSHS_working_days")
 
 # Import data for two scenarios - first time compiling repo and updating repo ----------
 # initial_run <- TRUE
@@ -95,6 +109,20 @@ sun_test_code <- tbl(conn,"LAB_KPI_SUN_TEST_CODES") %>%
 # tat_targets <- read_excel(reference_file, sheet = "Turnaround Targets")
 tat_targets <- tbl(conn,"LAB_KPI_TURNAROUND_TARGETS") %>%
   collect()
+
+patient_setting <- tbl(conn,"LAB_KPI_AP_PATIENT_SETTING") %>%
+  collect()
+
+
+#-----------Anatomic Pathology Targets Excel File-----------#
+# tat_targets_ap1 <- data.frame(read_excel(reference_file,
+#                                         sheet = "AP_TAT Targets"),
+#                              stringsAsFactors = FALSE)
+
+tat_targets_ap <- tbl(conn,"LAB_KPI_AP_TAT_TARGETS") %>%
+  collect()
+
+
 
 tat_targets <- tat_targets %>%
   mutate(Concate = ifelse(
