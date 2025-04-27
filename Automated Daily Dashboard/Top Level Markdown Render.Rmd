@@ -37,7 +37,7 @@ compose_email(header = sinai_logo,
               body = render_email("Scripts/email_body.Rmd")$html_html,
               footer = "This is an auto generated email") %>%
   add_attachment(
-    file = paste0(user_directory,"/Prelim Dashboard Output/"),
+    file = paste0(user_directory,"/Prelim Dashboard Output/","Lab KPI Prelim Dashboard ", format(Sys.time(),format = "%m-%d-%y"),'.html'),
     filename =paste0("Lab KPI Prelim Dashboard ", format(Sys.time(),format = "%m-%d-%y"),'.html')
   ) %>%
   smtp_send(
