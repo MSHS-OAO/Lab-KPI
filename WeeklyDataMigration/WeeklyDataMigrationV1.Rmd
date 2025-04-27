@@ -357,6 +357,192 @@ write_temporary_table_to_database_and_merge_updated <- function(data, key_column
 
 ```
 
+```{r Custom function for POWERPATH processing}
+# Copied from Automated Daily Dashboard/AP_functions_data_preprocessing.R
+site_mapping <- function(data){
+  
+  
+  data <- data %>%
+    mutate(Facility = case_when(Facility == "KH" ~ "MSB",
+                                Facility == "R" ~ "MSW",
+                                Facility == "STL" ~ "MSM",
+                                Facility == "BIMC" ~ "MSBI",
+                                Facility == "SNCH" ~ "MSSN",
+                                Facility == "MSS" ~ "MSH",
+                                Facility == "SL" ~ "MSM",
+                                Facility == "PACC" ~ "MSUS",
+                                TRUE ~ Facility ))
+  
+  
+  
+}
+
+
+format_dates <- function(data){
+  
+  data[c("Case_created_date",
+                 "Collection_Date",
+                 "Received_Date",
+                 "signed_out_date")] <-
+    lapply(data[c("Case_created_date",
+                          "Collection_Date",
+                          "Received_Date",
+                          "signed_out_date")],
+           as.POSIXct, tz = "", format = "%m/%d/%y %I:%M %p" ,origin = "1970-01-01")
+  
+  data
+  
+}
+
+
+# Function to preprate prepare cytology data for pre-processing by crosswalking
+# Epic and PowerPath data
+# combines orginal cyto_prep, pre_processing_pp in Daily_Run_AP_Custom_Functions
+
+cyto_prep <- function(pp_data) {
+  if (is.null(pp_data) ||  nrow(pp_data) == 0) {
+    summarized_table <- NULL
+    return(summarized_table)
+  } else {
+    
+    pp_data <- pp_data %>%
+      mutate(Case_no =  str_replace_all(Case_no,"\\*failed to decode utf16\\*",""))
+      
+
+    # Subset PowerPath data to keep Cyto Gyn and Cyto NonGyn and primary
+    # specimens only
+    cyto_data <- pp_data %>%
+      filter(spec_group %in% c("CYTO NONGYN","CYTO GYN","BREAST"),
+             spec_sort_order == 'A')
+    
+    cyto_data <- cyto_data %>%
+      mutate(TEST_NAME =  case_when(Spec_code == 'BREA1' & spec_group == 'BREAST' ~ 'Breast Biopsy',
+                                    spec_group == 'CYTO NONGYN' ~ 'Cytology NONGYN',
+                                    spec_group == 'CYTO GYN' ~ 'Cytology GYN',
+                                    TRUE ~ 'Breast Large/Resection'))
+
+    
+    # cyto_data <- merge(x = cyto_data, y = epic_data_specimens,
+    #                     by.x = "Case_no",
+    #                     by.y = "SPECIMEN_ID")
+    
+    
+    
+    # Crosswalk Rev_ctr and patient setting for PowerPath data
+    cyto_data <- left_join(cyto_data,
+                           patient_setting,
+                           by = c('Rev_ctr' = 'REV_CTR'))
+    
+    # update sites/facilities
+    cyto_data <- site_mapping(cyto_data)
+    
+    # Update MSB patient setting based on patient type column
+    cyto_data <- cyto_data %>%
+      mutate(PATIENT_SETTING = case_when(Rev_ctr == "MSBK" & (patient_type == "A" | patient_type == "O") ~ "Amb",
+                                         Rev_ctr == "MSBK" &  patient_type == "IN" ~ "IP",
+                                         TRUE ~ PATIENT_SETTING))
+    
+    # Crosswalk TAT targets based on spec_group and patient setting
+    # cyto_data <- left_join(cyto_data,
+    #                        tat_targets_ap,
+    #                        by = c('spec_group' = 'SPEC_GROUP', 'PATIENT_SETTING' = 'PATIENT_SETTING'))
+
+    #Change all Dates into POSIXct format to start the calculations
+    cyto_data <- format_dates(cyto_data)
+    
+    # Add columns for turnaround time calculations:
+    # Collection to signed out (in calendar days) and
+    # received to signed out (in business days)
+    cyto_data <- cyto_data %>%
+      mutate(
+        # Add column for collected to signed out turnaround time in calendar days
+        Collection_to_signed_out =
+          as.numeric(difftime(signed_out_date,Collection_Date,units="days")),
+        # Add column for received to signed out turnaround time in business days
+        Received_to_signed_out = bizdays(Received_Date, signed_out_date),
+        # Prepare data for accessioned volume analysis
+        # First find the date of the last weekday and add 1 for report date
+        report_date_only = as.Date(signed_out_date) + 1,
+        MONTH_ROLLUP = floor_date(signed_out_date, "month"),
+        #  Find the accessioned date and use this for determining accessioned volume
+        acc_date_only = as.Date(Received_Date),
+        TAT_TARGET =  case_when(TEST_NAME == 'Breast Biopsy' ~ 3,
+                                TEST_NAME == 'Breast Large/Resection' ~ 5,
+                                TEST_NAME == 'Cytology GYN' ~ 8,
+                                TRUE ~ 8),
+        IS_TAT_WITHIN_TARGET =  if_else(Received_to_signed_out <= TAT_TARGET,1,0)) 
+    
+    cyto_data <- cyto_data %>%
+      select(Facility,
+             Priority,
+             Spec_code,
+             Specimen_description,
+             CPT_code,
+             Rev_ctr,
+             Encounter_no,
+             MRN,
+             Case_no,
+             Case_created_date,
+             Collection_Date,
+             Received_Date,
+             signed_out_date,
+             Refmd_code,
+             spec_sort_order,
+             TEST_NAME,
+             PATIENT_SETTING,
+             Collection_to_signed_out,
+             Received_to_signed_out,
+             TAT_TARGET,
+             IS_TAT_WITHIN_TARGET,
+             spec_group,
+             Refmd_name)
+    names(cyto_data) <- toupper(names(cyto_data))
+    
+
+    #summarize the data to be used for analysis and to be stored as historical
+    #repo
+    # summarized_table <- cyto_data %>%
+    #   group_by(Spec_code,
+    #            spec_group,
+    #            Facility,
+    #            Patient.Setting,
+    #            Rev_ctr,
+    #            as.Date(signed_out_date),
+    #            weekdays(as.Date(signed_out_date)),
+    #            Received.to.signed.out.target..Days.,
+    #            Collected.to.signed.out.target..Days.,
+    #            acc_date_only,
+    #            weekdays(acc_date_only),
+    #            report_date_only,
+    #            weekdays(report_date_only)) %>%
+    #   summarise(no_cases_signed = n(),
+    #             lab_metric_tat_avg = round(mean(Received_to_signed_out,
+    #                                             na.rm = TRUE), 0),
+    #             lab_metric_tat_med = round(median(Received_to_signed_out,
+    #                                               na.rm = TRUE), 0),
+    #             lab_metric_tat_sd = round(sd(Received_to_signed_out, na.rm = TRUE), 1),
+    #             lab_metric_within_target = as.numeric(format(
+    #               round(
+    #                 sum(Received_to_signed_out <= Received.to.signed.out.target..Days.,
+    #                     na.rm = TRUE) / sum(
+    #                       Received_to_signed_out >= 0, na.rm = TRUE), 2))),
+    #             patient_metric_tat_avg = as.numeric(format(
+    #               ceiling(mean(Collection_to_signed_out, na.rm = TRUE)))),
+    #             patient_metric_tat_med = round(median(Collection_to_signed_out,
+    #                                                   na.rm = TRUE), 0),
+    #             patient_metric_tat_sd = round(sd(Collection_to_signed_out,
+    #                                              na.rm = TRUE), 1),
+    #             cyto_acc_vol = as.numeric(sum((report_date_only - 1) == acc_date_only,
+    #                                           na.rm = TRUE)))
+    
+    
+    
+    return(cyto_data)
+  }
+}
+
+```
+
 ```{r Custom function for SUNQUEST processing}
 # Function to process SUNQUEST data ----
 preprocess_daily_sun <- function(raw_sun) {
