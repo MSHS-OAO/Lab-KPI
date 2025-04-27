@@ -189,16 +189,32 @@ get_values_updated <- function(x, columns,table_name){
 
 write_temporary_table_to_database_and_merge_updated <- function(data, key_columns, destination_table_name, source_table_name, update_columns) {
   
-  process_data <- data %>% mutate_if(is.factor, as.character) %>%
-    mutate_if(is.character, function(x) gsub("\'", "''", x)) %>%
-    mutate_if(is.character, function(x) gsub("&", "' || chr(38) || '", x)) %>%
-    mutate_if(is.character, function(x) paste0("'", x, "'")) %>%
-    mutate_if(is.Date, function(x) paste0("TO_DATE('", x, "', 'YYYY-MM-DD')")) %>%
-    mutate(ORDERTIME = paste0("TO_TIMESTAMP('", ORDERTIME, "', 'YYYY-MM-DD HH24:MI:SS')"),
-           COLLECTTIME = paste0("TO_TIMESTAMP('", COLLECTTIME, "', 'YYYY-MM-DD HH24:MI:SS')"),
-           RECEIVETIME = paste0("TO_TIMESTAMP('", RECEIVETIME, "', 'YYYY-MM-DD HH24:MI:SS')"),
-           RESULTTIME = paste0("TO_TIMESTAMP('", RESULTTIME, "', 'YYYY-MM-DD HH24:MI:SS')")) %>%
-    mutate(across(where(is.numeric),~ replace_na(as.character(.x), "''")))
+  if(destination_table_name == 'LAB_KPI_PREPROCESSED_DAILY'){
+    process_data <- data %>% mutate_if(is.factor, as.character) %>%
+      mutate_if(is.character, function(x) gsub("\'", "''", x)) %>%
+      mutate_if(is.character, function(x) gsub("&", "' || chr(38) || '", x)) %>%
+      mutate_if(is.character, function(x) paste0("'", x, "'")) %>%
+      mutate_if(is.Date, function(x) paste0("TO_DATE('", x, "', 'YYYY-MM-DD')")) %>%
+      mutate(ORDERTIME = paste0("TO_TIMESTAMP('", ORDERTIME, "', 'YYYY-MM-DD HH24:MI:SS')"),
+             COLLECTTIME = paste0("TO_TIMESTAMP('", COLLECTTIME, "', 'YYYY-MM-DD HH24:MI:SS')"),
+             RECEIVETIME = paste0("TO_TIMESTAMP('", RECEIVETIME, "', 'YYYY-MM-DD HH24:MI:SS')"),
+             RESULTTIME = paste0("TO_TIMESTAMP('", RESULTTIME, "', 'YYYY-MM-DD HH24:MI:SS')")) %>%
+      mutate(across(where(is.numeric),~ replace_na(as.character(.x), "''")))
+
+  }else{
+    process_data <- data %>% mutate_if(is.factor, as.character) %>%
+      mutate_if(is.character, function(x) gsub("\'", "''", x)) %>%
+      mutate_if(is.character, function(x) gsub("&", "' || chr(38) || '", x)) %>%
+      mutate_if(is.character, function(x) paste0("'", x, "'")) %>%
+      mutate_if(is.Date, function(x) paste0("TO_DATE('", x, "', 'YYYY-MM-DD')")) %>%
+      mutate(CASE_CREATED_DATE = paste0("TO_TIMESTAMP('", CASE_CREATED_DATE, "', 'YYYY-MM-DD HH24:MI:SS')"),
+             COLLECTION_DATE = paste0("TO_TIMESTAMP('", COLLECTION_DATE, "', 'YYYY-MM-DD HH24:MI:SS')"),
+             RECEIVED_DATE = paste0("TO_TIMESTAMP('", RECEIVED_DATE, "', 'YYYY-MM-DD HH24:MI:SS')"),
+             SIGNED_OUT_DATE = paste0("TO_TIMESTAMP('", SIGNED_OUT_DATE, "', 'YYYY-MM-DD HH24:MI:SS')")) %>%
+      mutate(across(where(is.numeric),~ replace_na(as.character(.x), "''")))
+
+  }
+  
   
   columns <- paste(colnames(process_data), collapse = ",")
   
