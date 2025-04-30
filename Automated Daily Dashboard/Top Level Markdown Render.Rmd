@@ -26,7 +26,7 @@ rmarkdown::render("Lab KPI Daily Dashboard Prelim Run.Rmd",
 ```{r pressure, echo=FALSE}
 email_credential_location <- "/SharedDrive/deans/Presidents/HSPI-PM/Operations Analytics and Optimization/Administrative/Workgroups/R Workbench/Working Area/Data Connections/email_creds"
 cc_list <- c("greg.servis@mssm.edu","dheeraj.tommandru@mssm.edu")
-send_list <- c("dayanandan.adhimoolam@mountsinai.org")
+send_list <- c("dayanandan.adhimoolam@mountsinai.org","paras.shrestha@mountsinai.org","radhika.banu@mountsinai.org")
 email_subject <- glue("LAB KPI - Preliminary Report ",format(Sys.time(),format = "%m-%d-%y"))
 
 sinai_logo <- add_image(file = "www/Sinai_logo_color.png",
