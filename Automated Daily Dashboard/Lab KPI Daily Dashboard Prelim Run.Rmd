@@ -475,7 +475,7 @@ result_date_text <- format(resulted_date,
 scc_pattern_start <- "^(Doc){1}.+"
 sq_pattern_start <- "^(KPI_Daily_TAT_Report){1}.*"
 pp_pattern_start <- "^(KPI REPORT - RAW DATA V4_V2){1}.*"
-epic_pattern_start <- "^(MSHS Pathology Orders Epic){1}.*"
+# epic_pattern_start <- "^(MSHS Pathology Orders Epic){1}.*"
 cyto_backlog_pattern_start <- "^(KPI REPORT - CYTOLOGY PENDING CASES){1}.*"
 
 # Format resulted date as it would appear in saved files
@@ -548,22 +548,20 @@ if (length(pp_data_file) != 0) {
 
 
 # Find Epic Cytology file for cases signed out yesterday
-epic_data_file <- list.files(
-  path = paste0(user_directory, "/EPIC Cytology"),
-  pattern = paste0(epic_pattern_start,
-                   "(",
-                   report_date_file_format,
-                   ".xlsx)$"),
-  ignore.case = TRUE)
+# epic_data_file <- list.files(
+#   path = paste0(user_directory, "/EPIC Cytology"),
+#   pattern = paste0(epic_pattern_start,
+#                    "(",
+#                    report_date_file_format,
+#                    ".xlsx)$"),
+#   ignore.case = TRUE)
 
 # Import Epic Cytology file for cases signed out yesterday, if any exists
-if (length(epic_data_file) != 0) {
-  epic_data_raw <- read_excel(path =
-                                paste0(user_directory,
-                                       "/EPIC Cytology/",
-                                       epic_data_file),1)
-} else {
-  epic_data_raw <- NULL
+epic_data_raw <- tbl(conn,"PATH_ORDER_RESULT_V") %>%
+  filter(RESULT_DATE_TIME >=  TO_DATE(yesterday,'YYYY-MM-DD hh24:mi:ss')) %>%
+  collect()
+if(nrow(epic_data_raw)== 0){
+    epic_data_raw <- NULL
 }
 
 
