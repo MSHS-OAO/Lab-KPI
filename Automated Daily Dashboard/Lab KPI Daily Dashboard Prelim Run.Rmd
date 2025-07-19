@@ -113,18 +113,18 @@ dsn <- "OAO Cloud DB Production"
 dsn_oracle <- paste0(dsn, " Oracle")
 
 conn <- dbConnect(odbc(), dsn)
-if ("Presidents" %in% list.files("/SharedDrive/")) {
-  user_directory <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/",
-                           "Operations Analytics and Optimization/Projects/",
-                           "Service Lines/Lab KPI/Data")
-} else {
-  user_directory <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/",
-                           "Operations Analytics and Optimization/Projects/",
-                           "Service Lines/Lab KPI/Data")
-}
+# if ("Presidents" %in% list.files("/SharedDrive/")) {
+#   user_directory <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/",
+#                            "Operations Analytics and Optimization/Projects/",
+#                            "Service Lines/Lab KPI/Data")
+# } else {
+#   user_directory <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/",
+#                            "Operations Analytics and Optimization/Projects/",
+#                            "Service Lines/Lab KPI/Data")
+# }
 
 user_path <- paste0(user_directory, "\\*.*")
-# user_directory <- paste0("/Pathology/")
+user_directory <- paste0("/Pathology/")
 
 # Import analysis reference data
 # reference_file <- paste0(user_directory,
