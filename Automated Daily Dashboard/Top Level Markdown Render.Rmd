@@ -6,7 +6,7 @@ output:
 
 
 ```{r render test, echo = FALSE, warning = FALSE, message = FALSE}
-Render daily dashboard and specify output file location
+# Render daily dashboard and specify output file location
 if ("Presidents" %in% list.files("/SharedDrive/")) {
   user_directory <- paste0("/SharedDrive/deans/Presidents/HSPI-PM/",
                            "Operations Analytics and Optimization/Projects/",
