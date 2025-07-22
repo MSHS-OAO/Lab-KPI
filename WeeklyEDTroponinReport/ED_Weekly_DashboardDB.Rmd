@@ -398,18 +398,7 @@ resulted_volume_kable(site = "MSB", test = "Troponin")
 
 ```
 
-### MSBI
-```{r MSBI graphs and tables}
 
-process_steps_stacked_bar(site = "MSBI", test = "Troponin", setting = "ED")
-
-collect_result_stacked_bar(site = "MSBI", test = "Troponin", setting = "ED")
-
-missing_collection_kable(site = "MSBI", test = "Troponin", setting = "ED")
-
-resulted_volume_kable(site = "MSBI", test = "Troponin")
-
-```
 
 ### MSH
 ```{r MSH graphs and tables}
