@@ -1075,6 +1075,7 @@ preprocess_scc <- function(raw_scc)  {
 
 ```
 
+
 ```{r Extract Files}
 # Get Max Date from Database ----
 todays_date <- as.Date(Sys.Date(), format = "%Y-%m-%d")
@@ -1087,6 +1088,10 @@ get_max_date_scc <- glue("SELECT TO_CHAR(MAX(RESULTDATE),'YYYY-MM-DD') AS MAXDAT
 get_max_date_sun <- glue("SELECT TO_CHAR(MAX(RESULTDATE),'YYYY-MM-DD') AS MAXDATE
                           FROM LAB_KPI_PREPROCESSED_DAILY
                           WHERE SITE IN ('MSSN','MSBI','MSM','MSW');")
+
+get_max_date_cyto <- glue("SELECT TO_CHAR(MAX(SIGNED_OUT_DATE),'YYYY-MM-DD') AS MAXDATE
+                          FROM LAB_KPI_POWERPATH_CYTO_BIOPSY;")
+
 max_date_scc <- dbGetQuery(conn,
                            get_max_date_scc)
 max_date_scc <- max_date_scc$MAXDATE[[1]]
@@ -1097,6 +1102,12 @@ max_date_scc <- max_date_scc$MAXDATE[[1]]
 max_date_sun <- dbGetQuery(conn,
                            get_max_date_sun)
 max_date_sun <- max_date_sun$MAXDATE[[1]]
+
+
+max_date_cyto <- dbGetQuery(conn,
+                           get_max_date_cyto)
+max_date_cyto <- max_date_cyto$MAXDATE[[1]]
+
 
 # max_date_sun < - as.Date(max_date_sun)
 
@@ -1148,6 +1159,30 @@ if(as.Date(max_date_sun)+2 >= todays_date){
     pattern = pattern_sun)
 
   file_list_sun_flag <- TRUE
+
+}
+
+
+
+if(as.Date(max_date_cyto)+2 >= todays_date){
+  
+  file_list_cyto_flag <- FALSE
+  
+}else{
+  cyto_date_range <- seq(from = as.Date(max_date_cyto)+2,
+                      to = todays_date,
+                      by = "day")
+
+
+  # Extract SUN pattern and files ----
+  pattern_cyto <-  paste0("^(KPI REPORT - RAW DATA V4_V2){1}.*",
+                         cyto_date_range,
+                         ".xls", collapse = "|")
+  file_list_cyto <- list.files(
+    path = paste0(user_directory, "/AP & Cytology Signed Cases Reports"),
+    pattern = pattern_cyto)
+
+  file_list_cyto_flag <- TRUE
 
 }
 
@@ -1212,11 +1247,43 @@ if(file_list_sun_flag){
   
 ```
 
+
+```{r Process and Migrate PowerPath Data}
+
+if(file_list_cyto_flag){
+  for (file in file_list_cyto){
+    print(file)
+    pp_data_raw <- read_excel(path =
+                                paste0(user_directory,
+                                       "/AP & Cytology Signed Cases Reports/",
+                                       file),
+                              skip = 1, 1)
+    
+    pp_data_raw <- data.frame(pp_data_raw[-nrow(pp_data_raw), ],
+                              stringsAsFactors = FALSE)
+    # resulted_date <- as.Date(epic_extract_date) -1
+    cyto_daily_preprocessed <- cyto_prep(pp_data_raw)
+    key_cols <- c("CASE_NO","TEST_NAME", "SIGNED_OUT_DATE")
+    update_cols <- names(cyto_daily_preprocessed)
+    update_cols <- update_cols[! update_cols %in% key_cols]
+    write_temporary_table_to_database_and_merge_updated(cyto_daily_preprocessed,
+                                                        key_columns = key_cols,
+                                                        update_columns = update_cols,
+                                                        source_table_name="LAB_KPI_POWERPATH_CYTO_BIOPSY_ST",
+                                                        destination_table_name="LAB_KPI_POWERPATH_CYTO_BIOPSY")
+    
+    
+  }
+}else{
+  print("Cyto Data up to date")
+}
+```
+
 ```{r Check for Missing Days in Database}
 
 dates_check <- NA
 if(todays_date-1 > floor_date(todays_date,"month")){
-  dates_check <- seq.Date(from = floor_date(todays_date,"month"),
+  dates_check <- seq.Date(from = floor_date(todays_date-31,"month"),
                       to = todays_date-1,
                       by = "day")
 }
@@ -1233,6 +1300,11 @@ sun_dates <- glue("SELECT DISTINCT RESULTDATE
                    RESULTDATE >=  TRUNC(SYSDATE,'mm')
                    ORDER BY RESULTDATE;")
 
+biopsy_dates <- glue("SELECT DISTINCT SIGNED_OUT_DATE
+                   FROM LAB_KPI_POWERPATH_CYTO_BIOPSY
+                   WHERE SIGNED_OUT_DATE >=  TRUNC(SYSDATE,'mm')
+                   ORDER BY SIGNED_OUT_DATE;")
+
 dsn <- "OAO Cloud DB Production"
 conn <- dbConnect(odbc(), dsn)
 scc_dates_db <- dbGetQuery(conn,
@@ -1243,6 +1315,11 @@ sun_dates_db <- dbGetQuery(conn,
                            sun_dates)
 sun_dates_db <- as.Date(sun_dates_db$RESULTDATE)
 
+cyto_dates_db <- dbGetQuery(conn,
+                           biopsy_dates)
+cyto_dates_db <- as.Date(cyto_dates_db$SIGNED_OUT_DATE)
+
+
 dbDisconnect(conn)
 
 
@@ -1251,6 +1328,8 @@ missing_scc_dates <- dates_check[!(dates_check %in% scc_dates_db)]
 missing_scc_dates_file_dates <- missing_scc_dates+1
 missing_sun_dates <- dates_check[!(dates_check %in% sun_dates_db)]
 missing_sun_dates_file_dates <- missing_sun_dates+1
+missing_cyto_dates <- dates_check[!(dates_check %in% cyto_dates_db)]
+missing_cyto_dates_file_dates <- missing_cyto_dates+1
 
 
 
