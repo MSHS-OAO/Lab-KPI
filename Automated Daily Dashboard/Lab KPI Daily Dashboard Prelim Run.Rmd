@@ -136,14 +136,12 @@ user_path <- paste0(user_directory, "\\*.*")
 
 cp_scc_test_codes <- tbl(conn,"LAB_KPI_SCC_TEST_CODES") %>%
   collect()
-cp_sun_test_codes <- tbl(conn,"LAB_KPI_SUN_TEST_CODES") %>%
-  collect()
+# cp_sun_test_codes <- tbl(conn,"LAB_KPI_SUN_TEST_CODES") %>%
+#   collect()
 
 # Create data frame of CP tests and divisions
 cp_test_divisions <- 
-  unique(
-    rbind(unique(cp_scc_test_codes[, c("TEST", "DIVISION")]),
-          unique(cp_sun_test_codes[, c("TEST", "DIVISION")])))
+  unique(unique(cp_scc_test_codes[, c("TEST", "DIVISION")]))
 
 test_names <- cp_test_divisions$TEST
 
@@ -163,21 +161,21 @@ cp_tat_targets <- cp_tat_targets %>%
 # cp_sun_icu <- read_excel(reference_file, sheet = "SUN_ICU")
 cp_scc_icu <- tbl(conn,"LAB_KPI_SCC_ICU") %>%
   collect()
-cp_sun_icu <-  tbl(conn,"LAB_KPI_SUN_ICU") %>%
-  collect()
+# cp_sun_icu <-  tbl(conn,"LAB_KPI_SUN_ICU") %>%
+#   collect()
 
 cp_scc_icu <- cp_scc_icu %>%
   mutate(SiteCodeName = paste(SITE, WARD, WARD_NAME))
 
-cp_sun_icu <- cp_sun_icu %>%
-  mutate(SiteCodeName = paste(SITE, LOC_CODE, LOC_NAME))
+# cp_sun_icu <- cp_sun_icu %>%
+#   mutate(SiteCodeName = paste(SITE, LOC_CODE, LOC_NAME))
 
 # cp_scc_setting <- read_excel(reference_file, sheet = "SCC_ClinicType")
 # cp_sun_setting <- read_excel(reference_file, sheet = "SUN_LocType")
 cp_scc_setting <- tbl(conn,"LAB_KPI_SCC_CLINICTYPE") %>%
   collect()
-cp_sun_setting <- tbl(conn,"LAB_KPI_SUN_LOCTYPE") %>%
-  collect()
+# cp_sun_setting <- tbl(conn,"LAB_KPI_SUN_LOCTYPE") %>%
+#   collect()
 
 # cp_mshs_sites <- read_excel(reference_file, sheet = "SiteNames")
 cp_mshs_sites <- tbl(conn,"LAB_KPI_SITE_NAMES") %>%
@@ -195,8 +193,8 @@ cp_micro_lab_order <- c("Troponin",
                         "C. diff",
                         "Antibody Screen")
 
-all_sites <- c("MSH", "MSQ", "MSBI", "MSB", "MSW", "MSM", "MSSN", "RTC")
-hosp_sites <- c("MSH", "MSQ", "MSBI", "MSB", "MSW", "MSM", "MSSN")
+all_sites <- c("MSH", "MSQ", "MSB", "MSW", "MSM", "MSSN", "RTC")
+hosp_sites <- c("MSH", "MSQ", "MSB", "MSW", "MSM", "MSSN")
 infusion_sites <- c("RTC")
 
 pt_setting_order <- c("ED", "ICU", "IP Non-ICU", "Amb", "Other")
@@ -328,7 +326,7 @@ gi_codes <-  tbl(conn,"LAB_KPI_GI_CODES") %>%
 
 SPEC_GROUP <- c("Breast", "GI","CYTO GYN", "CYTO NONGYN")
 PATIENT_SETTING <- c("IP", "Amb")
-SITES <- c("MSB","MSBI","PACC","MSW","MSH","MSM","MSSN","MSQ","NYEE")
+SITES <- c("MSB","PACC","MSW","MSH","MSM","MSSN","MSQ","NYEE")
 TAB <- c("Efficiency Indicators","24 Hour Volume")
 METRIC <- c("received_to_signed_out_within_target",
             "avg_collection_to_signed_out",
@@ -418,7 +416,6 @@ sp_vol_column_names <- c("Case Type",
                          "Setting",
                          "MSH",
                          "MSQ",
-                         "MSBI",
                          "PACC",
                          "MSB",
                          "MSW",
@@ -428,7 +425,6 @@ cyto_vol_column_names <- c("Case Type",
                            "Setting",
                            "MSH",
                            "MSQ",
-                           "MSBI",
                            "PACC",
                            "MSB",
                            "MSW",
@@ -472,7 +468,7 @@ result_date_text <- format(resulted_date,
 
 # Create regular expressions for beginning each file type
 scc_pattern_start <- "^(Doc){1}.+"
-sq_pattern_start <- "^(KPI_Daily_TAT_Report){1}.*"
+# sq_pattern_start <- "^(KPI_Daily_TAT_Report){1}.*"
 pp_pattern_start <- "^(KPI REPORT - RAW DATA V4_V2){1}.*"
 # epic_pattern_start <- "^(MSHS Pathology Orders Epic){1}.*"
 cyto_backlog_pattern_start <- "^(KPI REPORT - CYTOLOGY PENDING CASES){1}.*"
@@ -502,25 +498,25 @@ if (length(scc_data_file) != 0) {
 }
 
 # Find Sunquest file for labs resulted yesterday
-sq_data_file <- list.files(
-  path = paste0(user_directory, "/SUN CP Reports"),
-  pattern = paste0(sq_pattern_start,
-                   "(",
-                   report_date_file_format,
-                   ".xls)$"),
-  ignore.case = TRUE)
+# sq_data_file <- list.files(
+#   path = paste0(user_directory, "/SUN CP Reports"),
+#   pattern = paste0(sq_pattern_start,
+#                    "(",
+#                    report_date_file_format,
+#                    ".xls)$"),
+#   ignore.case = TRUE)
 
 # Import Sunquest file for labs resulted yesterday, if file exists
-if (length(sq_data_file) != 0) {
-  sq_data_raw <- suppressWarnings(read_excel(path =
-                                               paste0(user_directory,
-                                                      "/SUN CP Reports/",
-                                                      sq_data_file),
-                                             sheet = 1, col_names = TRUE))
-} else {
-  sq_data_raw <- NULL
-}
-
+# if (length(sq_data_file) != 0) {
+#   sq_data_raw <- suppressWarnings(read_excel(path =
+#                                                paste0(user_directory,
+#                                                       "/SUN CP Reports/",
+#                                                       sq_data_file),
+#                                              sheet = 1, col_names = TRUE))
+# } else {
+#   sq_data_raw <- NULL
+# }
+# 
 
 # Find Powerpath file for cases signed out yesterday
 pp_data_file <- list.files(
@@ -588,7 +584,7 @@ if (length(cyto_backlog_data_file) != 0) {
   cyto_backlog_data_raw <- NULL
 }
 
-cp_eval <- !(is.null(scc_data_raw) | is.null(sq_data_raw))
+cp_eval <- !(is.null(scc_data_raw))
 
 ap_eval <- !(is.null(pp_data_file) | is.null(cyto_backlog_data_raw) | is.null(epic_data_raw))
 ```
@@ -839,242 +835,242 @@ preprocess_scc <- function(raw_scc)  {
 }
 
 # Sunquest Processing -------------
-preprocess_sun <- function(raw_sun) {
-  
-  # Preprocess Sunquest data --------------------------------
-  # Remove any duplicates
-  raw_sun <- unique(raw_sun)
-  # Correct and format any columns that were not imported correctly; usually have a message saying "*failed to decode... *"  
-  raw_sun[c("OrderDateTime",
-            "CollectDateTime",
-            "ReceiveDateTime",
-            "ResultDateTime")] <-
-    lapply(raw_sun[c("OrderDateTime",
-                     "CollectDateTime",
-                     "ReceiveDateTime",
-                     "ResultDateTime")],
-           function(x) ifelse(!is.na(x) & str_detect(x, "\\*.*\\*")  == TRUE,
-                              str_replace(x, "\\*.*\\*", ""), x))
-  
-  raw_sun <- raw_sun %>%
-    mutate(across(where(is.character), gsub,
-                  pattern = "\\*.*\\*",
-                  replacement = ""))
-  
-  raw_sun[c("OrderDateTime",
-            "CollectDateTime",
-            "ReceiveDateTime",
-            "ResultDateTime")] <-
-    lapply(raw_sun[c("OrderDateTime",
-                     "CollectDateTime",
-                     "ReceiveDateTime",
-                     "ResultDateTime")],
-           as.POSIXct, tz = "UTC", format = "%m/%d/%Y %H:%M:%S")
-  
-  # Sunquest lookup references
-  # Crosswalk labs included and remove out of scope labs
-  raw_sun <- left_join(raw_sun, cp_sun_test_codes,
-                       by = c("TestCode" = "SUN_TEST_CODE"))
-  
-  # Determine if test is included based on crosswalk results
-  raw_sun <- raw_sun %>%
-    mutate(TestIncl = !is.na(TEST)) %>%
-    filter(TestIncl)
-  
-  
-  # Crosswalk unit type
-  raw_sun <- left_join(raw_sun, cp_sun_setting,
-                       by = c("LocType" = "LOC_TYPE"))
-  
-  # Crosswalk site name
-  raw_sun <- left_join(raw_sun, cp_mshs_sites,
-                       by = c("HospCode" = "DATA_SITE"))
-  
-  # # Sunquest data formatting-----------------------------
-  # Preprocess Sunquest data and add any necessary columns
-  raw_sun <- raw_sun %>%
-    mutate(
-      # Determine if unit is an ICU based on site mappings
-      ICU = paste(Site, LocCode, LocName) %in% cp_sun_icu$SiteCodeName,
-      # Create a column for resulted date
-      RESULT_DATE = as.Date(ResultDateTime, format = "%m/%d/%Y"),
-      # Create master setting column to identify ICU and IP Non-ICU units
-      DETAILED_SETTING = ifelse(SETTING_ROLL_UP == "IP" & ICU, "ICU",
-                                ifelse(SETTING_ROLL_UP == "IP" & !ICU,
-                                       "IP Non-ICU", SETTING_ROLL_UP)),
-      # Create dashboard setting column to roll up master settings based on
-      # desired dashboard grouping(ie, group ED and ICU together)
-      DASHBOARD_SETTING = ifelse(DETAILED_SETTING %in% c("ED", "ICU"),
-                                 "ED & ICU", DETAILED_SETTING),
-      #
-      # Create column with adjusted priority based on operational assumption
-      # that all ED and ICU labs are treated as stat
-      ADJ_PRIORITY = ifelse(DETAILED_SETTING %in% c("ED", "ICU") |
-                              SpecimenPriority %in% "S", "Stat", "Routine"),
-      #
-      # Calculate turnaround times
-      COLLECT_TO_RECEIVE_TAT =
-        round(as.numeric(ReceiveDateTime - CollectDateTime, units = "mins"),
-              digits = 3),
-      RECEIVE_TO_RESULT_TAT =
-        round(as.numeric(ResultDateTime - ReceiveDateTime, units = "mins"),
-              digits = 3),
-      COLLECT_TO_RESULT_TAT =
-        round(as.numeric(ResultDateTime - CollectDateTime, units = "mins"),
-              digits = 3),
-      #
-      # Determine if order was an add on or original order based on time between
-      # order and receive times
-      ADD_ON_FINAL = ifelse(as.numeric(OrderDateTime - ReceiveDateTime,
-                                       units = "mins") > 5, "AddOn", "Original"),
-      #
-      # Determine if collection time is missing
-      MISSING_COLLECT = (CollectDateTime - OrderDateTime) %in% 0,
-        # CollectDateTime %in% OrderDateTime,
-      #
-      # Determine TAT target based on test, priority, and patient setting
-      # Create column concatenating test and division to determine TAT targets
-      Concate1 = paste(TEST, DIVISION),
-      #
-      # Create dashboard priority column
-      DASHBOARD_PRIORITY = ifelse(
-        cp_tat_targets$PRIORITY[match(
-          Concate1,
-          paste(cp_tat_targets$TEST, cp_tat_targets$DIVISION))] == "All",
-        "All", ADJ_PRIORITY),
-      # Create column concatenating test, division, and priority to determine
-      # TAT targets
-      Concate2 = paste(TEST, DIVISION, DASHBOARD_PRIORITY),
-      # Create column concatenating test, division, priority, and setting to
-      # determine TAT targets
-      Concate3 = paste(TEST, DIVISION, DASHBOARD_PRIORITY, DETAILED_SETTING),
-      #
-      # Determine Receive to Result TAT target using this logic:
-      # 1. Try to match test, priority, and setting (applicable for labs with
-      # different TAT targets based on patient setting and order priority)
-      # 2. Try to match test and priority (applicable for labs with different
-      # TAT targets based on order priority)
-      # 3. Try to match test - this is for tests with (applicable for labs with
-      # TAT targets that are independent of patient setting or priority)
-      #
-      # Determine Receive to Result TAT target based on above logic/scenarios
-      RECEIVE_RESULT_TARGET =
-        # Match on scenario 1
-        ifelse(!is.na(match(Concate3, cp_tat_targets$Concate)),
-               cp_tat_targets$RECEIVE_TO_RESULT_TARGET[
-                 match(Concate3, cp_tat_targets$Concate)],
-               # Match on scenario 2
-               ifelse(!is.na(match(Concate2, cp_tat_targets$Concate)),
-                      cp_tat_targets$RECEIVE_TO_RESULT_TARGET[
-                        match(Concate2, cp_tat_targets$Concate)],
-                      # Match on scenario 3
-                      cp_tat_targets$RECEIVE_TO_RESULT_TARGET[
-                        match(Concate1, cp_tat_targets$Concate)])),
-      #
-      # Determine Collect to Result TAT target based on above logic/scenarios
-      COLLECT_RESULT_TARGET =
-        # Match on scenario 1
-        ifelse(!is.na(match(Concate3, cp_tat_targets$Concate)),
-               cp_tat_targets$COLLECT_TO_RESULT_TARGET[
-                 match(Concate3, cp_tat_targets$Concate)],
-               # Match on scenario 2
-               ifelse(!is.na(match(Concate2, cp_tat_targets$Concate)),
-                      cp_tat_targets$COLLECT_TO_RESULT_TARGET[
-                        match(Concate2, cp_tat_targets$Concate)],
-                      # Match on scenario 3
-                      cp_tat_targets$COLLECT_TO_RESULT_TARGET[
-                        match(Concate1, cp_tat_targets$Concate)])),
-      #
-      # Determine if Receive to Result and Collect to Result TAT meet targets
-      RECEIVE_RESULT_IN_TARGET = ifelse(is.na(RECEIVE_TO_RESULT_TAT), FALSE,
-                                        RECEIVE_TO_RESULT_TAT <= RECEIVE_RESULT_TARGET),
-      COLLECT_RESULT_IN_TARGET = ifelse(is.na(COLLECT_TO_RESULT_TAT), FALSE,
-                                        COLLECT_TO_RESULT_TAT <= COLLECT_RESULT_TARGET),
-      #
-      # Create column with patient name, order ID, test, collect, receive, and
-      # result date and determine if there is a duplicate; order time excluded
-      Concate4 = paste(PtNumber, HISOrderNumber, TSTName,
-                       CollectDateTime, ReceiveDateTime, ResultDateTime),
-      DuplTest = duplicated(Concate4),
-      #
-      # Determine whether or not to include this particular lab in TAT analysis
-      # Exclusion criteria:
-      # 1. Add on orders
-      # 2. Orders from "Other" settings
-      # 3. Orders with collect or receive times after result time
-      # 4. Orders with missing collect, receive, or result timestamps
-      # 5. Orders with missing collection times are excluded from
-      # collect-to-result and collect-to-receive turnaround time analyis
-      RECEIVE_TIME_TAT_INCL = ifelse(ADD_ON_FINAL == "AddOn" |
-                                       DETAILED_SETTING == "Other" |
-                                       COLLECT_TO_RECEIVE_TAT < 0 |
-                                       COLLECT_TO_RESULT_TAT < 0 |
-                                       RECEIVE_TO_RESULT_TAT < 0 |
-                                       is.na(COLLECT_TO_RESULT_TAT) |
-                                       is.na(RECEIVE_TO_RESULT_TAT), FALSE, TRUE),
-      COLLECT_TIME_TAT_INCL = ifelse(MISSING_COLLECT |
-                                       ADD_ON_FINAL == "AddOn" |
-                                       DETAILED_SETTING == "Other" |
-                                       COLLECT_TO_RECEIVE_TAT < 0 |
-                                       COLLECT_TO_RESULT_TAT < 0 |
-                                       RECEIVE_TO_RESULT_TAT < 0 |
-                                       is.na(COLLECT_TO_RESULT_TAT) |
-                                       is.na(RECEIVE_TO_RESULT_TAT), FALSE, TRUE))
-  
-  # Remove duplicate tests
-  raw_sun <- raw_sun %>%
-    filter(!DuplTest)
-  
-  # Determine volume of labs associated with each date and identify correct date
-  sun_resulted_dates_vol <- raw_sun %>%
-    group_by(RESULT_DATE) %>%
-    summarize(VolLabs = n()) %>%
-    arrange(desc(VolLabs)) %>%
-    ungroup()
-  
-  sun_correct_date <- sun_resulted_dates_vol$RESULT_DATE[1]
-  
-  raw_sun <- raw_sun %>%
-    filter(RESULT_DATE %in% sun_correct_date)
-  
-  # Select columns
-  sun_processed <- raw_sun %>%
-    select(LocCode, LocName,
-           HISOrderNumber, PhysName,
-           PtNumber, SHIFT,
-           TSTName, TEST, DIVISION, SpecimenPriority,
-           Site, ICU, LocType,
-           SETTING, SETTING_ROLL_UP,
-           DETAILED_SETTING, DASHBOARD_SETTING,
-           ADJ_PRIORITY, DASHBOARD_PRIORITY,
-           OrderDateTime, CollectDateTime,
-           ReceiveDateTime, ResultDateTime,
-           RESULT_DATE,
-           COLLECT_TO_RECEIVE_TAT, RECEIVE_TO_RESULT_TAT,
-           COLLECT_TO_RESULT_TAT,
-           ADD_ON_FINAL, MISSING_COLLECT,
-           RECEIVE_RESULT_TARGET, COLLECT_RESULT_TARGET,
-           RECEIVE_RESULT_IN_TARGET, COLLECT_RESULT_IN_TARGET,
-           RECEIVE_TIME_TAT_INCL, COLLECT_TIME_TAT_INCL
-    ) %>%
-    rename(LOC_CODE = LocCode,
-           LOC_NAME = LocName,
-           ORDER_ID = HISOrderNumber,
-           REQUEST_MD = PhysName,
-           MSMRN = PtNumber,
-           WORK_SHIFT = SHIFT,
-           TEST_NAME = TSTName,
-           ORDER_PRIORITY = SpecimenPriority,
-           SITE = Site,
-           LOC_TYPE = LocType,
-           ORDER_TIME = OrderDateTime,
-           COLLECT_TIME = CollectDateTime,
-           RECEIVE_TIME = ReceiveDateTime,
-           RESULT_TIME = ResultDateTime
-    )
-  
-  return(sun_processed)
-}
+# preprocess_sun <- function(raw_sun) {
+#   
+#   # Preprocess Sunquest data --------------------------------
+#   # Remove any duplicates
+#   raw_sun <- unique(raw_sun)
+#   # Correct and format any columns that were not imported correctly; usually have a message saying "*failed to decode... *"  
+#   raw_sun[c("OrderDateTime",
+#             "CollectDateTime",
+#             "ReceiveDateTime",
+#             "ResultDateTime")] <-
+#     lapply(raw_sun[c("OrderDateTime",
+#                      "CollectDateTime",
+#                      "ReceiveDateTime",
+#                      "ResultDateTime")],
+#            function(x) ifelse(!is.na(x) & str_detect(x, "\\*.*\\*")  == TRUE,
+#                               str_replace(x, "\\*.*\\*", ""), x))
+#   
+#   raw_sun <- raw_sun %>%
+#     mutate(across(where(is.character), gsub,
+#                   pattern = "\\*.*\\*",
+#                   replacement = ""))
+#   
+#   raw_sun[c("OrderDateTime",
+#             "CollectDateTime",
+#             "ReceiveDateTime",
+#             "ResultDateTime")] <-
+#     lapply(raw_sun[c("OrderDateTime",
+#                      "CollectDateTime",
+#                      "ReceiveDateTime",
+#                      "ResultDateTime")],
+#            as.POSIXct, tz = "UTC", format = "%m/%d/%Y %H:%M:%S")
+#   
+#   # Sunquest lookup references
+#   # Crosswalk labs included and remove out of scope labs
+#   raw_sun <- left_join(raw_sun, cp_sun_test_codes,
+#                        by = c("TestCode" = "SUN_TEST_CODE"))
+#   
+#   # Determine if test is included based on crosswalk results
+#   raw_sun <- raw_sun %>%
+#     mutate(TestIncl = !is.na(TEST)) %>%
+#     filter(TestIncl)
+#   
+#   
+#   # Crosswalk unit type
+#   raw_sun <- left_join(raw_sun, cp_sun_setting,
+#                        by = c("LocType" = "LOC_TYPE"))
+#   
+#   # Crosswalk site name
+#   raw_sun <- left_join(raw_sun, cp_mshs_sites,
+#                        by = c("HospCode" = "DATA_SITE"))
+#   
+#   # # Sunquest data formatting-----------------------------
+#   # Preprocess Sunquest data and add any necessary columns
+#   raw_sun <- raw_sun %>%
+#     mutate(
+#       # Determine if unit is an ICU based on site mappings
+#       ICU = paste(Site, LocCode, LocName) %in% cp_sun_icu$SiteCodeName,
+#       # Create a column for resulted date
+#       RESULT_DATE = as.Date(ResultDateTime, format = "%m/%d/%Y"),
+#       # Create master setting column to identify ICU and IP Non-ICU units
+#       DETAILED_SETTING = ifelse(SETTING_ROLL_UP == "IP" & ICU, "ICU",
+#                                 ifelse(SETTING_ROLL_UP == "IP" & !ICU,
+#                                        "IP Non-ICU", SETTING_ROLL_UP)),
+#       # Create dashboard setting column to roll up master settings based on
+#       # desired dashboard grouping(ie, group ED and ICU together)
+#       DASHBOARD_SETTING = ifelse(DETAILED_SETTING %in% c("ED", "ICU"),
+#                                  "ED & ICU", DETAILED_SETTING),
+#       #
+#       # Create column with adjusted priority based on operational assumption
+#       # that all ED and ICU labs are treated as stat
+#       ADJ_PRIORITY = ifelse(DETAILED_SETTING %in% c("ED", "ICU") |
+#                               SpecimenPriority %in% "S", "Stat", "Routine"),
+#       #
+#       # Calculate turnaround times
+#       COLLECT_TO_RECEIVE_TAT =
+#         round(as.numeric(ReceiveDateTime - CollectDateTime, units = "mins"),
+#               digits = 3),
+#       RECEIVE_TO_RESULT_TAT =
+#         round(as.numeric(ResultDateTime - ReceiveDateTime, units = "mins"),
+#               digits = 3),
+#       COLLECT_TO_RESULT_TAT =
+#         round(as.numeric(ResultDateTime - CollectDateTime, units = "mins"),
+#               digits = 3),
+#       #
+#       # Determine if order was an add on or original order based on time between
+#       # order and receive times
+#       ADD_ON_FINAL = ifelse(as.numeric(OrderDateTime - ReceiveDateTime,
+#                                        units = "mins") > 5, "AddOn", "Original"),
+#       #
+#       # Determine if collection time is missing
+#       MISSING_COLLECT = (CollectDateTime - OrderDateTime) %in% 0,
+#         # CollectDateTime %in% OrderDateTime,
+#       #
+#       # Determine TAT target based on test, priority, and patient setting
+#       # Create column concatenating test and division to determine TAT targets
+#       Concate1 = paste(TEST, DIVISION),
+#       #
+#       # Create dashboard priority column
+#       DASHBOARD_PRIORITY = ifelse(
+#         cp_tat_targets$PRIORITY[match(
+#           Concate1,
+#           paste(cp_tat_targets$TEST, cp_tat_targets$DIVISION))] == "All",
+#         "All", ADJ_PRIORITY),
+#       # Create column concatenating test, division, and priority to determine
+#       # TAT targets
+#       Concate2 = paste(TEST, DIVISION, DASHBOARD_PRIORITY),
+#       # Create column concatenating test, division, priority, and setting to
+#       # determine TAT targets
+#       Concate3 = paste(TEST, DIVISION, DASHBOARD_PRIORITY, DETAILED_SETTING),
+#       #
+#       # Determine Receive to Result TAT target using this logic:
+#       # 1. Try to match test, priority, and setting (applicable for labs with
+#       # different TAT targets based on patient setting and order priority)
+#       # 2. Try to match test and priority (applicable for labs with different
+#       # TAT targets based on order priority)
+#       # 3. Try to match test - this is for tests with (applicable for labs with
+#       # TAT targets that are independent of patient setting or priority)
+#       #
+#       # Determine Receive to Result TAT target based on above logic/scenarios
+#       RECEIVE_RESULT_TARGET =
+#         # Match on scenario 1
+#         ifelse(!is.na(match(Concate3, cp_tat_targets$Concate)),
+#                cp_tat_targets$RECEIVE_TO_RESULT_TARGET[
+#                  match(Concate3, cp_tat_targets$Concate)],
+#                # Match on scenario 2
+#                ifelse(!is.na(match(Concate2, cp_tat_targets$Concate)),
+#                       cp_tat_targets$RECEIVE_TO_RESULT_TARGET[
+#                         match(Concate2, cp_tat_targets$Concate)],
+#                       # Match on scenario 3
+#                       cp_tat_targets$RECEIVE_TO_RESULT_TARGET[
+#                         match(Concate1, cp_tat_targets$Concate)])),
+#       #
+#       # Determine Collect to Result TAT target based on above logic/scenarios
+#       COLLECT_RESULT_TARGET =
+#         # Match on scenario 1
+#         ifelse(!is.na(match(Concate3, cp_tat_targets$Concate)),
+#                cp_tat_targets$COLLECT_TO_RESULT_TARGET[
+#                  match(Concate3, cp_tat_targets$Concate)],
+#                # Match on scenario 2
+#                ifelse(!is.na(match(Concate2, cp_tat_targets$Concate)),
+#                       cp_tat_targets$COLLECT_TO_RESULT_TARGET[
+#                         match(Concate2, cp_tat_targets$Concate)],
+#                       # Match on scenario 3
+#                       cp_tat_targets$COLLECT_TO_RESULT_TARGET[
+#                         match(Concate1, cp_tat_targets$Concate)])),
+#       #
+#       # Determine if Receive to Result and Collect to Result TAT meet targets
+#       RECEIVE_RESULT_IN_TARGET = ifelse(is.na(RECEIVE_TO_RESULT_TAT), FALSE,
+#                                         RECEIVE_TO_RESULT_TAT <= RECEIVE_RESULT_TARGET),
+#       COLLECT_RESULT_IN_TARGET = ifelse(is.na(COLLECT_TO_RESULT_TAT), FALSE,
+#                                         COLLECT_TO_RESULT_TAT <= COLLECT_RESULT_TARGET),
+#       #
+#       # Create column with patient name, order ID, test, collect, receive, and
+#       # result date and determine if there is a duplicate; order time excluded
+#       Concate4 = paste(PtNumber, HISOrderNumber, TSTName,
+#                        CollectDateTime, ReceiveDateTime, ResultDateTime),
+#       DuplTest = duplicated(Concate4),
+#       #
+#       # Determine whether or not to include this particular lab in TAT analysis
+#       # Exclusion criteria:
+#       # 1. Add on orders
+#       # 2. Orders from "Other" settings
+#       # 3. Orders with collect or receive times after result time
+#       # 4. Orders with missing collect, receive, or result timestamps
+#       # 5. Orders with missing collection times are excluded from
+#       # collect-to-result and collect-to-receive turnaround time analyis
+#       RECEIVE_TIME_TAT_INCL = ifelse(ADD_ON_FINAL == "AddOn" |
+#                                        DETAILED_SETTING == "Other" |
+#                                        COLLECT_TO_RECEIVE_TAT < 0 |
+#                                        COLLECT_TO_RESULT_TAT < 0 |
+#                                        RECEIVE_TO_RESULT_TAT < 0 |
+#                                        is.na(COLLECT_TO_RESULT_TAT) |
+#                                        is.na(RECEIVE_TO_RESULT_TAT), FALSE, TRUE),
+#       COLLECT_TIME_TAT_INCL = ifelse(MISSING_COLLECT |
+#                                        ADD_ON_FINAL == "AddOn" |
+#                                        DETAILED_SETTING == "Other" |
+#                                        COLLECT_TO_RECEIVE_TAT < 0 |
+#                                        COLLECT_TO_RESULT_TAT < 0 |
+#                                        RECEIVE_TO_RESULT_TAT < 0 |
+#                                        is.na(COLLECT_TO_RESULT_TAT) |
+#                                        is.na(RECEIVE_TO_RESULT_TAT), FALSE, TRUE))
+#   
+#   # Remove duplicate tests
+#   raw_sun <- raw_sun %>%
+#     filter(!DuplTest)
+#   
+#   # Determine volume of labs associated with each date and identify correct date
+#   sun_resulted_dates_vol <- raw_sun %>%
+#     group_by(RESULT_DATE) %>%
+#     summarize(VolLabs = n()) %>%
+#     arrange(desc(VolLabs)) %>%
+#     ungroup()
+#   
+#   sun_correct_date <- sun_resulted_dates_vol$RESULT_DATE[1]
+#   
+#   raw_sun <- raw_sun %>%
+#     filter(RESULT_DATE %in% sun_correct_date)
+#   
+#   # Select columns
+#   sun_processed <- raw_sun %>%
+#     select(LocCode, LocName,
+#            HISOrderNumber, PhysName,
+#            PtNumber, SHIFT,
+#            TSTName, TEST, DIVISION, SpecimenPriority,
+#            Site, ICU, LocType,
+#            SETTING, SETTING_ROLL_UP,
+#            DETAILED_SETTING, DASHBOARD_SETTING,
+#            ADJ_PRIORITY, DASHBOARD_PRIORITY,
+#            OrderDateTime, CollectDateTime,
+#            ReceiveDateTime, ResultDateTime,
+#            RESULT_DATE,
+#            COLLECT_TO_RECEIVE_TAT, RECEIVE_TO_RESULT_TAT,
+#            COLLECT_TO_RESULT_TAT,
+#            ADD_ON_FINAL, MISSING_COLLECT,
+#            RECEIVE_RESULT_TARGET, COLLECT_RESULT_TARGET,
+#            RECEIVE_RESULT_IN_TARGET, COLLECT_RESULT_IN_TARGET,
+#            RECEIVE_TIME_TAT_INCL, COLLECT_TIME_TAT_INCL
+#     ) %>%
+#     rename(LOC_CODE = LocCode,
+#            LOC_NAME = LocName,
+#            ORDER_ID = HISOrderNumber,
+#            REQUEST_MD = PhysName,
+#            MSMRN = PtNumber,
+#            WORK_SHIFT = SHIFT,
+#            TEST_NAME = TSTName,
+#            ORDER_PRIORITY = SpecimenPriority,
+#            SITE = Site,
+#            LOC_TYPE = LocType,
+#            ORDER_TIME = OrderDateTime,
+#            COLLECT_TIME = CollectDateTime,
+#            RECEIVE_TIME = ReceiveDateTime,
+#            RESULT_TIME = ResultDateTime
+#     )
+#   
+#   return(sun_processed)
+# }
 
 # Code for preprocessing, analyzing, and displaying Clinical Pathology KPI -----
 # CP includes Chemistry, Hematology, and Microbiology RRL divisions
@@ -1340,9 +1336,9 @@ kable_cp_tat <- function(x) {
     } else {
       kable_col_names <- c("Test & Priority",
                            "Target", "Setting",
-                           "MSH", "MSQ", "MSBI", "MSB", "MSW", "MSM", "MSSN",
+                           "MSH", "MSQ", "MSB", "MSW", "MSM", "MSSN",
                            "Target", "Setting",
-                           "MSH", "MSQ", "MSBI", "MSB", "MSW", "MSM", "MSSN")
+                           "MSH", "MSQ", "MSB", "MSW", "MSM", "MSSN")
     }
     
     num_col <- length(kable_col_names)
@@ -1449,7 +1445,7 @@ kable_cp_vol <- function(x) {
       kable_cp_vol_cols <- c("Test & Priority", "Setting", "RTC")
     } else {
       kable_cp_vol_cols <- c("Test & Priority", "Setting",
-                             "MSH", "MSQ", "MSBI", "MSB", "MSW", "MSM", "MSSN")
+                             "MSH", "MSQ", "MSB", "MSW", "MSM", "MSSN")
     }
     
     
@@ -1527,7 +1523,7 @@ kable_missing_collections <- function(x) {
     missing_collect_table %>%
       kable(format = "html", escape = FALSE, align = "c",
             col.names = c("Site",
-                          "MSH", "MSQ", "MSBI", "MSB", "MSW",
+                          "MSH", "MSQ", "MSB", "MSW",
                           "MSM", "MSSN", "RTC")) %>%
       kable_styling(
         bootstrap = "hover",
@@ -1594,7 +1590,7 @@ kable_add_on_volume <- function(x) {
     add_on_table %>%
       kable(format = "html", escape = FALSE, align = "c",
             col.names = c("Test",
-                          "MSH", "MSQ", "MSBI", "MSB", "MSW",
+                          "MSH", "MSQ", "MSB", "MSW",
                           "MSM", "MSSN", "RTC"),
             color = "gray") %>%
       kable_styling(
@@ -1639,13 +1635,13 @@ if (is.null(scc_data_raw) | nrow(scc_data_raw) == 0){
   scc_processed <- preprocess_scc(raw_scc = scc_data_raw)
 }
 
-if (is.null(sq_data_raw) | nrow(sq_data_raw) == 0){
-  sun_processed <- NULL
-} else {
-  sun_processed <- preprocess_sun(raw_sun = sq_data_raw)
-}
+# if (is.null(sq_data_raw) | nrow(sq_data_raw) == 0){
+#   sun_processed <- NULL
+# } else {
+#   sun_processed <- preprocess_sun(raw_sun = sq_data_raw)
+# }
 
-cp_processed <- rbind(scc_processed, sun_processed)
+cp_processed <- rbind(scc_processed)
 
 
 #
@@ -2301,7 +2297,7 @@ get_efficiency_indicators_cytology <- function(summarized_data){
            received_to_signed_out_within_target,
            avg_collection_to_signed_out_MSH,
            avg_collection_to_signed_out_MSQ,
-           avg_collection_to_signed_out_MSBI,
+           # avg_collection_to_signed_out_MSBI,
            avg_collection_to_signed_out_PACC,
            avg_collection_to_signed_out_MSB,
            avg_collection_to_signed_out_MSW,
@@ -2420,14 +2416,14 @@ get_efficiency_indicators_surgical_pathology <- function(summarized_data){
            no_cases_signed,
            received_to_signed_out_within_target_MSH,
            received_to_signed_out_within_target_MSQ,
-           received_to_signed_out_within_target_MSBI,
+           # received_to_signed_out_within_target_MSBI,
            received_to_signed_out_within_target_PACC,
            received_to_signed_out_within_target_MSB,
            received_to_signed_out_within_target_MSW,
            received_to_signed_out_within_target_MSM,
            avg_collection_to_signed_out_MSH,
            avg_collection_to_signed_out_MSQ,
-           avg_collection_to_signed_out_MSBI,
+           # avg_collection_to_signed_out_MSBI,
            avg_collection_to_signed_out_PACC,
            avg_collection_to_signed_out_MSB,
            avg_collection_to_signed_out_MSW,
@@ -2548,14 +2544,12 @@ ap_ei_kable_surgical_pathology <- function(surgical_pathology_ei_data){
                   "No. Cases Signed Out",
                   "MSH",
                   "MSQ",
-                  "MSBI",
                   "PACC",
                   "MSB",
                   "MSW",
                   "MSM",
                   "MSH",
                   "MSQ",
-                  "MSBI",
                   "PACC",
                   "MSB",
                   "MSW",
@@ -2568,17 +2562,17 @@ ap_ei_kable_surgical_pathology <- function(surgical_pathology_ei_data){
       kable_styling(bootstrap_options = "hover", position = "center",
                     font_size = 11,
                     full_width = FALSE) %>%
-      column_spec(column = c(1, 11, 18),
+      column_spec(column = c(1, 9, 16),
                   border_right = "thin solid lightgray") %>%
       add_header_above(c(" " = 1,
                          "Receive to Result Within Target (Business Days)" =
-                           10,
+                           9,
                          "Average Collect to Result TAT (Calendar Days)" =
-                           7),
+                           6),
                        background = c("white", "#00AEEF", "#221f72"),
                        color = "white", line = FALSE, font_size = 13) %>%
-      column_spec(column = 2:11, background = "#E6F8FF",color = "black") %>%
-      column_spec(column = 12:num_col, background = "#EBEBF9",color = "black") %>%
+      column_spec(column = 2:10, background = "#E6F8FF",color = "black") %>%
+      column_spec(column = 11:num_col, background = "#EBEBF9",color = "black") %>%
       row_spec(row = 0, font_size = 13) %>%
       collapse_rows(columns = c(1, 2))
     
@@ -2603,7 +2597,6 @@ ap_ei_kable_cytology <- function(cytology_ei_data){
                   "Centralized Lab",
                   "MSH",
                   "MSQ",
-                  "MSBI",
                   "PACC",
                   "MSB",
                   "MSW",
@@ -2623,7 +2616,7 @@ ap_ei_kable_cytology <- function(cytology_ei_data){
                          "Receive to Result Within Target (Business Days)" =
                            4,
                          "Average Collect to Result TAT (Calendar Days)" =
-                           8),
+                           7),
                        background = c("white", "#00AEEF", "#221f72"),
                        color = "white", line = FALSE, font_size = 13) %>%
       column_spec(column = 2:5, background = "#E6F8FF",color = "black") %>%
@@ -2713,11 +2706,14 @@ table_formatting_volume <- function(vol_table, tab) {
 ```{r Preprocess AP data, warning = FALSE, message = FALSE, echo = FALSE, eval = ap_eval}
 
 
-processed_cytology_data <-  cyto_prep(epic_data_raw ,pp_data_raw,yesterday)
+processed_cytology_data <-  cyto_prep(epic_data_raw ,pp_data_raw,yesterday) %>%
+  filter(!SITE %in% c("MSBI") )
 
-processed_surgical_pathology_data <- patho_prep(pp_data_raw,yesterday)
+processed_surgical_pathology_data <- patho_prep(pp_data_raw,yesterday) %>%
+  filter(!SITE %in% c("MSBI") )
 
-processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw,yesterday)
+processed_backlog_data <- pre_processing_backlog(cyto_backlog_data_raw,yesterday) %>%
+  filter(!Facility %in% c("MSBI") )
 
 ```
 
@@ -3171,22 +3167,18 @@ The table below summarizes the test codes and IDs used from these daily reports.
 
 ```{r Create and format a table for test codes}
 
-test_codes_kable <- full_join(cp_scc_test_codes, cp_sun_test_codes,
-                              by = c("TEST" = "TEST",
-                                     "DIVISION" = "DIVISION"))
-
+test_codes_kable <- cp_scc_test_codes
 test_codes_kable <- test_codes_kable %>%
-  select(DIVISION, TEST, SCC_TEST_ID, SUN_TEST_CODE) %>%
+  select(DIVISION, TEST, SCC_TEST_ID) %>%
   mutate(TEST = factor(TEST, levels = cp_micro_lab_order, ordered = TRUE)) %>%
   arrange(TEST)
 
 test_codes_kable %>%
   kable(format = "html", escape = FALSE, align = "c",
-        col.names = c("Lab Division", "Test", "SCC Test ID",
-                      "Sunquest Test Code")) %>%
+        col.names = c("Lab Division", "Test", "SCC Test ID")) %>%
   kable_styling(bootstrap_options = "hover", position = "center",
                 font_size = 11, full_width = FALSE) %>%
-  column_spec(column = c(1, 2, 3, 4), border_right = "thin solid lightgray") %>%
+  column_spec(column = c(1, 2, 3), border_right = "thin solid lightgray") %>%
   row_spec(row = 0, font_size = 13, background = "#221f72", color = "white") %>%
   collapse_rows()
 
